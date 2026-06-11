@@ -1,26 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ====================================
+   RESET
+==================================== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html{
+  scroll-behavior:smooth;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+body{
+  background:#F7F5F3;
+  color:#111;
+  overflow-x:hidden;
+  font-family:var(--font-poppins);
+}
+
+/* ====================================
+   FONTS
+==================================== */
+.playfair,
+.heading-serif{
+  font-family:var(--font-playfair);
+}
+
+.text-poppins{
+  font-family:var(--font-poppins);
+}
+
+/* ====================================
+   GLOBAL VARIABLES
+==================================== */
+:root{
+  --container-width:1280px;
+  --container-padding:40px;
+
+  --navbar-height:88px;
+
+  /* Figma Style Spacing */
+  --section-space:64px;
+  --section-space-tablet:56px;
+  --section-space-mobile:48px;
+}
+
+/* ====================================
+   CONTAINER
+==================================== */
+.container-custom{
+  width:100%;
+  max-width:var(--container-width);
+  margin:0 auto;
+  padding-left:var(--container-padding);
+  padding-right:var(--container-padding);
+}
+
+/* ====================================
+   GLOBAL SECTION SPACING
+==================================== */
+
+.home-section{
+  padding-top:var(--section-space);
+  padding-bottom:var(--section-space);
+}
+
+.home-section-sm{
+  padding-top:48px;
+  padding-bottom:48px;
+}
+
+.home-section-lg{
+  padding-top:80px;
+  padding-bottom:80px;
+}
+
+/* ====================================
+   TYPOGRAPHY
+==================================== */
+
+.section-title{
+  font-size:48px;
+  font-weight:600;
+  line-height:1.15;
+}
+
+.section-subtitle{
+  font-size:18px;
+  line-height:1.8;
+  color:#4A4A4A;
+}
+
+.primary-btn{
+  height:56px;
+  padding:0 32px;
+  border:none;
+  border-radius:999px;
+  background:#FF6500;
+  color:#fff;
+  font-size:15px;
+  font-weight:500;
+  cursor:pointer;
+  transition:all .3s ease;
+}
+
+.primary-btn:hover{
+  opacity:.92;
+}
+
+/* ====================================
+   TABLET
+==================================== */
+
+@media (max-width:1024px){
+
+  :root{
+    --container-padding:24px;
+    --section-space:56px;
+  }
+
+  .section-title{
+    font-size:36px;
+  }
+
+  .home-section{
+    padding-top:56px;
+    padding-bottom:56px;
+  }
+
+  .home-section-sm{
+    padding-top:40px;
+    padding-bottom:40px;
+  }
+
+  .home-section-lg{
+    padding-top:64px;
+    padding-bottom:64px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ====================================
+   MOBILE
+==================================== */
+
+@media (max-width:768px){
+
+  :root{
+    --container-padding:16px;
+    --section-space:48px;
+  }
+
+  .section-title{
+    font-size:28px;
+  }
+
+  .section-subtitle{
+    font-size:15px;
+  }
+
+  .primary-btn{
+    height:50px;
+    padding:0 24px;
+    font-size:14px;
+  }
+
+  .home-section{
+    padding-top:48px;
+    padding-bottom:48px;
+  }
+
+  .home-section-sm{
+    padding-top:32px;
+    padding-bottom:32px;
+  }
+
+  .home-section-lg{
+    padding-top:56px;
+    padding-bottom:56px;
+  }
 }
+/* RiyaArtPalace.module.css  — companion responsive styles */
+/* Import in your _app.jsx or layout.jsx:
+   import './RiyaArtPalace.module.css'
+   OR add @import in globals.css
+*/
+
+
+
+/* ── RESETS ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Poppins', sans-serif; }
+
+/* ── GALLERY / COLLAGE RESPONSIVE ────────────────────── */
+@media (max-width: 600px) {
+  /* Gallery strip becomes horizontally scrollable */
+  .galleryStrip {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .galleryStrip img {
+    min-width: 70vw !important;
+    flex: 0 0 70vw !important;
+    height: 160px !important;
+  }
+
+  /* Collage strip */
+  .collageStrip {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  .collageStrip img {
+    min-width: 60vw !important;
+    flex: 0 0 60vw !important;
+    height: 150px !important;
+  }
+}
+
+/* ── STORY ITEMS ─────────────────────────────────────── */
+@media (max-width: 700px) {
+  /* Force all story items to column */
+  [data-story-item] {
+    flex-direction: column !important;
+  }
+  [data-story-img] {
+    width: 100% !important;
+    flex: none !important;
+  }
+  [data-story-img] img {
+    width: 100% !important;
+    height: 200px !important;
+  }
+}
+
+/* ── SECTION PADDING MOBILE ──────────────────────────── */
+@media (max-width: 768px) {
+  [data-section] {
+    padding: 40px 20px !important;
+  }
+  [data-nav] {
+    padding: 12px 20px !important;
+  }
+  [data-hero] {
+    padding: 40px 20px !important;
+    flex-direction: column !important;
+  }
+  [data-stats-row] {
+    gap: 0 !important;
+  }
+  [data-stat-divider] {
+    display: none !important;
+  }
+  [data-stat-badge] {
+    padding: 12px 20px !important;
+  }
+  [data-pills] {
+    padding: 20px !important;
+  }
+  [data-import-cta] {
+    padding: 40px 20px !important;
+  }
+  [data-women] {
+    padding: 40px 20px !important;
+    flex-direction: column !important;
+  }
+  [data-footer-inner] {
+    flex-direction: column !important;
+    gap: 32px !important;
+  }
+  [data-worldwide] {
+    flex-direction: column !important;
+  }
+}
+
+/* ── HOVER STATES ────────────────────────────────────── */
+a:hover { opacity: 0.75; }
+button:hover { filter: brightness(1.1); transform: translateY(-1px); transition: all 0.2s; }
+img { max-width: 100%; }
