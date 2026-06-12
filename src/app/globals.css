@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Manrope:wght@400;700&display=swap');
 @import "tailwindcss";
 
 /* ====================================
@@ -182,11 +185,6 @@ body{
     padding-bottom:56px;
   }
 }
-/* RiyaArtPalace.module.css  — companion responsive styles */
-/* Import in your _app.jsx or layout.jsx:
-   import './RiyaArtPalace.module.css'
-   OR add @import in globals.css
-*/
 
 
 
@@ -221,21 +219,7 @@ body { font-family: 'Poppins', sans-serif; }
   }
 }
 
-/* ── STORY ITEMS ─────────────────────────────────────── */
-@media (max-width: 700px) {
-  /* Force all story items to column */
-  [data-story-item] {
-    flex-direction: column !important;
-  }
-  [data-story-img] {
-    width: 100% !important;
-    flex: none !important;
-  }
-  [data-story-img] img {
-    width: 100% !important;
-    height: 200px !important;
-  }
-}
+
 
 /* ── SECTION PADDING MOBILE ──────────────────────────── */
 @media (max-width: 768px) {

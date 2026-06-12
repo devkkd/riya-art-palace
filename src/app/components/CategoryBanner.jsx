@@ -18,47 +18,67 @@ export default function CategoryBanner() {
           display: block;
         }
 
-        .category-whatsapp-btn {
-          position: absolute;
-          right: 30px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          height: 40px;
-          min-width: 115px;
-          padding: 0 16px;
-          background-color: #25D366;
-          color: #fff;
-          border-radius: 999px;
-          font-size: 13px;
-          font-weight: 500;
-          white-space: nowrap;
-          border: none;
-          cursor: pointer;
-          font-family: sans-serif;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+       .category-whatsapp-btn {
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
 
-        @media (max-width: 600px) {
-          .category-banner-img {
-            height: 300px;
-          }
+  width: 136px;
+  height: 56px;
 
-          .category-whatsapp-btn {
-            right: 14px;
-            height: 34px;
-            min-width: unset;
-            padding: 0 12px;
-            font-size: 12px;
-            gap: 6px;
-          }
-        }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: #5AC44D;
+  color: #FFFFFF;
+
+  border: none;
+  border-radius: 99px;
+  cursor: pointer;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+
+  z-index: 10;
+}
+
+.category-whatsapp-btn:hover {
+  transform: translateY(-2px);
+}
+
+.category-whatsapp-btn svg {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .category-banner-img {
+    height: 300px;
+  }
+
+  .category-whatsapp-btn {
+    width: 120px;
+    height: 50px;
+    right: 16px;
+    bottom: 16px;
+    font-size: 16px;
+  }
+
+  .category-whatsapp-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
       `}</style>
 
-      <div style={{ position: "relative", overflow: "hidden" }}>
+      <div>
 
        <Image
   src={hero}
@@ -99,10 +119,15 @@ export default function CategoryBanner() {
         </div>
 
         {/* WhatsApp Button */}
-        <button className="category-whatsapp-btn">
-          <FaWhatsapp style={{ fontSize: "16px", flexShrink: "0" }} />
-          <span>For Bulk</span>
-        </button>
+        <a
+  href="https://wa.me/919876543210"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="category-whatsapp-btn"
+>
+  <FaWhatsapp />
+  <span>For Bulk</span>
+</a>
 
       </div>
     </section>

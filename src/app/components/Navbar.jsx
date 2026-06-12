@@ -3,6 +3,8 @@ import { Search, ShoppingBag, User, ChevronDown, Menu } from "lucide-react";
 import Image from "next/image";
 import logo from "../assets/logo.png";
 import Link from "next/link";
+
+
 export default function Navbar() {
   return (
     <header
@@ -20,7 +22,7 @@ export default function Navbar() {
         }}
       >
 
-       
+
         <div
           style={{
             display: "flex",
@@ -31,7 +33,7 @@ export default function Navbar() {
           className="desktop-nav"
         >
 
-          
+
           <div
             style={{
               display: "flex",
@@ -41,17 +43,17 @@ export default function Navbar() {
           >
 
             <Image
-  src={logo}
-  alt="Riya Art Palace"
-  width={180}
-  height={58}
-  style={{
-    height: "58px",
-    width: "auto",
-    objectFit: "contain",
-    display: "block",
-  }}
-/>
+              src={logo}
+              alt="Riya Art Palace"
+              width={180}
+              height={58}
+              style={{
+                height: "58px",
+                width: "auto",
+                objectFit: "contain",
+                display: "block",
+              }}
+            />
 
             <div
               style={{
@@ -131,45 +133,45 @@ export default function Navbar() {
               Home
             </a>
 
+            <Link
+              href="/about"
+              style={{
+                fontWeight: "400",
+                color: "#222",
+                textDecoration: "none",
+              }}
+            >
+              About Us
+            </Link>
+
+            <Link
+  href="/products"
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    fontWeight: "400",
+    color: "#222",
+    textDecoration: "none",
+  }}
+>
+  Product Collections
+  <ChevronDown size={14} />
+</Link>
+
            <Link
-  href="/about"
+  href="/contact"
   style={{
     fontWeight: "400",
     color: "#222",
     textDecoration: "none",
   }}
 >
-  About Us
+  Contact Us
 </Link>
-
-            <a
-              href="#"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-                fontWeight: "400",
-                color: "#222",
-                textDecoration: "none",
-              }}
-            >
-              Product Collections
-              <ChevronDown size={14} />
-            </a>
-
-            <a
-              href="#"
-              style={{
-                fontWeight: "400",
-                color: "#222",
-                textDecoration: "none",
-              }}
-            >
-              Contact Us
-            </a>
           </nav>
 
-        
+
           <div
             style={{
               display: "flex",
@@ -262,17 +264,17 @@ export default function Navbar() {
             height: "72px",
           }}
         >
-         <Image
-  src={logo}
-  alt="logo"
-  width={130}
-  height={42}
-  style={{
-    height: "42px",
-    width: "auto",
-    display: "block",
-  }}
-/>
+          <Image
+            src={logo}
+            alt="logo"
+            width={130}
+            height={42}
+            style={{
+              height: "42px",
+              width: "auto",
+              display: "block",
+            }}
+          />
           <Menu size={28} color="#222" />
         </div>
 
