@@ -1,7 +1,4 @@
-// pages/index.jsx  OR  app/page.jsx
-// Usage: Drop this file into your Next.js project.
-// Also add to your global CSS / tailwind config:
-//  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+
 "use client";
 import React from "react";
 import Navbar from "./Navbar";

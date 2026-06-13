@@ -1,22 +1,21 @@
 "use client";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
 import Footer from "./Footer";
-import p1 from "../assets/p1.jpg";
-import p2 from "../assets/p2.jpg";
-import p3 from "../assets/p3.jpg";
-import p4 from "../assets/p4.jpg";
+import { categories, subCategories, moqOptions, sortOptions, products } from "../data/products";
+
 
 /* ============================================================
    STYLES
    ============================================================ */
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
-  /* ── Reset / Base ── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   /* ── Page Shell ── */
@@ -171,76 +170,63 @@ const styles = `
   }
 
   /* ══════════════════════════════════════
-     PRODUCT CARD — exact screenshot match
+     PRODUCT CARD
   ══════════════════════════════════════ */
   .pc-card {
     width: 100%;
-    
     background: #F7F5F3;
     display: flex;
     flex-direction: column;
     transition: transform .25s ease, box-shadow .25s ease;
     overflow: hidden;
+    cursor: pointer;
   }
   .pc-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 18px 36px rgba(0,0,0,.09);
   }
-
-  /* Image */
-.pc-img-wrap {
-  width: 100%;
-  height: 400px;
-  overflow: hidden;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.pc-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-  /* Body */
+  .pc-img-wrap {
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .pc-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
   .pc-body {
     padding: 16px 16px 14px;
     display: flex;
     flex-direction: column;
     flex: 1;
   }
-
-  /* Title */
- .pc-title {
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-  margin-bottom: 14px;
-}
-
-  /* Price */
- .pc-price {
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-  margin-bottom: 16px;
-}
-
-  /* Subtitle */
+  .pc-title {
+    font-family: "Manrope", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 160%;
+    letter-spacing: -0.02em;
+    color: #0E0E0E;
+    margin-bottom: 14px;
+  }
+  .pc-price {
+    font-family: "Manrope", sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 160%;
+    letter-spacing: -0.02em;
+    color: #0E0E0E;
+    margin-bottom: 16px;
+  }
   .pc-subtitle {
     font-size: 13px;
     color: #4B4B4B;
     margin-bottom: 0;
   }
-
-  /* Quantity row */
   .pc-qty-row {
     display: flex;
     justify-content: space-between;
@@ -262,7 +248,6 @@ const styles = `
     width: 118px;
     height: 46px;
     border: 1px solid #C3BCB4;
-
     border-radius: 999px;
     padding: 0 14px;
     background: transparent;
@@ -287,8 +272,6 @@ const styles = `
     text-align: center;
     color: #1D1D1D;
   }
-
-  /* Add to Cart */
   .pc-cart-btn {
     width: 100%;
     height: 50px;
@@ -307,26 +290,20 @@ const styles = `
     margin-bottom: 14px;
     transition: background .2s, transform .15s;
   }
-  .pc-cart-btn:hover {
-    background: #e84f00;
-    transform: translateY(-1px);
+  .pc-cart-btn:hover { background: #e84f00; transform: translateY(-1px); }
+  .pc-enquiry {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-top: 2px;
   }
-
-  /* Enquiry links */
- .pc-enquiry {
-  display: flex;
-  align-items: center;
-  gap: 24px;   /* 20px-30px ke beech rakh sakte ho */
-  margin-top: 2px;
-}
-
-.pc-enquiry a {
-  font-size: 13px;
-  font-weight: 600;
-  color: #111;
-  text-decoration: none;
-  white-space: nowrap;
-}
+  .pc-enquiry a {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111;
+    text-decoration: none;
+    white-space: nowrap;
+  }
   .pc-enquiry a:hover { color: #F85700; }
 
   /* ── Pagination ── */
@@ -347,11 +324,7 @@ const styles = `
     font-family: "Poppins", sans-serif;
     transition: background .2s, color .2s;
   }
-  .pp-page-btn.active {
-    background: #111;
-    color: white;
-    border-color: #111;
-  }
+  .pp-page-btn.active { background: #111; color: white; border-color: #111; }
   .pp-page-btn:hover:not(.active) { background: #f0ede9; }
 
   /* ── See More ── */
@@ -378,29 +351,67 @@ const styles = `
 
   /* ── WhatsApp FAB ── */
   .pp-wa-btn {
-    position: fixed;
-    right: 28px;
-    bottom: 28px;
-    width: 140px;
-    height: 54px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    border-radius: 999px;
-    background: #25D366;
-    color: white;
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 500;
-    font-family: "Poppins", sans-serif;
-    box-shadow: 0 8px 28px rgba(0,0,0,.2);
-    z-index: 9999;
-    transition: transform .2s, background .2s;
-  }
-  .pp-wa-btn:hover { background: #1ebe59; transform: scale(1.04); }
-  .pp-wa-btn svg { font-size: 22px; }
+  position: fixed;
+  right: 30px;
+  bottom: 30px;
 
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: #5AC44D;
+  color: #FFFFFF;
+  text-decoration: none;
+
+  padding: 15px 20px;
+  border-radius: 99px;
+
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+
+  z-index: 9999;
+
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.pp-wa-btn:hover {
+  transform: translateY(-2px);
+  background: #4CAF50;
+}
+
+.pp-wa-btn svg {
+  width: 22px;
+  height: 22px;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.pp-wa-btn span {
+  color: #FFFFFF;
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+@media (max-width:768px) {
+  .pp-wa-btn {
+    right: 16px;
+    bottom: 16px;
+    padding: 12px 18px;
+  }
+
+  .pp-wa-btn span {
+    font-size: 16px;
+  }
+
+  .pp-wa-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
   /* ── Responsive ── */
   @media (max-width: 1200px) {
     .pp-grid { grid-template-columns: repeat(3, 1fr); }
@@ -414,7 +425,7 @@ const styles = `
     .pp-title { font-size: 26px; }
     .pp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .pc-img-wrap { height: 170px; }
-    .pc-body { padding: 10px 10px 10px; }
+    .pc-body { padding: 10px; }
     .pc-title { font-size: 14px; }
     .pc-price { font-size: 13px; }
     .pc-subtitle { font-size: 11px; }
@@ -423,7 +434,7 @@ const styles = `
     .pc-qty-btn { font-size: 22px; }
     .pc-cart-btn { height: 42px; font-size: 12px; }
     .pc-enquiry a { font-size: 11px; }
-    .pp-wa-btn { width: 120px; height: 48px; right: 14px; bottom: 14px; font-size: 13px; }
+    
   }
   @media (max-width: 480px) {
     .pc-img-wrap { height: 140px; }
@@ -432,117 +443,70 @@ const styles = `
 `;
 
 /* ============================================================
-   PRODUCT CARD
+   DATA
+   (Better: move this to src/app/data/products.js and import
+   in both this file and products/[id]/page.jsx so data stays in sync)
+   ============================================================ */
+
+
+
+
+/* ============================================================
+   PRODUCT CARD (Grid listing)
    ============================================================ */
 function ProductCard({ product }) {
+  const router = useRouter();
   const [qty, setQty] = useState(500);
 
   return (
-    <div className="pc-card">
-      {/* Image */}
+    <div className="pc-card" onClick={() =>router.push(`/products/${product.slug}`)}>
       <div className="pc-img-wrap">
-       <Image
-  src={product.image}
-  alt={product.name}
-  width={300}
-  height={400}
-  className="pc-img"
-/>
+        <Image src={product.images[0]} alt={product.name} width={300} height={400} className="pc-img" />
       </div>
-
-      {/* Body */}
       <div className="pc-body">
         <h3 className="pc-title">{product.name}</h3>
         <div className="pc-price">{product.price}</div>
         <div className="pc-subtitle">{product.subtitle}</div>
 
-        {/* Quantity */}
         <div className="pc-qty-row">
           <span className="pc-qty-label">QUANTITY</span>
           <div className="pc-qty-ctrl">
-            <button
-              className="pc-qty-btn"
-              onClick={() => setQty((p) => (p > 1 ? p - 1 : 1))}
-              aria-label="Decrease quantity"
-            >
-              −
-            </button>
+            <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setQty(p => p > 1 ? p - 1 : 1); }} aria-label="Decrease">−</button>
             <span className="pc-qty-num">{qty}</span>
-            <button
-              className="pc-qty-btn"
-              onClick={() => setQty((p) => p + 1)}
-              aria-label="Increase quantity"
-            >
-              +
-            </button>
+            <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setQty(p => p + 1); }} aria-label="Increase">+</button>
           </div>
         </div>
 
-        {/* Add to Cart */}
-        <button className="pc-cart-btn">
-          + Add to Cart
-        </button>
+        <button className="pc-cart-btn" onClick={(e) => e.stopPropagation()}>+ Add to Cart</button>
 
-        {/* Enquiry Links */}
         <div className="pc-enquiry">
-          <a href="#">India Enquiry →</a>
-          <a href="#">Export Enquiry →</a>
+  <a
+    href="#"
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      router.push("/enquiry?type=india");
+    }}
+  >
+    India Enquiry →
+  </a>
+
+  <a
+    href="#"
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      router.push("/enquiry?type=export");
+    }}
+  >
+    Export Enquiry →
+  </a>
+</div>
         </div>
       </div>
-    </div>
+    
   );
 }
-
-/* ============================================================
-   DATA
-   ============================================================ */
-const categories = [
-  "Wall Décor",
-  "Table Décor",
-  "Lac Collection",
-  "Event Décor",
-  "Festive Collection",
-  "Rajasthani Traditional",
-  "Handmade Accessories",
-  "Spiritual Items",
-  "Handpainted Articles",
-  "Diary Collection",
-  "Christmas Items",
-  "Ottomans & Puffs",
-];
-
-const subCategories = [
-  "All Products",
-  "Rajasthani Wall Hanging",
-  "Wall Hangings",
-  "Torans",
-  "Fancy Hangings",
-  "Marigold Toran",
-  "Marigold Flower Hangings",
-  "Wind Chimes",
-  "Dream Catcher",
-  "Prosperity Hangings",
-];
-
-const moqOptions = ["1 - 100 pcs", "100 - 500 pcs", "500 - 1000 pcs", "1000+ pcs"];
-const sortOptions = ["Recommended", "New Arrivals", "Price High to Low", "Price Low to High"];
-
-const products = [
-  { id: 1, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p1 },
-  { id: 2, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p2 },
-  { id: 3, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p3 },
-  { id: 4, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p4 },
-  { id: 5, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p1 },
-  { id: 6, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p2 },
-  { id: 7, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p3 },
-  { id: 8, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p4 },
-  { id: 9, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p1 },
-  { id: 10, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p2 },
-  { id: 11, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p3 },
-  { id: 12, name: "Pom Pom Wall Hangings", price: "₹100/Piece", subtitle: "Wall hanging | Gota POM POM", image: p4 },
-  
-  
-];
 
 /* ============================================================
    PAGE
@@ -556,7 +520,6 @@ export default function ProductsPage() {
   return (
     <>
       <Navbar />
-
       <style jsx>{styles}</style>
 
       <div className="pp-page">
@@ -578,69 +541,43 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          {/* Main Layout */}
+          {/* ── LISTING VIEW ── */}
           <div className="pp-layout">
 
-            {/* ── Sidebar ── */}
+            {/* Sidebar */}
             <aside className="pp-sidebar">
-
               <div className="pp-filter-top">
                 <h3>Filters</h3>
-                <button
-                  className="pp-clear-btn"
-                  onClick={() => {
-                    setSelectedSubCat("All Products");
-                    setSelectedMOQ("");
-                    setSelectedSort("Recommended");
-                  }}
-                >
+                <button className="pp-clear-btn" onClick={() => { setSelectedSubCat("All Products"); setSelectedMOQ(""); setSelectedSort("Recommended"); }}>
                   Clear All
                 </button>
               </div>
 
-              {/* Sub Category */}
               <div className="pp-filter-section">
                 <h4>Sub Category</h4>
                 {subCategories.map((item) => (
                   <label className="pp-radio-row" key={item}>
-                    <input
-                      type="radio"
-                      name="subcategory"
-                      checked={selectedSubCat === item}
-                      onChange={() => setSelectedSubCat(item)}
-                    />
+                    <input type="radio" name="subcategory" checked={selectedSubCat === item} onChange={() => setSelectedSubCat(item)} />
                     <span>{item}</span>
                   </label>
                 ))}
               </div>
 
-              {/* MOQ */}
               <div className="pp-filter-section">
                 <h4>MOQ (Minimum Order Quantity)</h4>
                 {moqOptions.map((item) => (
                   <label className="pp-radio-row" key={item}>
-                    <input
-                      type="radio"
-                      name="moq"
-                      checked={selectedMOQ === item}
-                      onChange={() => setSelectedMOQ(item)}
-                    />
+                    <input type="radio" name="moq" checked={selectedMOQ === item} onChange={() => setSelectedMOQ(item)} />
                     <span>{item}</span>
                   </label>
                 ))}
               </div>
 
-              {/* Sort */}
               <div className="pp-filter-section">
                 <h4>Sort by</h4>
                 {sortOptions.map((item) => (
                   <label className="pp-radio-row" key={item}>
-                    <input
-                      type="radio"
-                      name="sort"
-                      checked={selectedSort === item}
-                      onChange={() => setSelectedSort(item)}
-                    />
+                    <input type="radio" name="sort" checked={selectedSort === item} onChange={() => setSelectedSort(item)} />
                     <span>{item}</span>
                   </label>
                 ))}
@@ -649,7 +586,7 @@ export default function ProductsPage() {
               <button className="pp-apply-btn">Apply Filter</button>
             </aside>
 
-            {/* ── Products Area ── */}
+            {/* Products Area */}
             <div>
               <div className="pp-prod-header">
                 <div className="pp-prod-count">Showing {products.length} Products</div>
@@ -660,14 +597,12 @@ export default function ProductsPage() {
                 </select>
               </div>
 
-              {/* Grid */}
               <div className="pp-grid">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
               </div>
 
-              {/* Pagination */}
               <div className="pp-pagination">
                 <button className="pp-page-btn active">1</button>
                 <button className="pp-page-btn">2</button>
@@ -675,26 +610,26 @@ export default function ProductsPage() {
                 <button className="pp-page-btn">→</button>
               </div>
 
-              {/* See More */}
               <div className="pp-see-more">
                 <button className="pp-see-more-btn">See More Products</button>
               </div>
             </div>
 
           </div>
+
         </div>
       </div>
 
       {/* WhatsApp FAB */}
       <a
-        href="https://wa.me/918385007350"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="pp-wa-btn"
-      >
-        <FaWhatsapp />
-        <span>For Bulk</span>
-      </a>
+  href="https://wa.me/918385007350"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="pp-wa-btn"
+>
+  <FaWhatsapp />
+  <span>For Bulk</span>
+</a>
 
       <FollowUs />
       <Footer />

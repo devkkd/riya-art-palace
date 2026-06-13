@@ -18,34 +18,31 @@ export default function CategoryBanner() {
           display: block;
         }
 
-       .category-whatsapp-btn {
+      .category-whatsapp-btn {
   position: fixed;
   right: 30px;
   bottom: 30px;
 
-  width: 136px;
-  height: 56px;
-
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 10px;
 
   background: #5AC44D;
-  color: #FFFFFF;
+  color: #fff;
+  text-decoration: none;
 
-  border: none;
+  padding: 15px 20px;
   border-radius: 99px;
-  cursor: pointer;
 
   font-family: "Poppins", sans-serif;
   font-size: 18px;
   font-weight: 500;
+  line-height: 1;
 
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
+  z-index: 9999;
 
-  z-index: 10;
+  box-shadow: 0 8px 25px rgba(0,0,0,.15);
+  transition: all .3s ease;
 }
 
 .category-whatsapp-btn:hover {
@@ -53,11 +50,37 @@ export default function CategoryBanner() {
 }
 
 .category-whatsapp-btn svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
+  color: #fff;
   flex-shrink: 0;
 }
 
+.category-whatsapp-btn span {
+  color: #fff;
+  font-family: "Poppins", sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+@media (max-width:768px) {
+  .category-whatsapp-btn {
+    right: 16px;
+    bottom: 16px;
+    padding: 12px 18px;
+    font-size: 16px;
+  }
+
+  .category-whatsapp-btn span {
+    font-size: 16px;
+  }
+
+  .category-whatsapp-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
 @media (max-width: 600px) {
   .category-banner-img {
     height: 300px;
@@ -78,7 +101,11 @@ export default function CategoryBanner() {
 }
       `}</style>
 
-      <div>
+      <div
+  style={{
+    position: "relative",
+  }}
+>
 
        <Image
   src={hero}
@@ -119,7 +146,7 @@ export default function CategoryBanner() {
         </div>
 
         {/* WhatsApp Button */}
-        <a
+     <a
   href="https://wa.me/919876543210"
   target="_blank"
   rel="noopener noreferrer"

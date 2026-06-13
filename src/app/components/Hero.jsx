@@ -1,6 +1,7 @@
 "use client";
 import elephant from "../assets/elephant.png";
 import Image from "next/image";
+
 const stats = [
   { value: "30+", label: "Years Legacy" },
   { value: "500+", label: "Products" },
@@ -15,44 +16,35 @@ export default function Hero() {
       style={{
         backgroundColor: "#F7F5F3",
         borderTop: "1px solid #E5DFD9",
-      
         overflow: "hidden",
       }}
     >
       <style>{`
-      @keyframes pendulumSwing {
-  0% {
-    transform: rotate(-6deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
-  100% {
-    transform: rotate(-6deg);
-  }
-}
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');
 
-        
-        .hero-outer {
-          max-width: 1280px;
-          margin: 0 auto;
-          padding: 60px 40px 56px;
+        @keyframes pendulumSwing {
+          0%   { transform: rotate(-6deg); }
+          50%  { transform: rotate(6deg); }
+          100% { transform: rotate(-6deg); }
         }
 
+        /* ── DESKTOP HERO ── */
+        .hero-outer {
+          max-width: 1564px;
+          margin: 0 auto;
+          padding: 40px 80px 30px;
+        }
         .hero-grid {
           display: grid;
-          grid-template-columns: 1fr 0.65fr 0.9fr;
-          align-items: center;
-          gap: 24px;
+          grid-template-columns: 1.2fr 0.7fr 1fr;
+          align-items: start;
+          gap: 40px;
         }
-
         .hero-img-col {
           display: flex;
           justify-content: center;
           align-items: flex-start;
-          margin-top: -148px;
-           transform-origin: top center;
+          margin-top: -90px;
         }
         .hero-img {
           width: 100%;
@@ -60,14 +52,19 @@ export default function Hero() {
           object-fit: contain;
           display: block;
           filter: drop-shadow(0 12px 32px rgba(0,0,0,0.08));
-           transform-origin: top center;
-  animation: pendulumSwing 5s ease-in-out infinite;
+          transform-origin: top center;
+          animation: pendulumSwing 5s ease-in-out infinite;
         }
 
-        
-        .hero-mobile { display: none; }
-
-      
+        /* ── STATS ── */
+        .stats-outer {
+          background-color: #F7F5F3;
+        }
+        .stats-inner {
+          max-width: 1564px;
+          margin: 0 auto;
+          padding: 0 80px;
+        }
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
@@ -75,46 +72,49 @@ export default function Hero() {
         .stat-item {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding-top: 28px;
-          padding-bottom: 28px;
+          gap: 12px;
+          padding-top: 20px;
+          padding-bottom: 20px;
+        }
+        .stat-value {
+          font-size: clamp(20px, 2vw, 30px);
+          font-weight: 700;
+          color: #111;
+          font-family: 'Manrope', sans-serif;
+          white-space: nowrap;
+          letter-spacing: -0.02em;
+        }
+        .stat-label {
+          font-size: clamp(11px, 0.9vw, 14px);
+          color: #888;
+          font-family: 'Manrope', sans-serif;
+          line-height: 1.3;
+          font-weight: 400;
         }
 
-        
-        @media (max-width: 700px) {
+        /* ── MOBILE HERO ── */
+        .hero-mobile { display: none; }
+        .hero-mobile-img-wrap { display: none; }
 
-          
+        @media (max-width: 768px) {
+          /* Hide desktop, show mobile */
           .hero-outer { display: none; }
-
-          
           .hero-mobile { display: block; }
 
-          .hero-mobile-img-wrap {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            margin-top: -60px;
-            padding: 0 40px;
-          }
-          .hero-mobile-img {
-            width: 55%;
-            max-width: 260px;
-            min-width: 160px;
-            object-fit: contain;
-            display: block;
-            filter: drop-shadow(0 12px 32px rgba(0,0,0,0.08));
-          }
+          /* NO elephant on mobile */
+          .hero-mobile-img-wrap { display: none; }
 
-          
           .hero-mobile-body {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px 20px;
-            padding: 32px 20px 40px;
+            gap: 20px 16px;
+            padding: 28px 20px 36px;
           }
 
-        
+          /* Stats — 2 column on mobile */
+          .stats-inner {
+            padding: 0;
+          }
           .stats-grid {
             grid-template-columns: repeat(2, 1fr);
           }
@@ -123,40 +123,39 @@ export default function Hero() {
             padding-right: 16px !important;
             border-right: none !important;
             border-bottom: 1px solid #D9D3CC;
-            padding-top: 18px;
-            padding-bottom: 18px;
+            padding-top: 16px;
+            padding-bottom: 16px;
           }
           .stat-item:nth-child(odd) {
-            padding-left: 20px !important;
             border-right: 1px solid #D9D3CC !important;
-          }
-          .stat-item:nth-child(even) {
-            padding-left: 20px !important;
           }
           .stat-item:nth-last-child(-n+2) {
             border-bottom: none;
           }
-          .stats-wrap-mobile {
-            padding-left: 0;
-            padding-right: 0;
+          /* 5th stat (IEC) — lone item at bottom, full width */
+          .stat-item:last-child {
+            grid-column: 1 / -1;
+            border-right: none !important;
+            border-bottom: none;
           }
         }
       `}</style>
 
-      
+      {/* ── DESKTOP LAYOUT ── */}
       <div className="hero-outer">
         <div className="hero-grid">
 
+          {/* Left: Brand + Tagline */}
           <div className="hero-left">
             <h1
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                color: "#F86300",
-                fontWeight: "400",
-                fontSize: "clamp(48px, 6vw, 82px)",
-                lineHeight: "0.92",
-                letterSpacing: "-0.03em",
-                margin: "0 0 40px 0",
+                fontFamily: "'Monotype Corsiva', 'URW Chancery L', cursive",
+                color: "#F85700",
+                fontWeight: "700",
+                fontSize: "72px",
+                lineHeight: "1.1",
+                letterSpacing: "-0.02em",
+                margin: "0 0 10px 0",
               }}
             >
               Riya Art Palace
@@ -165,11 +164,13 @@ export default function Hero() {
               style={{
                 fontFamily: "'Playfair Display', Georgia, serif",
                 fontStyle: "italic",
-                color: "#111",
-                fontWeight: "500",
-                fontSize: "clamp(24px, 3.2vw, 44px)",
-                lineHeight: "1.18",
+                color: "#0E0E0E",
+                fontWeight: "700",
+                fontSize: "50px",
+                lineHeight: "1.55",
+                letterSpacing: "-0.02em",
                 margin: "0",
+                maxWidth: "645px",
               }}
             >
               The Art of Rajasthan,
@@ -178,32 +179,36 @@ export default function Hero() {
             </h2>
           </div>
 
+          {/* Center: Elephant */}
           <div className="hero-img-col">
-            <Image src={elephant} alt="Elephant" className="hero-img" />
+            <Image src={elephant} alt="Handmade elephant décor" className="hero-img" />
           </div>
 
-          <div style={{ paddingTop: "8px" }}>
+          {/* Right: Copy + CTA */}
+          <div style={{ paddingTop: "20px", maxWidth: "550px" }}>
             <h3
               style={{
-                color: "#111",
+                color: "#0E0E0E",
                 fontWeight: "700",
-                fontSize: "clamp(18px, 1.9vw, 26px)",
-                lineHeight: "1.35",
-                maxWidth: "430px",
-                margin: "0 0 24px 0",
-                fontFamily: "sans-serif",
+                fontSize: "30px",
+                lineHeight: "1.5",
+                letterSpacing: "-0.03em",
+                maxWidth: "550px",
+                margin: "0 0 20px 0",
+                fontFamily: "'Manrope', sans-serif",
               }}
             >
               Authentic Handmade Décor Crafted In Jaipur Since 1995
             </h3>
             <p
               style={{
-                fontSize: "14px",
-                lineHeight: "2",
-                color: "#4A4A4A",
-                maxWidth: "440px",
-                margin: "0 0 40px 0",
-                fontFamily: "sans-serif",
+                fontSize: "16px",
+                lineHeight: "1.7",
+                color: "#0E0E0E",
+                maxWidth: "550px",
+                margin: "0 0 32px 0",
+                fontFamily: "'Manrope', sans-serif",
+                fontWeight: "400",
               }}
             >
               From The Workshops Of Jaipur To Homes And Collections
@@ -214,13 +219,13 @@ export default function Hero() {
             </p>
             <button
               style={{
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                height: "56px",
-                minWidth: "220px",
-                padding: "0 32px",
-                borderRadius: "999px",
+                height: "70px",
+                minWidth: "230px",
+                padding: "0 40px",
+                borderRadius: "99px",
                 backgroundColor: "#FF6500",
                 color: "#fff",
                 fontSize: "15px",
@@ -228,11 +233,11 @@ export default function Hero() {
                 whiteSpace: "nowrap",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "sans-serif",
+                fontFamily: "'Manrope', sans-serif",
                 transition: "background-color 0.3s, transform 0.3s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#f55f00";
+                e.currentTarget.style.backgroundColor = "#e55a00";
                 e.currentTarget.style.transform = "scale(1.04)";
               }}
               onMouseLeave={(e) => {
@@ -248,25 +253,22 @@ export default function Hero() {
         </div>
       </div>
 
-      
+      {/* ── MOBILE LAYOUT ── */}
       <div className="hero-mobile">
-
-        <div className="hero-mobile-img-wrap">
-          <Image src={elephant} alt="Elephant" className="hero-mobile-img" />
-        </div>
-
+        {/* No elephant on mobile */}
         <div className="hero-mobile-body">
 
+          {/* Left col: Brand + Tagline */}
           <div>
             <h1
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                color: "#F86300",
-                fontWeight: "400",
-                fontSize: "clamp(36px, 9vw, 52px)",
-                lineHeight: "0.92",
-                letterSpacing: "-0.03em",
-                margin: "0 0 20px 0",
+                fontFamily: "'Monotype Corsiva', 'URW Chancery L', cursive",
+                color: "#F85700",
+                fontWeight: "700",
+                fontSize: "clamp(34px, 9vw, 52px)",
+                lineHeight: "1.05",
+                letterSpacing: "-0.02em",
+                margin: "0 0 16px 0",
               }}
             >
               Riya Art Palace
@@ -275,10 +277,10 @@ export default function Hero() {
               style={{
                 fontFamily: "'Playfair Display', Georgia, serif",
                 fontStyle: "italic",
-                color: "#111",
-                fontWeight: "500",
+                color: "#0E0E0E",
+                fontWeight: "700",
                 fontSize: "clamp(16px, 4.5vw, 22px)",
-                lineHeight: "1.25",
+                lineHeight: "1.35",
                 margin: "0",
               }}
             >
@@ -288,26 +290,29 @@ export default function Hero() {
             </h2>
           </div>
 
+          {/* Right col: Copy + CTA */}
           <div>
             <h3
               style={{
-                color: "#111",
+                color: "#0E0E0E",
                 fontWeight: "700",
-                fontSize: "clamp(14px, 3.8vw, 18px)",
-                lineHeight: "1.35",
-                margin: "0 0 14px 0",
-                fontFamily: "sans-serif",
+                fontSize: "clamp(13px, 3.5vw, 18px)",
+                lineHeight: "1.4",
+                margin: "0 0 12px 0",
+                fontFamily: "'Manrope', sans-serif",
+                letterSpacing: "-0.02em",
               }}
             >
               Authentic Handmade Décor Crafted In Jaipur Since 1995
             </h3>
             <p
               style={{
-                fontSize: "12px",
-                lineHeight: "1.8",
+                fontSize: "clamp(11px, 2.8vw, 13px)",
+                lineHeight: "1.75",
                 color: "#4A4A4A",
-                margin: "0 0 24px 0",
-                fontFamily: "sans-serif",
+                margin: "0 0 20px 0",
+                fontFamily: "'Manrope', sans-serif",
+                fontWeight: "400",
               }}
             >
               From The Workshops Of Jaipur To Homes And Collections
@@ -331,7 +336,7 @@ export default function Hero() {
                 whiteSpace: "nowrap",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "sans-serif",
+                fontFamily: "'Manrope', sans-serif",
               }}
             >
               <span>Explore Collections</span>
@@ -342,17 +347,9 @@ export default function Hero() {
         </div>
       </div>
 
-      
-      <div style={{  backgroundColor: "#F7F5F3" }}>
-        <div
-          className="stats-wrap-mobile"
-          style={{
-            maxWidth: "1280px",
-            margin: "0 auto",
-            paddingLeft: "40px",
-            paddingRight: "40px",
-          }}
-        >
+      {/* ── STATS BAR ── */}
+      <div className="stats-outer">
+        <div className="stats-inner">
           <div className="stats-grid">
             {stats.map((stat, index) => (
               <div
@@ -364,27 +361,8 @@ export default function Hero() {
                   borderRight: index < stats.length - 1 ? "1px solid #D9D3CC" : "none",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "clamp(18px, 2vw, 28px)",
-                    fontWeight: "700",
-                    color: "#111",
-                    fontFamily: "sans-serif",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {stat.value}
-                </span>
-                <span
-                  style={{
-                    fontSize: "clamp(11px, 1.1vw, 14px)",
-                    color: "#777",
-                    fontFamily: "sans-serif",
-                    lineHeight: "1.3",
-                  }}
-                >
-                  {stat.label}
-                </span>
+                <span className="stat-value">{stat.value}</span>
+                <span className="stat-label">{stat.label}</span>
               </div>
             ))}
           </div>
