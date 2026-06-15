@@ -13,7 +13,7 @@ import { categories, subCategories, moqOptions, sortOptions, products } from "..
    STYLES
    ============================================================ */
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,14 +31,17 @@ const styles = `
   }
 
   /* ── Page Title ── */
-  .pp-title {
-    text-align: center;
-    font-size: 36px;
-    font-weight: 600;
-    color: #1D1D1D;
-    margin-top: 12px;
-    margin-bottom: 28px;
-  }
+ .pp-title {
+  text-align: center;
+  font-family: "Manrope", sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 160%;
+  letter-spacing: -0.04em;
+  color: #0E0E0E;
+  margin-top: 12px;
+  margin-bottom: 28px;
+}
 
   /* ── Category Pills ── */
   .pp-cat-row {
@@ -60,8 +63,10 @@ const styles = `
     border-radius: 999px;
     background: #D7CEC5;
     color: #2B2B2B;
-    font-size: 14px;
-    font-weight: 400;
+    font-family: "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+
     cursor: pointer;
     transition: background .2s, color .2s;
     white-space: nowrap;
@@ -91,9 +96,11 @@ const styles = `
     margin-bottom: 0;
   }
   .pp-filter-top h3 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #111;
+      font-family: "Manrope", sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #0E0E0E;
+
   }
   .pp-clear-btn {
     background: none;
@@ -108,10 +115,13 @@ const styles = `
     border-bottom: 1px solid #CFC6BE;
   }
   .pp-filter-section h4 {
-    font-size: 16px;
-    font-weight: 600;
+    font-family: "Manrope", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0E0E0E;
+
     margin-bottom: 18px;
-    color: #111;
+   
   }
   .pp-radio-row {
     display: flex;
@@ -120,7 +130,11 @@ const styles = `
     margin-bottom: 14px;
     cursor: pointer;
   }
-  .pp-radio-row span { font-size: 14px; color: #333; }
+  .pp-radio-row span {   font-family: "Manrope", sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #333;
+}
   .pp-radio-row input[type="radio"] {
     width: 22px;
     height: 22px;
@@ -135,10 +149,12 @@ const styles = `
     border-radius: 999px;
     background: #F85700;
     color: #fff;
+      font-family: "Manrope", sans-serif;
+
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+
     transition: background .2s;
   }
   .pp-apply-btn:hover { background: #e85000; }
@@ -150,7 +166,11 @@ const styles = `
     align-items: center;
     margin-bottom: 24px;
   }
-  .pp-prod-count { font-size: 14px; color: #666; }
+  .pp-prod-count {   font-family: "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #666;
+}
   .pp-sort-select {
     border: 1px solid #ddd;
     border-radius: 999px;
@@ -206,7 +226,7 @@ const styles = `
   }
   .pc-title {
     font-family: "Manrope", sans-serif;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 160%;
     letter-spacing: -0.02em;
@@ -215,7 +235,7 @@ const styles = `
   }
   .pc-price {
     font-family: "Manrope", sans-serif;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 160%;
     letter-spacing: -0.02em;
@@ -223,7 +243,9 @@ const styles = `
     margin-bottom: 16px;
   }
   .pc-subtitle {
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 400;
+  line-height: 160%;
     color: #4B4B4B;
     margin-bottom: 0;
   }
@@ -235,10 +257,11 @@ const styles = `
     margin-bottom: 14px;
   }
   .pc-qty-label {
-    font-size: 12px;
-    font-weight: 700;
+    font-size: 13px;
+    font-family: "Manrope", sans-serif;
+    font-weight: 900;
     letter-spacing: 0.6px;
-    color: #111;
+    color: #0E0E0E;
     text-transform: uppercase;
   }
   .pc-qty-ctrl {
@@ -266,7 +289,8 @@ const styles = `
     user-select: none;
   }
   .pc-qty-num {
-    font-size: 16px;
+  font-family: "Manrope", sans-serif;
+    font-size: 15px;
     font-weight: 500;
     min-width: 38px;
     text-align: center;
@@ -280,8 +304,8 @@ const styles = `
     background: #F85700;
     color: #fff;
     font-size: 14px;
-    font-weight: 600;
-    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    font-family: "Manrope", sans-serif;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -298,8 +322,10 @@ const styles = `
     margin-top: 2px;
   }
   .pc-enquiry a {
+  font-family: "Manrope", sans-serif;
+
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     color: #111;
     text-decoration: none;
     white-space: nowrap;
@@ -342,9 +368,11 @@ const styles = `
     background: #111;
     color: white;
     font-size: 15px;
-    font-weight: 600;
+    font-family: "Manrope", sans-serif;
+  font-weight: 700;
+
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+
     transition: background .2s;
   }
   .pp-see-more-btn:hover { background: #333; }

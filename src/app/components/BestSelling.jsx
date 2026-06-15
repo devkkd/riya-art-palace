@@ -18,12 +18,12 @@ export default function BestSelling() {
   <section
   style={{
     backgroundColor: "#F7F5F3",
-    paddingTop: "70px",
-    paddingBottom: "70px",
+    paddingTop: "60px",
+    paddingBottom: "60px",
   }}
 >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap');
+       @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Manrope:wght@400;500;700&display=swap');
 
         .bs-outer {
           max-width: 1280px;
@@ -73,7 +73,7 @@ export default function BestSelling() {
 
       <div className="bs-outer">
 
-        <div className="bs-header" style={{ marginBottom: "48px" }}>
+        <div className="bs-header" style={{ marginBottom: "64px" }}>
           <div
             style={{
               display: "flex",
@@ -84,31 +84,33 @@ export default function BestSelling() {
           >
             <div style={{ width: "56px", height: "1px", backgroundColor: "#FF6500" }} />
             <span
-              style={{
-                color: "#FF6500",
-                fontSize: "12px",
-                fontWeight: "600",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-                fontFamily: "sans-serif",
-              }}
-            >
-              MOST LOVED
-            </span>
+  style={{
+    color: "#F85700",
+    fontSize: "18px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    letterSpacing: "-0.02em",
+    fontFamily: "'Manrope', sans-serif",
+    textTransform: "uppercase",
+  }}
+>
+  MOST LOVED
+</span>
           </div>
 
           <h2
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(28px, 4vw, 50px)",
-              fontWeight: "700",
-              lineHeight: "1.05",
-              color: "#111",
-              margin: "0",
-            }}
-          >
-            Our Best-Selling Pieces
-          </h2>
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "40px",
+    fontWeight: "800",
+    lineHeight: "160%",
+    letterSpacing: "-0.02em",
+    color: "#0E0E0E",
+    margin: 0,
+  }}
+>
+  Our Best-Selling Pieces
+</h2>
         </div>
 
         <div className="bs-grid">
@@ -123,42 +125,45 @@ export default function BestSelling() {
                 />
               </div>
 
-              <h3
-                style={{
-                  fontSize: "clamp(13px, 1.4vw, 17px)",
-                  fontWeight: "600",
-                  color: "#111",
-                  lineHeight: "1.35",
-                  marginBottom: "8px",
-                  fontFamily: "sans-serif",
-                }}
-              >
-                {product.name}
-              </h3>
+             <h3
+  style={{
+    fontSize: "18px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    letterSpacing: "-0.02em",
+    color: "#0E0E0E",
+    marginBottom: "8px",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  {product.name}
+</h3>
 
               <p
-                style={{
-                  fontSize: "clamp(13px, 1.3vw, 16px)",
-                  fontWeight: "600",
-                  color: "#111",
-                  marginBottom: "6px",
-                  fontFamily: "sans-serif",
-                }}
-              >
-                {product.price}
-              </p>
+  style={{
+    fontSize: "16px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    color: "#0E0E0E",
+    marginBottom: "8px",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  {product.price}
+</p>
 
-              <p
-                style={{
-                  fontSize: "clamp(11px, 1vw, 13px)",
-                  color: "#555",
-                  lineHeight: "1.5",
-                  marginBottom: "14px",
-                  fontFamily: "sans-serif",
-                }}
-              >
-                {product.desc}
-              </p>
+            <p
+  style={{
+    fontSize: "16px",
+    fontWeight: "400",
+    lineHeight: "160%",
+    color: "#5F5F5F",
+    marginBottom: "18px",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  {product.desc}
+</p>
 
               <div
                 style={{
@@ -170,18 +175,17 @@ export default function BestSelling() {
                 }}
               >
                 <p
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "700",
-                    letterSpacing: "0.5px",
-                    color: "#111",
-                    fontFamily: "sans-serif",
-                    margin: "0",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  QUANTITY
-                </p>
+  style={{
+    fontSize: "16px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    color: "#0E0E0E",
+    margin: 0,
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  QUANTITY
+</p>
 
                 <div
                   style={{
@@ -198,7 +202,7 @@ export default function BestSelling() {
                   }}
                 >
                   <span style={{ fontSize: "16px", fontWeight: "300", color: "#111", cursor: "pointer", lineHeight: "1", userSelect: "none" }}>−</span>
-                  <span style={{ fontSize: "13px", color: "#111", fontFamily: "sans-serif" }}>500</span>
+                  <span style={{fontSize: "16px",fontWeight: "500",color: "#0E0E0E",fontFamily: "'Manrope', sans-serif",}}>500</span>
                   <span style={{ fontSize: "16px", fontWeight: "300", color: "#111", cursor: "pointer", lineHeight: "1", userSelect: "none" }}>+</span>
                 </div>
               </div>
@@ -207,7 +211,7 @@ export default function BestSelling() {
                 style={{
                   width: "100%",
                   height: "42px",
-                  backgroundColor: "#FF6500",
+                  backgroundColor: "#F85700",
                   color: "#fff",
                   borderRadius: "999px",
                   fontSize: "clamp(11px, 1.1vw, 14px)",
@@ -228,15 +232,16 @@ export default function BestSelling() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <button
                   style={{
-                    fontSize: "clamp(10px, 1vw, 12px)",
-                    fontWeight: "500",
-                    color: "#111",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "0",
-                    fontFamily: "sans-serif",
-                  }}
+  fontSize: "clamp(12px, 1vw, 14px)",
+  fontWeight: "700",
+  lineHeight: "160%",
+  color: "#0E0E0E",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  fontFamily: "'Manrope', sans-serif",
+}}
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6500")}
                   onMouseLeave={(e) => (e.currentTarget.style.color = "#111")}
                 >
@@ -244,16 +249,17 @@ export default function BestSelling() {
                 </button>
 
                 <button
-                  style={{
-                    fontSize: "clamp(10px, 1vw, 12px)",
-                    fontWeight: "500",
-                    color: "#111",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    padding: "0",
-                    fontFamily: "sans-serif",
-                  }}
+                 style={{
+  fontSize: "clamp(12px, 1vw, 14px)",
+  fontWeight: "700",
+  lineHeight: "160%",
+  color: "#0E0E0E",
+  background: "none",
+  border: "none",
+  cursor: "pointer",
+  padding: 0,
+  fontFamily: "'Manrope', sans-serif",
+}}
                   onMouseEnter={(e) => (e.currentTarget.style.color = "#FF6500")}
                   onMouseLeave={(e) => (e.currentTarget.style.color = "#111")}
                 >

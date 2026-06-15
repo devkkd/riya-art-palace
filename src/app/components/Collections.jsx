@@ -80,8 +80,8 @@ export default function Collections() {
    <section
   style={{
     backgroundColor: "#F7F5F3",
-    paddingTop: "70px",
-    paddingBottom: "70px",
+   paddingTop: "60px",
+paddingBottom: "60px",
   }}
 >
       <style>{`
@@ -92,13 +92,13 @@ export default function Collections() {
           align-items: flex-start;
           justify-content: space-between;
           gap: 24px;
-          margin-bottom: 48px;
+         margin-bottom: 48px;
         }
 
         .collections-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 4px;
+          gap: 6px;
         }
 
         .collection-card {
@@ -132,15 +132,28 @@ export default function Collections() {
           }
 
           .collection-card {
-            height: 280px;
+            height: 320px;
           }
 
-          .collections-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-            margin-bottom: 32px;
-          }
+       .collections-header {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+   .collections-title {
+    font-size: 34px !important;
+    line-height: 1.15 !important;
+  }
+    .custom-order-btn {
+    height: 44px !important;
+    min-width: 120px !important;
+    padding: 0 18px !important;
+    font-size: 13px !important;
+    white-space: nowrap;
+  }
+
         }
 
         @media (max-width: 480px) {
@@ -157,7 +170,7 @@ export default function Collections() {
 
       <div
         style={{
-          maxWidth: "1280px",
+    maxWidth:"1280px",
           margin: "0 auto",
           paddingLeft: "clamp(16px, 4vw, 40px)",
           paddingRight: "clamp(16px, 4vw, 40px)",
@@ -176,59 +189,62 @@ export default function Collections() {
             >
               <div
                 style={{
-                  width: "34px",
+                  width: "64px",
                   height: "1px",
                   backgroundColor: "#FF6A00",
                 }}
               />
               <span
                 style={{
-                  color: "#FF6A00",
-                  fontSize: "11px",
-                  fontWeight: "600",
-                  textTransform: "uppercase",
-                  letterSpacing: "1.5px",
-                  fontFamily: "sans-serif",
+                 fontSize: "16px",
+fontWeight: "600",
+lineHeight: "160%",
+letterSpacing: "0",
+color: "#F85700",
                 }}
               >
                 OUR CRAFT
               </span>
             </div>
 
-            <h2
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(32px, 5vw, 68px)",
-                lineHeight: "1",
-                fontWeight: "700",
-                color: "#111",
-                margin: "0",
-              }}
-            >
+           <h2 className="collections-title"
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "52px",
+fontWeight: "700",
+lineHeight: "1.2",
+    letterSpacing: "-0.02em",
+    color: "#0E0E0E",
+    margin: 0,
+  }}
+>
               Our Collections
             </h2>
           </div>
 
-          <button
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "48px",
-              minWidth: "160px",
-              padding: "0 28px",
-              borderRadius: "999px",
-              backgroundColor: "#111",
-              color: "#fff",
-              fontSize: "13px",
-              fontWeight: "500",
-              whiteSpace: "nowrap",
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "sans-serif",
-              flexShrink: "0",
-              marginTop: "8px",
-            }}
+          <button className="custom-order-btn"
+           style={{
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+
+  height: "54px",
+minWidth: "150px",
+padding: "0 28px",
+
+  borderRadius: "99px",
+
+  background: "#0E0E0E",
+  color: "#FFFFFF",
+
+  fontFamily: "'Manrope', sans-serif",
+  fontSize: "15px",
+  fontWeight: "500",
+  lineHeight: "160%",
+
+  border: "none",
+  cursor: "pointer",
+}}
           >
             Custom Orders &nbsp;→
           </button>
@@ -252,19 +268,20 @@ export default function Collections() {
               <div
                 style={{
                   position: "absolute",
-                  bottom: "16px",
-                  left: "16px",
-                  right: "16px",
+             bottom:"18px",
+left:"18px",
+right:"18px",
                   color: "#fff",
                 }}
               >
                 <h3
                   style={{
-                    fontSize: "clamp(14px, 1.5vw, 19px)",
-                    fontWeight: "600",
-                    lineHeight: "1.2",
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                    margin: "0 0 6px 0",
+                   fontSize: "16px",
+fontWeight: "700",
+lineHeight: "1.3",
+fontFamily: "'Manrope', sans-serif",
+letterSpacing: "-0.04em",
+color: "#FFFFFF",
                   }}
                 >
                   {item.title}
@@ -272,11 +289,13 @@ export default function Collections() {
 
                 <p
                   style={{
-                    fontSize: "clamp(11px, 1vw, 13px)",
-                    lineHeight: "1.55",
-                    margin: "0",
-                    fontFamily: "sans-serif",
-                    fontWeight: "400",
+                   fontSize: "12px",
+fontFamily: "'Manrope', sans-serif",
+fontWeight: "400",
+lineHeight: "160%",
+letterSpacing: "0",
+color: "#FFFFFF",
+maxWidth: "90%",
                   }}
                 >
                   {item.desc} →

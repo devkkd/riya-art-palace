@@ -6,6 +6,7 @@ import insta2 from "../assets/insta2.jpg";
 import insta3 from "../assets/insta3.jpg";
 import insta4 from "../assets/insta4.jpg";
 import insta5 from "../assets/insta5.jpg";
+import indiamart from "../assets/indiamart.png";
 
 const InstagramIcon = () => (
   <svg
@@ -57,8 +58,8 @@ export default function SocialProof() {
     <section
   style={{
     backgroundColor: "#F7F5F3",
-    paddingTop: "70px",
-    paddingBottom: "70px",
+    paddingTop: "30px",
+    paddingBottom: "50px",
   }}
 >
       <style>{`
@@ -166,31 +167,48 @@ export default function SocialProof() {
           {/* Label */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
             <div style={{ width: "72px", height: "1px", backgroundColor: "#FF6500" }} />
-            <span style={{
-              color: "#FF6500", fontSize: "12px", fontWeight: "600",
-              textTransform: "uppercase", letterSpacing: "1px", fontFamily: "sans-serif",
-            }}>
-              CLIENT LOVE
-            </span>
+            <span
+  style={{
+    color: "#FF6500",
+    fontSize: "13px",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: "0.8px",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  CLIENT LOVE
+</span>
           </div>
 
           {/* Header row */}
           <div className="sp-reviews-header">
-            <h2 style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(28px, 4vw, 52px)",
-              fontWeight: "600", color: "#111", margin: "0", lineHeight: "1.15",
-            }}>
-              What Our Buyers Say
-            </h2>
+           <h2
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "clamp(34px, 3vw, 44px)",
+    fontWeight: "800",
+    color: "#0E0E0E",
+    margin: "0",
+    lineHeight: "1.2",
+    letterSpacing: "-0.02em",
+  }}
+>
+  What Our Buyers Say
+</h2>
 
             <div className="sp-ratings-row">
-              <span style={{
-                color: "#FF6500", fontWeight: "600", fontSize: "20px",
-                fontFamily: "sans-serif", whiteSpace: "nowrap",
-              }}>
-                4.8 Reviews ★★★★★
-              </span>
+              <span
+  style={{
+    color: "#FF6500",
+    fontWeight: "700",
+    fontSize: "22px",
+    fontFamily: "'Manrope', sans-serif",
+    whiteSpace: "nowrap",
+  }}
+>
+  4.8 Reviews ★★★★★
+</span>
 
               {/* Google Logo */}
               <svg height="24" viewBox="0 0 272 92" xmlns="http://www.w3.org/2000/svg">
@@ -203,10 +221,17 @@ export default function SocialProof() {
               </svg>
 
               {/* Indiamart */}
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <span style={{ fontSize: "20px", fontWeight: "700", color: "#E63329", fontFamily: "sans-serif", letterSpacing: "-0.5px" }}>m</span>
-                <span style={{ fontSize: "16px", fontWeight: "700", color: "#333", fontFamily: "sans-serif" }}>indiamart</span>
-              </div>
+              <Image
+  src={indiamart}
+  alt="IndiaMart"
+  width={120}
+  height={32}
+  style={{
+    width: "120px",
+    height: "auto",
+    objectFit: "contain",
+  }}
+/>
             </div>
 
             <button style={{
@@ -250,7 +275,7 @@ export default function SocialProof() {
                 <p style={{ fontSize: "16px", letterSpacing: "3px", color: "#1A1A1A", margin: "0 0 20px 0", fontFamily: "sans-serif" }}>
                   ★★★★★
                 </p>
-                <p style={{ fontSize: "13px", lineHeight: "1.85", color: "#333", flex: "1", margin: "0", fontFamily: "sans-serif" }}>
+                <p style={{ fontSize: "15px", lineHeight: "1.7", color: "#333", flex: "1", margin: "0", fontFamily: "'Manrope', sans-serif", }}>
                   {item.text}
                 </p>
                 <div style={{ marginTop: "24px" }}>
@@ -272,23 +297,35 @@ export default function SocialProof() {
           {/* Label */}
           <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
             <div style={{ width: "72px", height: "1px", backgroundColor: "#FF6500" }} />
-            <span style={{
-              color: "#FF6500", fontSize: "12px", fontWeight: "600",
-              textTransform: "uppercase", letterSpacing: "1px", fontFamily: "sans-serif",
-            }}>
-              SOCIAL THAT FEELS HUMAN
-            </span>
+         <span
+  style={{
+    color: "#FF6500",
+    fontSize: "13px",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: "0.8px",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
+  SOCIAL THAT FEELS HUMAN
+</span>
           </div>
 
           {/* Header row */}
           <div className="sp-insta-header">
-            <h2 style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(28px, 4vw, 52px)",
-              fontWeight: "600", color: "#111", margin: "0", lineHeight: "1.15",
-            }}>
-              Follow Our Craft Journey
-            </h2>
+           <h2
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    fontSize: "clamp(34px, 3vw, 44px)",
+    fontWeight: "800",
+    color: "#0E0E0E",
+    margin: "0",
+    lineHeight: "1.2",
+    letterSpacing: "-0.02em",
+  }}
+>
+  Follow Our Craft Journey
+</h2>
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <div style={{
@@ -299,9 +336,17 @@ export default function SocialProof() {
               }}>
                 <InstagramIcon />
               </div>
-              <span style={{ fontSize: "20px", color: "#111", fontFamily: "sans-serif", fontWeight: "400" }}>
-                @riya_art_palace
-              </span>
+              <span
+  style={{
+    fontSize: "18px",
+    color: "#0E0E0E",
+    fontFamily: "'Manrope', sans-serif",
+    fontWeight: "500",
+    letterSpacing: "-0.01em",
+  }}
+>
+  @riya_art_palace
+</span>
             </div>
           </div>
 

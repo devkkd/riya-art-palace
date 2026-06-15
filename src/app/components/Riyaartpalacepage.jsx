@@ -1,4 +1,3 @@
-
 "use client";
 import React from "react";
 import Navbar from "./Navbar";
@@ -89,9 +88,56 @@ export default function RiyaArtPalacePage() {
       flex-direction: column !important;
       gap: 24px;
     }
+        grid-template-columns: repeat(2, 1fr);
+  }
 
-    .story-item div {
-      width: 100% !important;
+  /* ── WHY CHOOSE US GRID ───────────────────────────────────── */
+  .why-grid {
+    padding: 80px 40px;
+  }
+
+  .why-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .why-grid-container > div {
+    min-height: 85px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    font-size: 18px;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .why-grid {
+      padding: 50px 16px !important;
+    }
+
+    .why-grid h2 {
+      font-size: 24px !important;
+      margin-bottom: 24px !important;
+    }
+
+    .why-grid-container {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 12px !important;
+    }
+
+    .why-grid-container > div {
+      min-height: 75px !important;
+      padding: 12px !important;
+      font-size: 14px !important;
+      border-radius: 14px !important;
+      line-height: 1.4 !important;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .why-grid-container > div {
+      min-height: 80px !important;
+      font-size: 13px !important;
     }
   }
 
@@ -314,11 +360,13 @@ export default function RiyaArtPalacePage() {
           <p
             style={{
               color: "#555",
-              fontSize: "14px",
+              fontSize: "16px",
               fontWeight: "400",
               marginTop: "30px",
               marginBottom: "24px",
-              fontFamily: "'Poppins', sans-serif",
+fontFamily: "'Manrope', sans-serif",
+    lineHeight: "1.6",
+    letterSpacing: "0",
             }}
           >
             About Us
@@ -358,7 +406,7 @@ whiteSpace: "nowrap",
               alt="Riya Art Palace showroom"
               style={{
                 width: "100%",
-                height: "380px",
+                height: "500px",
                 objectFit: "cover",
                 borderTopRightRadius: "24px",
                 borderBottomRightRadius: "24px",
@@ -469,9 +517,61 @@ whiteSpace: "nowrap",
 
   <span>For Bulk</span>
 </a>
-        < AboutSection />
 
+        {/* ── WHY CHOOSE US ─────────────────────────────────────────── */}
+       <section
+  className="why-grid"
+  style={{
+    maxWidth: "1280px",
+    margin: "0 auto",
+  }}
+>
+  <h2
+    style={{
+      textAlign: "center",
+      fontFamily: "'Manrope', sans-serif",
+      fontSize: "30px",
+      fontWeight: "700",
+      lineHeight: "160%",
+      letterSpacing: "-0.04em",
+      color: "#0E0E0E",
+      marginBottom: "40px",
+    }}
+  >
+    Why Choose Us?
+  </h2>
 
+  <div className="why-grid-container">
+    {[
+      "Since 1995 - Trusted Craftsmanship",
+      "Empowering 5,000+ Women Artisans",
+      "Authentic Handmade Creations",
+      "Customized and Creative Designs",
+      "A Perfect Blend of Tradition & Elegance",
+      "Customer-Focused, Quality-Driven",
+    ].map((item, index) => (
+      <div
+        key={index}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          fontFamily: "'Manrope', sans-serif",
+          fontWeight: "700",
+          color: "#0E0E0E",
+          border: "1px solid #E3D4C8",
+          background:
+            index === 0 || index === 2 || index === 4
+              ? "#FBE3D3"
+              : "#FFFCF9",
+        }}
+      >
+        {item}
+      </div>
+    ))}
+  </div>
+</section>
 
         {/* ── HERO GALLERY STRIP ────────────────────────────────────── */}
         <section style={styles.galleryStrip}>

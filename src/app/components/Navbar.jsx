@@ -1,15 +1,38 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Search, ShoppingBag, User, ChevronDown, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import logo from "../assets/logo.png";
+import { useEffect } from "react";
 
 export default function Navbar() {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
+const [showDropdown, setShowDropdown] = useState(false);
+const dropdownRef = useRef(null);
+
+
+useEffect(() => {
+  function handleClickOutside(event) {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target)
+    ) {
+      setShowDropdown(false);
+    }
+  }
+
+  document.addEventListener("click", handleClickOutside);
+
+  return () =>
+    document.removeEventListener(
+      "click",
+      handleClickOutside
+    );
+}, []);
 
   return (
     <>
@@ -149,6 +172,48 @@ export default function Navbar() {
           line-height: 1;
         }
         .nb-nav-link:hover { color: #FF870F; }
+.nb-dropdown-wrap{
+  position: relative;
+}
+
+.nb-dropdown-card{
+  position: absolute;
+  top: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 380px;          /* pehle 580px tha */
+  background: #F7F5F3;
+  border: 1px solid #D7CEC5;
+  border-radius: 22px;
+
+  padding: 16px 20px;    /* pehle 28px 36px tha */
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 8px 16px;        /* pehle 24px 50px tha */
+
+  z-index: 9999;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+
+.nb-dropdown-item{
+  text-decoration: none;
+  color: #0E0E0E;
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 14px;
+  border-radius: 10px;
+  transition: all .25s ease;
+}
+
+.nb-dropdown-item:hover{
+  background: #FF870F;
+  color: #fff;
+}
+
 
         /* DIVIDER */
         .nb-divider {
@@ -345,6 +410,9 @@ export default function Navbar() {
         @media (max-width: 960px) {
           .nb-desktop { display: none !important; }
           .nb-mobile  { display: flex !important; }
+          .nb-dropdown-card{
+    display:none;
+  }
         }
       `}</style>
 
@@ -368,7 +436,15 @@ export default function Navbar() {
               <div className="nb-currency">
                 <span style={{ fontSize: "16px", lineHeight: 1 }}>🇮🇳</span>
                 <span className="nb-currency-text">INR</span>
-                <ChevronDown size={12} color="#555" strokeWidth={2.5} />
+<ChevronDown
+  size={12}
+  strokeWidth={2.5}
+  onClick={(e) => {
+    e.preventDefault();
+    setShowDropdown(!showDropdown);
+  }}
+  style={{ cursor: "pointer" }}
+/>
               </div>
             </div>
 
@@ -392,10 +468,92 @@ export default function Navbar() {
             <nav className="nb-nav">
               <Link href="/" className="nb-nav-home">Home</Link>
               <Link href="/about" className="nb-nav-link">About Us</Link>
-              <Link href="/products" className="nb-nav-link">
-                Product Collections
-                <ChevronDown size={12} strokeWidth={2.5} />
-              </Link>
+          <div
+  className="nb-dropdown-wrap"
+  ref={dropdownRef}
+>
+  <div className="nb-nav-link">
+  <Link
+    href="/products"
+    style={{
+      textDecoration: "none",
+      color: "inherit",
+    }}
+  >
+    Product Collections
+  </Link>
+
+  <ChevronDown
+    size={14}
+    strokeWidth={2.5}
+    style={{
+      cursor: "pointer",
+      transition: "0.3s",
+      transform: showDropdown
+        ? "rotate(180deg)"
+        : "rotate(0deg)",
+    }}
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowDropdown(!showDropdown);
+    }}
+  />
+</div>
+
+  {showDropdown && (
+    <div className="nb-dropdown-card">
+
+      <Link href="/products?category=wall-decor" className="nb-dropdown-item">
+        Wall Décor
+      </Link>
+
+      <Link href="/products?category=handmade-accessories" className="nb-dropdown-item">
+        Handmade Accessories
+      </Link>
+
+      <Link href="/products?category=table-decor" className="nb-dropdown-item">
+        Table Décor
+      </Link>
+
+      <Link href="/products?category=spiritual-items" className="nb-dropdown-item">
+        Spiritual Items
+      </Link>
+
+      <Link href="/products?category=lac-collection" className="nb-dropdown-item">
+        Lac Collection
+      </Link>
+
+      <Link href="/products?category=handpainted-articles" className="nb-dropdown-item">
+        Handpainted Articles
+      </Link>
+
+      <Link href="/products?category=event-decor" className="nb-dropdown-item">
+        Event Décor
+      </Link>
+
+      <Link href="/products?category=diary-collection" className="nb-dropdown-item">
+        Diary Collection
+      </Link>
+
+      <Link href="/products?category=festive-collection" className="nb-dropdown-item">
+        Festive Collection
+      </Link>
+
+      <Link href="/products?category=christmas-items" className="nb-dropdown-item">
+        Christmas Items
+      </Link>
+
+      <Link href="/products?category=rajasthani-traditional" className="nb-dropdown-item">
+        Rajasthani Traditional
+      </Link>
+
+      <Link href="/products?category=ottomans-puffs" className="nb-dropdown-item">
+        Ottomans & Puffs
+      </Link>
+
+    </div>
+  )}
+</div>
               <Link href="/contact" className="nb-nav-link">Contact Us</Link>
             </nav>
 

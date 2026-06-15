@@ -13,11 +13,12 @@ const stats = [
 export default function Hero() {
   return (
     <section
-      style={{
-        backgroundColor: "#F7F5F3",
-        borderTop: "1px solid #E5DFD9",
-        overflow: "hidden",
-      }}
+     style={{
+  backgroundColor: "#F7F5F3",
+  borderTop: "none",
+  marginTop: "-1px",
+  overflow: "hidden",
+}}
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,700&display=swap');
@@ -29,17 +30,17 @@ export default function Hero() {
         }
 
         /* ── DESKTOP HERO ── */
-        .hero-outer {
-          max-width: 1564px;
-          margin: 0 auto;
-          padding: 40px 80px 30px;
-        }
+       .hero-outer {
+  max-width: 1564px;
+  margin: 0 auto;
+  padding: 24px 80px 40px;
+}
         .hero-grid {
-          display: grid;
-          grid-template-columns: 1.2fr 0.7fr 1fr;
-          align-items: start;
-          gap: 40px;
-        }
+  display: grid;
+  grid-template-columns: 1.15fr 0.65fr 1fr;
+  align-items: center;
+  gap: 30px;
+}
         .hero-img-col {
           display: flex;
           justify-content: center;
@@ -73,8 +74,8 @@ export default function Hero() {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding-top: 20px;
-          padding-bottom: 20px;
+          padding-top: 14px;
+          padding-bottom: 14px;
         }
         .stat-value {
           font-size: clamp(20px, 2vw, 30px);

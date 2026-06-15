@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import logo from "../assets/logo.png";
+import indiamartLogo from "../assets/indiamart.png";
 import Image from "next/image";
 const wallDecor = [
   "Wall Decor", "Rajasthani Wall Hanging", "Wall Hangings",
@@ -93,9 +94,9 @@ export default function Footer() {
   const [email, setEmail] = useState("");
 
   return (
-    <footer style={{ fontFamily: "'Inter', sans-serif", background: "#fce8dc" }}>
+    <footer style={{ fontFamily: "'Manrope', sans-serif", background: "#fce8dc" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+       @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
 
         .footer-newsletter {
           background: #fce8dc;
@@ -126,10 +127,12 @@ export default function Footer() {
           border: 1.5px solid #ddd;
           border-radius: 10px;
           background: #fff;
-          fontSize: 14px;
+          font-size: 15px;
+font-family: 'Manrope', sans-serif;
+font-weight: 400;
+line-height: 1.5;
           color: #1a1a1a;
           outline: none;
-          font-family: inherit;
           box-sizing: border-box;
         }
 
@@ -210,12 +213,20 @@ export default function Footer() {
         <div className="footer-newsletter-inner">
           <div>
             <h3 style={{
-              fontSize: "clamp(18px, 2.5vw, 22px)", fontWeight: 700,
+           fontFamily: "'Manrope', sans-serif",
+fontSize: "32px",
+fontWeight: 700,
+lineHeight: "1.3",
+letterSpacing: "-0.02em",
               color: "#1a1a1a", marginBottom: "8px",
             }}>
               Join the Riya Art Palace Circle
             </h3>
-            <p style={{ fontSize: "14px", color: "#666" }}>
+            <p style={{ fontFamily: "'Manrope', sans-serif",
+fontSize: "16px",
+fontWeight: 400,
+lineHeight: "1.7",
+color: "#555",}}>
               New arrivals, exclusive B2B offers, and handicraft stories in your inbox.
             </p>
           </div>
@@ -223,8 +234,10 @@ export default function Footer() {
           <div className="footer-newsletter-right">
             <div style={{ flex: 1, minWidth: "220px" }}>
               <label style={{
-                display: "block", fontSize: "13px",
-                fontWeight: 500, color: "#1a1a1a", marginBottom: "8px",
+                display: "block",fontFamily: "'Manrope', sans-serif",
+fontSize: "14px",
+fontWeight: 500,
+lineHeight: "1.5",color: "#1a1a1a", marginBottom: "8px",
               }}>
                 Email Address
               </label>
@@ -246,9 +259,11 @@ export default function Footer() {
                 border: "none",
                 borderRadius: "50px",
                 fontSize: "15px",
-                fontWeight: 600,
+fontWeight: 700,
+fontFamily: "'Manrope', sans-serif",
+letterSpacing: "0.02em",
                 cursor: "pointer",
-                fontFamily: "inherit",
+                
                 whiteSpace: "nowrap",
                 display: "flex",
                 alignItems: "center",
@@ -276,12 +291,16 @@ export default function Footer() {
             }}
           />
           <p style={{
-            fontSize: "17px", fontWeight: 700,
+            fontSize: "18px",
+fontWeight: 700,
+fontFamily: "'Manrope', sans-serif",
+lineHeight: "1.5",
             color: "#1a1a1a", marginBottom: "8px",
           }}>
             "Crafting Tradition for You"
           </p>
-          <p style={{ fontSize: "14px", color: "#555", maxWidth: "680px", margin: "0 auto", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "18px",
+fontWeight: 400, color: "#555", maxWidth: "680px", margin: "0 auto", lineHeight: 1.7 }}>
             Where Tradition Becomes Timeless Art. Family-owned handicraft brand from Jaipur, Rajasthan
             bringing authentic handmade creations into homes worldwide since 1995.
           </p>
@@ -300,14 +319,17 @@ export default function Footer() {
               padding: "6px 12px", marginBottom: "12px",
               border: "1px solid #e0d0c0",
             }}>
-              <span style={{
-                width: "22px", height: "22px", borderRadius: "50%",
-                background: "#e55a1c", display: "flex",
-                alignItems: "center", justifyContent: "center",
-              }}>
-                <span style={{ color: "#fff", fontSize: "12px", fontWeight: 700 }}>M</span>
-              </span>
-              <span style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a1a" }}>indiamart</span>
+             <Image
+  src={indiamartLogo}
+  alt="IndiaMart"
+  width={150}
+  height={45}
+  style={{
+    objectFit: "contain",
+    width: "150px",
+    height: "auto",
+  }}
+/>
             </div>
 
             <p style={{ fontSize: "13px", color: "#e55a1c", marginBottom: "20px", cursor: "pointer" }}>

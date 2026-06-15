@@ -21,17 +21,21 @@ export default function FollowUs() {
           gap: "24px",
         }}
       >
-        <h2
-          style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            color: "#FF6500",
-            fontSize: "clamp(24px, 3vw, 42px)",
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-          }}
-        >
-          FOLLOW US
-        </h2>
+       <h2
+  style={{
+    fontFamily: "'Playfair Display', serif",
+    color: "#F85700",
+    fontSize: "clamp(26px, 2.5vw, 38px)",
+    fontWeight: 800,
+    lineHeight: "1.6",
+    letterSpacing: "-0.02em",
+    whiteSpace: "nowrap",
+    margin: 0,
+    textTransform: "uppercase",
+  }}
+>
+  FOLLOW US
+</h2>
 
         <div
           style={{

@@ -1,6 +1,6 @@
 
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const countries = [
   "India", "United States", "United Kingdom", "Australia", "Canada",
@@ -63,38 +63,95 @@ function ToggleGroup({ value, onChange }) {
 }
 
 function SelectWrapper({ value, onChange, placeholder, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const close = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
   return (
-    <div style={{ position: "relative" }}>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+    <div
+      ref={ref}
+      style={{
+        position: "relative",
+        width: "100%",
+      }}
+    >
+      <div
+        onClick={() => setOpen(!open)}
         style={{
           width: "100%",
-          padding: "13px 40px 13px 16px",
+          padding: "13px 16px",
           border: "1.5px solid #e8d5c8",
           borderRadius: "10px",
           background: "#fff",
-          fontFamily: "inherit",
-          fontSize: "13.5px",
-          color: value ? "#1a1a1a" : "#b0a098",
-          outline: "none",
-          appearance: "none",
-          WebkitAppearance: "none",
           cursor: "pointer",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
           boxSizing: "border-box",
         }}
       >
-        <option value="" disabled>{placeholder}</option>
-        {options.map((o) => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <span style={{
-        position: "absolute", right: "14px", top: "50%",
-        transform: "translateY(-50%)", pointerEvents: "none",
-        width: 0, height: 0,
-        borderLeft: "5px solid transparent",
-        borderRight: "5px solid transparent",
-        borderTop: "6px solid #888",
-      }} />
+        <span
+          style={{
+            color: value ? "#1a1a1a" : "#b0a098",
+          }}
+        >
+          {value || placeholder}
+        </span>
+
+        <span>▼</span>
+      </div>
+
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "100%",
+            left: 0,
+            right: 0,
+            marginTop: "6px",
+            background: "#FFFFFF",
+            border: "1px solid #e8d5c8",
+            borderRadius: "10px",
+            boxShadow: "0 10px 25px rgba(0,0,0,0.12)",
+            zIndex: 9999,
+            overflow: "hidden",
+          }}
+        >
+          {options.map((item) => (
+            <div
+              key={item}
+              onClick={() => {
+                onChange(item);
+                setOpen(false);
+              }}
+              style={{
+                padding: "12px 16px",
+                cursor: "pointer",
+                background: value === item ? "#f7f7f7" : "#fff",
+                color: "#1a1a1a",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "#f5f5f5")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background =
+                  value === item ? "#f7f7f7" : "#fff")
+              }
+            >
+              {item}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -106,14 +163,16 @@ const inputStyle = {
   borderRadius: "10px",
   background: "#fff",
   fontFamily: "inherit",
-  fontSize: "13.5px",
+fontSize: "15px",
+fontFamily: "Manrope, sans-serif",
   color: "#1a1a1a",
   outline: "none",
   boxSizing: "border-box",
 };
 
 const labelStyle = {
-  fontSize: "13px",
+  fontFamily: "Manrope, sans-serif",
+  fontSize: "14px",
   fontWeight: 500,
   color: "#1a1a1a",
   marginBottom: "7px",
@@ -168,8 +227,9 @@ export default function RiyaArtPalaceForm() {
 
         .rap-top-grid {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 48px;
+          grid-template-columns: 40% 67%;
+
+          gap: 68px;
           align-items: stretch;
           margin-bottom: 80px;
         }
@@ -177,7 +237,7 @@ export default function RiyaArtPalaceForm() {
         .rap-form-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 20px 24px;
+          gap: 18px 20px;
         }
 
         .rap-values-grid {
@@ -215,11 +275,12 @@ export default function RiyaArtPalaceForm() {
           border-radius: 50px;
           padding: 16px 32px;
           font-family: inherit;
-          font-size: 15px;
+          font-size: 16px;
           font-weight: 600;
           cursor: pointer;
           width: auto;
         }
+          
 
         @media (max-width: 900px) {
           .rap-top-grid {
@@ -287,9 +348,9 @@ export default function RiyaArtPalaceForm() {
                 alignItems: "center",
                 gap: "10px",
                 color: "#e55a1c",
-                fontSize: "13px",
-                fontWeight: 600,
-                letterSpacing: "0.06em",
+               fontSize: "12px",
+fontWeight: 700,
+letterSpacing: "0.08em",
                 textTransform: "uppercase",
                 marginBottom: "20px",
               }}
@@ -308,9 +369,10 @@ export default function RiyaArtPalaceForm() {
 
             <h1
               style={{
-                fontFamily: "Georgia, serif",
-                fontSize: "clamp(24px, 4vw, 36px)",
-                fontWeight: 700,
+                fontFamily: "'Playfair Display', serif",
+fontSize: "clamp(34px, 4vw, 42px)",
+fontWeight: 800,
+letterSpacing: "-0.02em",
                 color: "#1a1a1a",
                 lineHeight: 1.2,
                 marginBottom: "32px",
@@ -321,8 +383,11 @@ export default function RiyaArtPalaceForm() {
 
             <h2
               style={{
-                fontSize: "clamp(14px, 2vw, 17px)",
-                fontWeight: 700,
+               fontFamily: "Manrope, sans-serif",
+fontSize: "clamp(22px, 2.2vw, 28px)",
+fontWeight: 700,
+letterSpacing: "-0.03em",
+lineHeight: 1.3,
                 color: "#1a1a1a",
                 marginBottom: "10px",
               }}
@@ -332,9 +397,11 @@ export default function RiyaArtPalaceForm() {
 
             <p
               style={{
-                fontSize: "14px",
-                color: "#555",
-                lineHeight: 1.6,
+               fontFamily: "Manrope, sans-serif",
+fontSize: "16px",
+fontWeight: 400,
+lineHeight: 1.8,
+color: "#555",
                 marginBottom: "28px",
               }}
             >
@@ -347,10 +414,16 @@ export default function RiyaArtPalaceForm() {
                 <div key={label}>
                   <hr style={{ border: "none", borderTop: "1px solid #ddd", margin: "0 0 20px" }} />
                   <div style={{ marginBottom: "20px" }}>
-                    <div style={{ fontSize: "14px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
+                    <div style={{ fontFamily: "Manrope, sans-serif",
+fontSize: "17px",
+fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
                       {label}
                     </div>
-                    <div style={{ fontSize: "14px", color: "#555" }}>{value}</div>
+                    <div style={{ fontFamily: "Manrope, sans-serif",
+fontSize: "15px",
+fontWeight: 400,
+lineHeight: 1.7,
+color: "#555",}}>{value}</div>
                   </div>
                 </div>
               ))}
@@ -364,14 +437,17 @@ export default function RiyaArtPalaceForm() {
             style={{
               background: "#fce8dc",
               borderRadius: "20px",
-              padding: "clamp(20px, 4vw, 44px)",
+              padding: "clamp(28px, 4vw, 52px)",
               boxSizing: "border-box",
+              
             }}
           >
             <h2
               style={{
-                fontSize: "clamp(18px, 2.5vw, 22px)",
-                fontWeight: 700,
+   fontFamily: "Manrope, sans-serif",
+   fontSize: "30px",
+   fontWeight: 700,
+   letterSpacing: "-0.04em",
                 color: "#1a1a1a",
                 marginBottom: "28px",
               }}

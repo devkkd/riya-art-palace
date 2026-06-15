@@ -101,9 +101,11 @@ export default function CategoryBanner() {
 }
       `}</style>
 
-      <div
+    <div
   style={{
     position: "relative",
+    marginBottom: "0",
+    lineHeight: 0,
   }}
 >
 

@@ -5,14 +5,16 @@ import epchLogo from "../assets/epch.png";
 import msmeLogo from "../assets/msme.png";
 import iecLogo from "../assets/iec.png";
 import { Globe, Star } from "lucide-react";
+import intIcon from "../assets/int.png";
+import bulkIcon from "../assets/bulk.png";
 import Image from "next/image";
 export default function GlobalPresenceSection() {
   return (
   <section
   style={{
     backgroundColor: "#F7F5F3",
-    paddingTop: "70px",
-    paddingBottom: "70px",
+    paddingTop: "50px",
+    paddingBottom: "60px",
   }}
 >
       <style>{`
@@ -33,9 +35,9 @@ export default function GlobalPresenceSection() {
         }
 
         .gp-features-grid {
-          border-top: 1px solid #DDD;
+
           padding-top: 48px;
-          padding-bottom: 80px;
+          padding-bottom: 40px;
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 40px;
@@ -148,15 +150,16 @@ export default function GlobalPresenceSection() {
             >
               <div style={{ width: "70px", height: "1px", backgroundColor: "#FF6500" }} />
               <span
-                style={{
-                  color: "#FF6500",
-                  fontSize: "12px",
-                  textTransform: "uppercase",
-                  fontWeight: "600",
-                  letterSpacing: "1px",
-                  fontFamily: "sans-serif",
-                }}
-              >
+  style={{
+    color: "#F85700",
+    fontSize: "16px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    letterSpacing: "-0.02em",
+    textTransform: "uppercase",
+    fontFamily: "'Manrope', sans-serif",
+  }}
+>
                 GLOBAL PRESENCE
               </span>
             </div>
@@ -164,9 +167,10 @@ export default function GlobalPresenceSection() {
             <h2
               style={{
                 fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(24px, 3vw, 48px)",
-                lineHeight: "1.1",
-                fontWeight: "700",
+                fontSize: "clamp(34px, 3vw, 42px)",
+lineHeight: "160%",
+fontWeight: "800",
+letterSpacing: "-0.02em",
                 color: "#111",
                 margin: "0 0 20px 0",
               }}
@@ -177,10 +181,13 @@ export default function GlobalPresenceSection() {
             <p
               style={{
                 color: "#555",
-                fontSize: "clamp(13px, 1.1vw, 15px)",
-                lineHeight: "2",
+                fontSize: "16px",
+lineHeight: "160%",
+fontWeight: "400",
+fontFamily: "'Manrope', sans-serif",
+maxWidth: "700px",
                 marginBottom: "40px",
-                fontFamily: "sans-serif",
+              
               }}
             >
               Rooted In Rajasthan's Rich Artistic Heritage, Riya Art Palace
@@ -191,11 +198,44 @@ export default function GlobalPresenceSection() {
               Defined Us Since 1995.
             </p>
 
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "32px" }}>
-              <Image src={epchLogo} alt="EPCH" style={{ height: "55px", objectFit: "contain" }} />
-              <Image src={msmeLogo} alt="MSME" style={{ height: "55px", objectFit: "contain" }} />
-              <Image src={iecLogo} alt="IEC" style={{ height: "55px", objectFit: "contain" }} />
-            </div>
+            <div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "40px",
+    marginTop: "10px",
+  }}
+>
+  <Image
+    src={epchLogo}
+    alt="EPCH"
+    style={{
+      width: "120px",
+      height: "auto",
+      objectFit: "contain",
+    }}
+  />
+
+  <Image
+    src={msmeLogo}
+    alt="MSME"
+    style={{
+      width: "140px",
+      height: "auto",
+      objectFit: "contain",
+    }}
+  />
+
+  <Image
+    src={iecLogo}
+    alt="IEC"
+    style={{
+      width: "80px",
+      height: "auto",
+      objectFit: "contain",
+    }}
+  />
+</div>
           </div>
 
           <div>
@@ -210,55 +250,73 @@ export default function GlobalPresenceSection() {
         {/* Features */}
         <div className="gp-features-grid">
           {[
-            {
-              Icon: Globe,
-              title: "International Shipping",
-              desc: "Export-ready logistics to 40+ countries. Multi-currency checkout with INR, USD, EUR, GBP, AED & AUD.",
-            },
-            {
-              Icon: Star,
-              title: "Bulk & Custom Orders",
-              desc: "MOQ-friendly wholesale pricing. Custom designs, sizes, and private-label partnerships welcome.",
-            },
-          ].map(({ Icon, title, desc }) => (
-            <div key={title} style={{ display: "flex", gap: "20px" }}>
+          {
+  image: intIcon,
+  title: "International Shipping",
+  desc: "Export-ready logistics to 40+ countries. Multi-currency checkout with INR, USD, EUR, GBP, AED & AUD.",
+},
+{
+  image: bulkIcon,
+  title: "Bulk & Custom Orders",
+  desc: "MOQ-friendly wholesale pricing. Custom designs, sizes, and private-label partnerships welcome.",
+},
+          ].map(({ image, title, desc }) => (
+        <div
+  key={title}
+  style={{
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "20px",
+  }}
+>
               <div
-                style={{
-                  width: "64px",
-                  height: "64px",
-                  borderRadius: "50%",
-                  border: "1px solid #FF6500",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: "0",
-                }}
-              >
-                <Icon size={28} color="#FF6500" />
-              </div>
+  style={{
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "flex-start",
+  }}
+>
+  <Image
+  src={image}
+  alt={title}
+  width={title === "International Shipping" ? 92 : 72}
+  height={title === "International Shipping" ? 92 : 72}
+  style={{
+    width: title === "International Shipping" ? "102px" : "72px",
+    height: title === "International Shipping" ? "102px" : "72px",
+    objectFit: "contain",
+    display: "block",
+  }}
+/>
+</div>
               <div>
-                <h3
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "600",
-                    color: "#111",
-                    marginBottom: "10px",
-                    fontFamily: "sans-serif",
-                  }}
-                >
-                  {title}
-                </h3>
-                <p
-                  style={{
-                    color: "#666",
-                    lineHeight: "1.8",
-                    fontSize: "14px",
-                    fontFamily: "sans-serif",
-                    margin: "0",
-                  }}
-                >
-                  {desc}
-                </p>
+            <h3
+  style={{
+    fontFamily: "'Manrope', sans-serif",
+    fontSize: "22px",
+    fontWeight: "700",
+    lineHeight: "160%",
+    letterSpacing: "0",
+    color: "#0E0E0E",
+    margin: "0 0 8px 0",
+  }}
+>
+  {title}
+</h3>
+<p
+  style={{
+    fontFamily: "'Manrope', sans-serif",
+    fontSize: "15px",
+    fontWeight: "400",
+    lineHeight: "160%",
+    letterSpacing: "0",
+    color: "#555555",
+    margin: "0",
+    maxWidth: "420px",
+  }}
+>
+  {desc}
+</p>
               </div>
             </div>
           ))}
@@ -283,31 +341,33 @@ export default function GlobalPresenceSection() {
           }}
         >
           <h2
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              maxWidth: "1000px",
-              margin: "0 auto 24px auto",
-              textAlign: "center",
-              fontSize: "clamp(22px, 4vw, 56px)",
-              lineHeight: "1.1",
-              fontWeight: "600",
-              color: "#FF6500",
-            }}
-          >
+style={{
+  fontFamily: "'Playfair Display', serif",
+  fontSize: "clamp(28px, 3vw, 42px)",
+  fontWeight: "800",
+  lineHeight: "160%",
+  letterSpacing: "-0.02em",
+  color: "#F85700",
+  textAlign: "center",
+  margin: "0 auto 18px",
+}}
+>
             Looking to Import Authentic Rajasthani Handicrafts?
           </h2>
 
           <p
-            style={{
-              maxWidth: "860px",
-              margin: "0 auto 56px auto",
-              textAlign: "center",
-              fontSize: "clamp(13px, 1.2vw, 16px)",
-              lineHeight: "1.9",
-              color: "#222",
-              fontFamily: "sans-serif",
-            }}
-          >
+style={{
+  fontFamily: "'Manrope', sans-serif",
+  fontSize: "15px",
+  fontWeight: "700",
+  lineHeight: "160%",
+  letterSpacing: "-0.02em",
+  color: "#0E0E0E",
+  textAlign: "center",
+  maxWidth: "1180px",
+  margin: "0 auto 56px",
+}}
+>
             We Work With International Buyers, Importers, And Retailers.
             Our Team Ensures Quality, Packaging, And Timely Delivery
             For Every Export Order.
@@ -326,16 +386,17 @@ export default function GlobalPresenceSection() {
                 className={`gp-export-col${index < 3 ? " gp-export-col-divider" : ""}`}
               >
                 <h3
-                  style={{
-                    fontSize: "clamp(14px, 1.4vw, 18px)",
-                    fontWeight: "600",
-                    lineHeight: "1.6",
-                    color: "#111",
-                    margin: "0",
-                    fontFamily: "sans-serif",
-                    whiteSpace: "pre-line",
-                  }}
-                >
+style={{
+  fontFamily: "'Manrope', sans-serif",
+  fontSize: "clamp(18px, 1.4vw, 22px)",
+  fontWeight: "700",
+  lineHeight: "160%",
+  letterSpacing: "0",
+  color: "#0E0E0E",
+  margin: "0",
+  whiteSpace: "pre-line",
+}}
+>
                   {text}
                 </h3>
               </div>
@@ -354,12 +415,13 @@ export default function GlobalPresenceSection() {
                 borderRadius: "999px",
                 backgroundColor: "#FF6500",
                 color: "#fff",
-                fontSize: "15px",
-                fontWeight: "500",
+                fontSize: "16px",
+fontWeight: "700",
                 whiteSpace: "nowrap",
                 border: "none",
                 cursor: "pointer",
-                fontFamily: "sans-serif",
+                fontFamily: "'Manrope', sans-serif",
+
                 transition: "background-color 0.3s, transform 0.3s",
               }}
               onMouseEnter={(e) => {

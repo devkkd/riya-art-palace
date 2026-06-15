@@ -287,7 +287,9 @@ export default function ContactPage() {
           transition: border-color .2s;
           appearance: none;
           -webkit-appearance: none;
+          color-scheme: light;
         }
+          
         .cp-input:focus,
         .cp-select:focus,
         .cp-textarea:focus {
@@ -310,6 +312,11 @@ export default function ContactPage() {
           color: #666;
         }
         .cp-select { cursor: pointer; padding-right: 36px; }
+
+        .cp-select option {
+          background: #ffffff;
+          color: #444;
+        }
 
         .cp-textarea {
           resize: vertical;
@@ -755,15 +762,15 @@ export default function ContactPage() {
             </div>
 
             {/* WhatsApp FAB */}
-           <a
-  href="https://wa.me/918385007350"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="cp-wa"
+<a
+            href="https://wa.me/918385007350"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cp-wa"
 >
-  <FaWhatsapp />
-  <span>For Bulk</span>
-</a>
+            <FaWhatsapp />
+            <span>For Bulk</span>
+        </a >
             <ValuesSection />
             <FollowUs />
             <Footer />
