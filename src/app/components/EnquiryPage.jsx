@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
@@ -235,6 +235,49 @@ const styles = `
     transition: background .2s, transform .15s;
   }
   .eq-submit-btn:hover { background: #e84f00; transform: translateY(-1px); }
+  .custom-select {
+  position: relative;
+}
+
+.custom-select-btn {
+  width: 100%;
+  height: 48px;
+  background: #FFFDFB;
+  border: 1px solid #E8DCD2;
+  border-radius: 10px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+
+  font-family: "Mona Sans", sans-serif;
+  font-size: 16px;
+}
+
+.custom-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #E8DCD2;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,.08);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.custom-option {
+  padding: 12px 16px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.custom-option:hover {
+  background: #FBE2D2;
+}
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
@@ -250,9 +293,9 @@ const styles = `
    DATA
    ============================================================ */
 const countries = [
-  "India","United States","United Kingdom","United Arab Emirates","Australia",
-  "Canada","Germany","France","Italy","Spain","Saudi Arabia","Qatar","Kuwait",
-  "Singapore","Japan","South Africa","Nepal","Bangladesh","Sri Lanka","Other",
+  "India", "United States", "United Kingdom", "United Arab Emirates", "Australia",
+  "Canada", "Germany", "France", "Italy", "Spain", "Saudi Arabia", "Qatar", "Kuwait",
+  "Singapore", "Japan", "South Africa", "Nepal", "Bangladesh", "Sri Lanka", "Other",
 ];
 
 const enquiryTypes = [
@@ -273,9 +316,9 @@ const orderQuantities = [
 ];
 
 const productCategories = [
-  "Wall Décor","Table Décor","Lac Collection","Event Décor","Festive Collection",
-  "Rajasthani Traditional","Handmade Accessories","Spiritual Items",
-  "Handpainted Articles","Diary Collection","Christmas Items","Ottomans & Puffs",
+  "Wall Décor", "Table Décor", "Lac Collection", "Event Décor", "Festive Collection",
+  "Rajasthani Traditional", "Handmade Accessories", "Spiritual Items",
+  "Handpainted Articles", "Diary Collection", "Christmas Items", "Ottomans & Puffs",
 ];
 
 const initialFormState = {
@@ -298,7 +341,15 @@ const initialFormState = {
 function EnquiryPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [countryOpen, setCountryOpen] = useState(false);
+  const countryRef = useRef(null);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
+const enquiryRef = useRef(null);
+const [quantityOpen, setQuantityOpen] = useState(false);
+const [categoryOpen, setCategoryOpen] = useState(false);
 
+const quantityRef = useRef(null);
+const categoryRef = useRef(null);
   const initialTab = searchParams.get("type") === "india" ? "india" : "export";
   const [activeTab, setActiveTab] = useState(initialTab);
 
@@ -308,13 +359,25 @@ function EnquiryPageContent() {
   });
 
   const switchTab = (tab) => {
-    setActiveTab(tab);
-    setForm((prev) => ({
-      ...prev,
-      country: tab === "india" ? "India" : (prev.country === "India" ? "" : prev.country),
-    }));
-    router.replace(`?type=${tab}`, { scroll: false });
-  };
+  setCountryOpen(false);
+  setEnquiryOpen(false);
+  setQuantityOpen(false);
+  setCategoryOpen(false);
+
+  setActiveTab(tab);
+
+  setForm((prev) => ({
+    ...prev,
+    country:
+      tab === "india"
+        ? "India"
+        : (prev.country === "India" ? "" : prev.country),
+  }));
+
+  router.replace(`?type=${tab}`, {
+    scroll: false,
+  });
+};
 
   const handleChange = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -325,6 +388,48 @@ function EnquiryPageContent() {
     console.log("Enquiry submitted:", { type: activeTab, ...form });
     alert("Thank you! Your enquiry has been submitted.");
   };
+  useEffect(() => {
+  function handleClickOutside(e) {
+    if (
+      countryRef.current &&
+      !countryRef.current.contains(e.target)
+    ) {
+      setCountryOpen(false);
+    }
+
+    if (
+      enquiryRef.current &&
+      !enquiryRef.current.contains(e.target)
+    ) {
+      setEnquiryOpen(false);
+    }
+
+    if (
+      quantityRef.current &&
+      !quantityRef.current.contains(e.target)
+    ) {
+      setQuantityOpen(false);
+    }
+
+    if (
+      categoryRef.current &&
+      !categoryRef.current.contains(e.target)
+    ) {
+      setCategoryOpen(false);
+    }
+  }
+
+  document.addEventListener(
+    "mousedown",
+    handleClickOutside
+  );
+
+  return () =>
+    document.removeEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+}, []);
 
   return (
     <>
@@ -406,150 +511,282 @@ function EnquiryPageContent() {
 
                 {/* Country */}
                 <div className="eq-field">
-                  <label>Country<span className="req">*</span></label>
-                  {activeTab === "india" ? (
-                    <input className="eq-input" type="text" value="India" disabled />
-                  ) : (
-                    <div className="eq-select-wrap">
-                      <select
-                        className="eq-select"
-                        value={form.country}
-                        onChange={(e) => handleChange("country", e.target.value)}
-                        required
-                      >
-                        <option value="" disabled>Select your country</option>
-                        {countries.map((c) => (
-                          <option key={c} value={c}>{c}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
+  <label>
+    Country<span className="req">*</span>
+  </label>
 
-                {/* Phone / WhatsApp */}
-                <div className="eq-field">
-                  <label>Phone / WhatsApp<span className="req">*</span></label>
-                  <input
-                    className="eq-input"
-                    type="tel"
-                    placeholder="Enter your Phone / WhatsApp"
-                    value={form.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                    required
-                  />
-                </div>
+  {activeTab === "india" ? (
+    <input
+      className="eq-input"
+      type="text"
+      value="India"
+      disabled
+    />
+  ) : (
+    <div
+      className="custom-select"
+      ref={countryRef}
+    >
+      <div
+        className="custom-select-btn"
+       onClick={() => {
+  setCountryOpen(!countryOpen);
 
-                {/* Type of Enquiry */}
-                <div className="eq-field">
-                  <label>Type of Enquiry<span className="req">*</span></label>
-                  <div className="eq-select-wrap">
-                    <select
-                      className="eq-select"
-                      value={form.enquiryType}
-                      onChange={(e) => handleChange("enquiryType", e.target.value)}
-                      required
-                    >
-                      <option value="" disabled>Select Type of Enquiry</option>
-                      {enquiryTypes.map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+  setEnquiryOpen(false);
+  setQuantityOpen(false);
+  setCategoryOpen(false);
+}}
+      >
+        <span>
+          {form.country || "Select your country"}
+        </span>
 
-                {/* Estimated Order Quantity */}
-                <div className="eq-field">
-                  <label>Estimated Order Quantity<span className="req">*</span></label>
-                  <div className="eq-select-wrap">
-                    <select
-                      className="eq-select"
-                      value={form.orderQty}
-                      onChange={(e) => handleChange("orderQty", e.target.value)}
-                      required
-                    >
-                      <option value="" disabled>Select Estimated Quantity</option>
-                      {orderQuantities.map((q) => (
-                        <option key={q} value={q}>{q}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+        <span>▼</span>
+      </div>
 
-                {/* Product Category Interested In */}
-                <div className="eq-field">
-                  <label>Product Category Interested In<span className="req">*</span></label>
-                  <div className="eq-select-wrap">
-                    <select
-                      className="eq-select"
-                      value={form.productCategory}
-                      onChange={(e) => handleChange("productCategory", e.target.value)}
-                      required
-                    >
-                      <option value="" disabled>Select Product Category</option>
-                      {productCategories.map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+      {countryOpen && (
+        <div className="custom-dropdown">
+          {countries.map((country) => (
+            <div
+              key={country}
+              className="custom-option"
+              onClick={() => {
+                handleChange("country", country);
+                setCountryOpen(false);
+              }}
+            >
+              {country}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
-                {/* Customisation */}
-                <div className="eq-field">
-                  <label>Do you require customisation?<span className="req">*</span></label>
-                  <div className="eq-pill-row">
-                    {["Yes", "No", "Not Sure"].map((opt) => (
-                      <button
-                        type="button"
-                        key={opt}
-                        className={`eq-pill${form.customisation === opt ? " active" : ""}`}
-                        onClick={() => handleChange("customisation", opt)}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+          {/* Phone / WhatsApp */}
+          <div className="eq-field">
+            <label>Phone / WhatsApp<span className="req">*</span></label>
+            <input
+              className="eq-input"
+              type="tel"
+              placeholder="Enter your Phone / WhatsApp"
+              value={form.phone}
+              onChange={(e) => handleChange("phone", e.target.value)}
+              required
+            />
+          </div>
 
-                {/* Packaging / Branding */}
-                <div className="eq-field">
-                  <label>Do you require custom packaging or branding?<span className="req">*</span></label>
-                  <div className="eq-pill-row">
-                    {["Yes", "No", "Not Sure"].map((opt) => (
-                      <button
-                        type="button"
-                        key={opt}
-                        className={`eq-pill${form.packaging === opt ? " active" : ""}`}
-                        onClick={() => handleChange("packaging", opt)}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+          {/* Type of Enquiry */}
+         <div className="eq-field">
+  <label>
+    Type of Enquiry
+    <span className="req">*</span>
+  </label>
 
-              {/* Message */}
-              <div className="eq-field" style={{ marginBottom: "0" }}>
-                <label>Message<span className="req">*</span></label>
-                <textarea
-                  className="eq-textarea"
-                  placeholder="Share design references, market preferences, timelines, or any special requirements"
-                  value={form.message}
-                  onChange={(e) => handleChange("message", e.target.value)}
-                  required
-                />
-              </div>
+  <div
+    className="custom-select"
+    ref={enquiryRef}
+  >
+    <div
+      className="custom-select-btn"
+      onClick={() => {
+  setEnquiryOpen(!enquiryOpen);
 
-              {/* Submit */}
-              <div className="eq-submit-row">
-                <button type="submit" className="eq-submit-btn">
-                  Submit Enquiry →
+  setCountryOpen(false);
+  setQuantityOpen(false);
+  setCategoryOpen(false);
+}}
+    >
+      <span>
+        {form.enquiryType ||
+          "Select Type of Enquiry"}
+      </span>
+
+      <span>▼</span>
+    </div>
+
+    {enquiryOpen && (
+      <div className="custom-dropdown">
+        {enquiryTypes.map((type) => (
+          <div
+            key={type}
+            className="custom-option"
+            onClick={() => {
+              handleChange(
+                "enquiryType",
+                type
+              );
+              setEnquiryOpen(false);
+            }}
+          >
+            {type}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+          {/* Estimated Order Quantity */}
+          <div className="eq-field">
+  <label>
+    Estimated Order Quantity
+    <span className="req">*</span>
+  </label>
+
+  <div
+    className="custom-select"
+    ref={quantityRef}
+  >
+    <div
+      className="custom-select-btn"
+      onClick={() => {
+  setQuantityOpen(!quantityOpen);
+
+  setCountryOpen(false);
+  setEnquiryOpen(false);
+  setCategoryOpen(false);
+}}
+    >
+      <span>
+        {form.orderQty  ||
+          "Select Estimated Quantity"}
+      </span>
+
+      <span>▼</span>
+    </div>
+
+    {quantityOpen && (
+  <div className="custom-dropdown">
+    {orderQuantities.map((qty) => (
+      <div
+        key={qty}
+        className="custom-option"
+        onClick={() => {
+          handleChange("orderQty", qty);
+          setQuantityOpen(false);
+        }}
+      >
+        {qty}
+
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
+          {/* Product Category Interested In */}
+          <div className="eq-field">
+  <label>
+    Product Category
+    <span className="req">*</span>
+  </label>
+
+  <div
+    className="custom-select"
+    ref={categoryRef}
+  >
+    <div
+      className="custom-select-btn"
+      onClick={() => {
+  setCategoryOpen(!categoryOpen);
+
+  setCountryOpen(false);
+  setEnquiryOpen(false);
+  setQuantityOpen(false);
+}}
+    >
+      <span>
+        {form.productCategory ||
+          "Select Product Category"}
+      </span>
+
+      <span>▼</span>
+    </div>
+
+    {categoryOpen && (
+      <div className="custom-dropdown">
+        {productCategories.map(
+          (category) => (
+            <div
+              key={category}
+              className="custom-option"
+              onClick={() => {
+                handleChange(
+                  "productCategory",
+                  category
+                );
+                setCategoryOpen(false);
+              }}
+            >
+              {category}
+            </div>
+          )
+        )}
+      </div>
+    )}
+  </div>
+</div>
+
+          {/* Customisation */}
+          <div className="eq-field">
+            <label>Do you require customisation?<span className="req">*</span></label>
+            <div className="eq-pill-row">
+              {["Yes", "No", "Not Sure"].map((opt) => (
+                <button
+                  type="button"
+                  key={opt}
+                  className={`eq-pill${form.customisation === opt ? " active" : ""}`}
+                  onClick={() => handleChange("customisation", opt)}
+                >
+                  {opt}
                 </button>
-              </div>
-            </form>
+              ))}
+            </div>
+          </div>
+
+          {/* Packaging / Branding */}
+          <div className="eq-field">
+            <label>Do you require custom packaging or branding?<span className="req">*</span></label>
+            <div className="eq-pill-row">
+              {["Yes", "No", "Not Sure"].map((opt) => (
+                <button
+                  type="button"
+                  key={opt}
+                  className={`eq-pill${form.packaging === opt ? " active" : ""}`}
+                  onClick={() => handleChange("packaging", opt)}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Message */}
+        <div className="eq-field" style={{ marginBottom: "0" }}>
+          <label>Message<span className="req">*</span></label>
+          <textarea
+            className="eq-textarea"
+            placeholder="Share design references, market preferences, timelines, or any special requirements"
+            value={form.message}
+            onChange={(e) => handleChange("message", e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Submit */}
+        <div className="eq-submit-row">
+          <button type="submit" className="eq-submit-btn">
+            Submit Enquiry →
+          </button>
+        </div>
+      </form>
+    </div >
+        </div >
+      </div >
 <ValuesSection />
       <FollowUs />
       <Footer />

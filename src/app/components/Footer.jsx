@@ -166,6 +166,9 @@ line-height: 1.5;
           padding: 18px clamp(16px, 5vw, 64px);
           text-align: center;
         }
+          .footer-bottom a:hover {
+  text-decoration: underline;
+}
 
         @media (max-width: 1024px) {
           .footer-links-grid {
@@ -414,11 +417,31 @@ fontWeight: 400, color: "#555", maxWidth: "680px", margin: "0 auto", lineHeight:
       </div>
 
       {/* Bottom Bar */}
-      <div className="footer-bottom">
-        <p style={{ fontSize: "13px", color: "#666" }}>
-          © 2025 Riya Art Palace. All rights reserved. GST: 08AIBPM9441J1ZZ · IEC: AIBPM9441J
-        </p>
-      </div>
+     <div className="footer-bottom">
+  <p
+    style={{
+      fontSize: "13px",
+      color: "#666",
+      margin: 0,
+      textAlign: "center",
+      fontFamily: "'Manrope', sans-serif",
+    }}
+  >
+    © 2025 Riya Art Palace. All rights reserved. Crafted and Powered by{" "}
+    <a
+      href="https://www.kontentkraftdigital.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        color: "#FF6500",
+        fontWeight: 700,
+        textDecoration: "none",
+      }}
+    >
+      Kontent Kraft Digital
+    </a>
+  </p>
+</div>
 
     </footer>
   );
