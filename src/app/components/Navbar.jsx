@@ -6,9 +6,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import logo from "../assets/logo.png";
 import { useEffect } from "react";
+import { useCatalog } from "@/app/components/CatalogContext";
 
 export default function Navbar() {
   const router = useRouter();
+  const { categories, loading: catalogLoading } = useCatalog();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchVal, setSearchVal] = useState("");
 const [showDropdown, setShowDropdown] = useState(false);
@@ -469,88 +471,57 @@ useEffect(() => {
               <Link href="/" className="nb-nav-home">Home</Link>
               <Link href="/about" className="nb-nav-link">About Us</Link>
           <div
-  className="nb-dropdown-wrap"
-  ref={dropdownRef}
->
-  <div className="nb-nav-link">
-  <Link
-    href="/products"
-    style={{
-      textDecoration: "none",
-      color: "inherit",
-    }}
-  >
-    Product Collections
-  </Link>
+            className="nb-dropdown-wrap"
+            ref={dropdownRef}
+            onMouseEnter={() => setShowDropdown(true)}
+            onMouseLeave={() => setShowDropdown(false)}
+          >
+            <div className="nb-nav-link">
+              <Link
+                href="/products"
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                }}
+              >
+                Product Collections
+              </Link>
 
-  <ChevronDown
-    size={14}
-    strokeWidth={2.5}
-    style={{
-      cursor: "pointer",
-      transition: "0.3s",
-      transform: showDropdown
-        ? "rotate(180deg)"
-        : "rotate(0deg)",
-    }}
-    onClick={(e) => {
-      e.stopPropagation();
-      setShowDropdown(!showDropdown);
-    }}
-  />
-</div>
+              <ChevronDown
+                size={14}
+                strokeWidth={2.5}
+                style={{
+                  cursor: "pointer",
+                  transition: "0.3s",
+                  transform: showDropdown
+                    ? "rotate(180deg)"
+                    : "rotate(0deg)",
+                }}
+              />
+            </div>
 
   {showDropdown && (
     <div className="nb-dropdown-card">
-
-      <Link href="/products?category=wall-decor" className="nb-dropdown-item">
-        Wall Décor
-      </Link>
-
-      <Link href="/products?category=handmade-accessories" className="nb-dropdown-item">
-        Handmade Accessories
-      </Link>
-
-      <Link href="/products?category=table-decor" className="nb-dropdown-item">
-        Table Décor
-      </Link>
-
-      <Link href="/products?category=spiritual-items" className="nb-dropdown-item">
-        Spiritual Items
-      </Link>
-
-      <Link href="/products?category=lac-collection" className="nb-dropdown-item">
-        Lac Collection
-      </Link>
-
-      <Link href="/products?category=handpainted-articles" className="nb-dropdown-item">
-        Handpainted Articles
-      </Link>
-
-      <Link href="/products?category=event-decor" className="nb-dropdown-item">
-        Event Décor
-      </Link>
-
-      <Link href="/products?category=diary-collection" className="nb-dropdown-item">
-        Diary Collection
-      </Link>
-
-      <Link href="/products?category=festive-collection" className="nb-dropdown-item">
-        Festive Collection
-      </Link>
-
-      <Link href="/products?category=christmas-items" className="nb-dropdown-item">
-        Christmas Items
-      </Link>
-
-      <Link href="/products?category=rajasthani-traditional" className="nb-dropdown-item">
-        Rajasthani Traditional
-      </Link>
-
-      <Link href="/products?category=ottomans-puffs" className="nb-dropdown-item">
-        Ottomans & Puffs
-      </Link>
-
+      {catalogLoading ? (
+        <span style={{ gridColumn: "span 2", textAlign: "center", fontSize: "12px", color: "var(--adm-muted)", padding: "10px 0" }}>
+          Loading collections...
+        </span>
+      ) : categories.length === 0 ? (
+        <span style={{ gridColumn: "span 2", textAlign: "center", fontSize: "12px", color: "var(--adm-muted)", padding: "10px 0" }}>
+          No collections found
+        </span>
+      ) : (
+        categories.map((cat) => (
+          <Link
+            key={cat.id || cat._id}
+            href={`/products?category=${cat.slug}`}
+            className="nb-dropdown-item"
+            onClick={() => setShowDropdown(false)}
+          >
+            {cat.name}
+          </Link>
+        ))
+      )}
     </div>
   )}
 </div>

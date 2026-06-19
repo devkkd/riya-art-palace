@@ -1,12 +1,14 @@
 "use client";
-import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
 import Footer from "./Footer";
-import { categories, subCategories, moqOptions, sortOptions, products } from "../data/products";
+import { useCatalog } from "@/app/components/CatalogContext";
+
+const moqOptions = ["1 - 100 pcs","100 - 500 pcs","500 - 1000 pcs","1000+ pcs"];
+const sortOptions = ["Recommended","New Arrivals","Price High to Low","Price Low to High"];
 
 
 /* ============================================================
@@ -486,15 +488,25 @@ function ProductCard({ product }) {
   const router = useRouter();
   const [qty, setQty] = useState(500);
 
+  // Format price helper
+  const formattedPrice = typeof product.price === "number"
+    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+    : product.price;
+
   return (
-    <div className="pc-card" onClick={() =>router.push(`/products/${product.slug}`)}>
+    <div className="pc-card" onClick={() => router.push(`/products/${product.slug}`)}>
       <div className="pc-img-wrap">
-        <Image src={product.images[0]} alt={product.name} width={300} height={400} className="pc-img" />
+        <img
+          src={product.images?.[0] || "https://placehold.co/400x300?text=No+Image"}
+          alt={product.name}
+          className="pc-img"
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </div>
       <div className="pc-body">
         <h3 className="pc-title">{product.name}</h3>
-        <div className="pc-price">{product.price}</div>
-        <div className="pc-subtitle">{product.subtitle}</div>
+        <div className="pc-price">{formattedPrice}</div>
+        <div className="pc-subtitle">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
 
         <div className="pc-qty-row">
           <span className="pc-qty-label">QUANTITY</span>
@@ -508,31 +520,30 @@ function ProductCard({ product }) {
         <button className="pc-cart-btn" onClick={(e) => e.stopPropagation()}>+ Add to Cart</button>
 
         <div className="pc-enquiry">
-  <a
-    href="#"
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      router.push("/enquiry?type=india");
-    }}
-  >
-    India Enquiry →
-  </a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push("/enquiry?type=india");
+            }}
+          >
+            India Enquiry →
+          </a>
 
-  <a
-    href="#"
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      router.push("/enquiry?type=export");
-    }}
-  >
-    Export Enquiry →
-  </a>
-</div>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              router.push("/enquiry?type=export");
+            }}
+          >
+            Export Enquiry →
+          </a>
         </div>
       </div>
-    
+    </div>
   );
 }
 
@@ -540,10 +551,94 @@ function ProductCard({ product }) {
    PAGE
    ============================================================ */
 export default function ProductsPage() {
-  const [activeCategory, setActiveCategory] = useState("Wall Décor");
-  const [selectedSubCat, setSelectedSubCat] = useState("All Products");
-  const [selectedMOQ, setSelectedMOQ] = useState("100 - 500 pcs");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { categories, subcategories, products: allProducts, loading } = useCatalog();
+
+  const categorySlugParam = searchParams.get("category");
+  const searchQueryParam = searchParams.get("q");
+
+  const [activeCategorySlug, setActiveCategorySlug] = useState("");
+  const [selectedSubCatId, setSelectedSubCatId] = useState("all");
+  const [selectedMOQ, setSelectedMOQ] = useState("");
   const [selectedSort, setSelectedSort] = useState("Recommended");
+
+  // Sync category filter with URL query param
+  useEffect(() => {
+    if (categorySlugParam) {
+      setActiveCategorySlug(categorySlugParam);
+      setSelectedSubCatId("all");
+    } else if (categories.length > 0 && !activeCategorySlug) {
+      setActiveCategorySlug(categories[0].slug);
+    }
+  }, [categorySlugParam, categories, activeCategorySlug]);
+
+  const activeCategory = categories.find(c => c.slug === activeCategorySlug) || categories[0];
+  const activeCategoryId = activeCategory?.id || activeCategory?._id;
+
+  // Filter subcategories for the sidebar based on active category
+  const filteredSubcategories = subcategories.filter(sub => {
+    const catId = typeof sub.category === "object" ? sub.category.id || sub.category._id : sub.category;
+    return catId === activeCategoryId;
+  });
+
+  const getProductMOQ = (price) => {
+    if (!price || isNaN(price)) return "1 - 100 pcs";
+    const numPrice = Number(price);
+    if (numPrice < 50) return "1000+ pcs";
+    if (numPrice < 100) return "500 - 1000 pcs";
+    if (numPrice < 200) return "100 - 500 pcs";
+    return "1 - 100 pcs";
+  };
+
+  // Filter products in memory
+  let filteredProducts = allProducts.filter(prod => {
+    // 1. Filter by category
+    const catSlug = prod.category?.slug || (typeof prod.category === "object" ? prod.category.slug : "");
+    if (activeCategorySlug && catSlug !== activeCategorySlug) return false;
+
+    // 2. Filter by subcategory
+    if (selectedSubCatId !== "all") {
+      const subId = prod.subcategory?.id || prod.subcategory?._id || prod.subcategory?.toString();
+      if (subId !== selectedSubCatId) return false;
+    }
+
+    // 3. Filter by search query from Navbar
+    if (searchQueryParam) {
+      const q = searchQueryParam.toLowerCase();
+      const nameMatch = prod.name?.toLowerCase().includes(q);
+      const descMatch = prod.description?.toLowerCase().includes(q);
+      if (!nameMatch && !descMatch) return false;
+    }
+
+    // 4. Filter by MOQ
+    if (selectedMOQ) {
+      const prodMOQ = getProductMOQ(prod.price);
+      if (prodMOQ !== selectedMOQ) return false;
+    }
+
+    // 5. Filter by New Arrivals
+    if (selectedSort === "New Arrivals") {
+      if (!prod.newArrival) return false;
+    }
+
+    return true;
+  });
+
+  // Apply Sorting
+  if (selectedSort === "Price Low to High") {
+    filteredProducts.sort((a, b) => a.price - b.price);
+  } else if (selectedSort === "Price High to Low") {
+    filteredProducts.sort((a, b) => b.price - a.price);
+  } else if (selectedSort === "New Arrivals") {
+    filteredProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  const handleClearFilters = () => {
+    setSelectedSubCatId("all");
+    setSelectedMOQ("");
+    setSelectedSort("Recommended");
+  };
 
   return (
     <>
@@ -554,110 +649,154 @@ export default function ProductsPage() {
         <div className="pp-container">
 
           {/* Title */}
-          <div className="pp-title">Product Collections</div>
+          <div className="pp-title">
+            {searchQueryParam ? `Search Results for "${searchQueryParam}"` : "Product Collections"}
+          </div>
 
           {/* Category Pills */}
           <div className="pp-cat-row">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                className={`pp-cat-pill${activeCategory === cat ? " active" : ""}`}
-                onClick={() => setActiveCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+            {loading ? (
+              <span style={{ fontSize: "14px", color: "#666", padding: "10px 0" }}>Loading collections...</span>
+            ) : (
+              categories.map((cat) => (
+                <button
+                  key={cat.id || cat._id}
+                  className={`pp-cat-pill${activeCategorySlug === cat.slug ? " active" : ""}`}
+                  onClick={() => {
+                    router.push(`/products?category=${cat.slug}`);
+                  }}
+                >
+                  {cat.name}
+                </button>
+              ))
+            )}
           </div>
 
           {/* ── LISTING VIEW ── */}
-          <div className="pp-layout">
-
-            {/* Sidebar */}
-            <aside className="pp-sidebar">
-              <div className="pp-filter-top">
-                <h3>Filters</h3>
-                <button className="pp-clear-btn" onClick={() => { setSelectedSubCat("All Products"); setSelectedMOQ(""); setSelectedSort("Recommended"); }}>
-                  Clear All
-                </button>
-              </div>
-
-              <div className="pp-filter-section">
-                <h4>Sub Category</h4>
-                {subCategories.map((item) => (
-                  <label className="pp-radio-row" key={item}>
-                    <input type="radio" name="subcategory" checked={selectedSubCat === item} onChange={() => setSelectedSubCat(item)} />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="pp-filter-section">
-                <h4>MOQ (Minimum Order Quantity)</h4>
-                {moqOptions.map((item) => (
-                  <label className="pp-radio-row" key={item}>
-                    <input type="radio" name="moq" checked={selectedMOQ === item} onChange={() => setSelectedMOQ(item)} />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-
-              <div className="pp-filter-section">
-                <h4>Sort by</h4>
-                {sortOptions.map((item) => (
-                  <label className="pp-radio-row" key={item}>
-                    <input type="radio" name="sort" checked={selectedSort === item} onChange={() => setSelectedSort(item)} />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-
-              <button className="pp-apply-btn">Apply Filter</button>
-            </aside>
-
-            {/* Products Area */}
-            <div>
-              <div className="pp-prod-header">
-                <div className="pp-prod-count">Showing {products.length} Products</div>
-                <select className="pp-sort-select">
-                  <option>Sort By Latest</option>
-                  <option>Price Low To High</option>
-                  <option>Price High To Low</option>
-                </select>
-              </div>
-
-              <div className="pp-grid">
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-
-              <div className="pp-pagination">
-                <button className="pp-page-btn active">1</button>
-                <button className="pp-page-btn">2</button>
-                <button className="pp-page-btn">3</button>
-                <button className="pp-page-btn">→</button>
-              </div>
-
-              <div className="pp-see-more">
-                <button className="pp-see-more-btn">See More Products</button>
-              </div>
+          {loading ? (
+            <div style={{ display: "flex", justifyContent: "center", padding: "100px 0" }}>
+              <div className="adm-loading-spinner" />
             </div>
+          ) : (
+            <div className="pp-layout">
 
-          </div>
+              {/* Sidebar */}
+              <aside className="pp-sidebar">
+                <div className="pp-filter-top">
+                  <h3>Filters</h3>
+                  <button className="pp-clear-btn" onClick={handleClearFilters}>
+                    Clear All
+                  </button>
+                </div>
+
+                <div className="pp-filter-section">
+                  <h4>Sub Category</h4>
+                  <label className="pp-radio-row">
+                    <input
+                      type="radio"
+                      name="subcategory"
+                      checked={selectedSubCatId === "all"}
+                      onChange={() => setSelectedSubCatId("all")}
+                    />
+                    <span>All Products</span>
+                  </label>
+                  {filteredSubcategories.map((item) => (
+                    <label className="pp-radio-row" key={item.id || item._id}>
+                      <input
+                        type="radio"
+                        name="subcategory"
+                        checked={selectedSubCatId === (item.id || item._id)}
+                        onChange={() => setSelectedSubCatId(item.id || item._id)}
+                      />
+                      <span>{item.name}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="pp-filter-section">
+                  <h4>MOQ (Minimum Order Quantity)</h4>
+                  {moqOptions.map((item) => (
+                    <label className="pp-radio-row" key={item}>
+                      <input type="radio" name="moq" checked={selectedMOQ === item} onChange={() => setSelectedMOQ(item)} />
+                      <span>{item}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <div className="pp-filter-section">
+                  <h4>Sort by</h4>
+                  {sortOptions.map((item) => (
+                    <label className="pp-radio-row" key={item}>
+                      <input type="radio" name="sort" checked={selectedSort === item} onChange={() => setSelectedSort(item)} />
+                      <span>{item}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <button className="pp-apply-btn" onClick={() => {}}>Apply Filter</button>
+              </aside>
+
+              {/* Products Area */}
+              <div>
+                <div className="pp-prod-header">
+                  <div className="pp-prod-count">Showing {filteredProducts.length} Products</div>
+                  <select
+                    className="pp-sort-select"
+                    value={selectedSort}
+                    onChange={(e) => setSelectedSort(e.target.value)}
+                  >
+                    <option value="Recommended">Recommended</option>
+                    <option value="New Arrivals">Sort By Latest</option>
+                    <option value="Price Low to High">Price Low To High</option>
+                    <option value="Price High to Low">Price High To Low</option>
+                  </select>
+                </div>
+
+                {filteredProducts.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "80px 0", color: "#666" }}>
+                    <h3>No products found in this category</h3>
+                    <p style={{ marginTop: "10px", fontSize: "14px" }}>Please select another category or check back later.</p>
+                  </div>
+                ) : (
+                  <div className="pp-grid">
+                    {filteredProducts.map((product) => (
+                      <ProductCard key={product.id || product._id} product={product} />
+                    ))}
+                  </div>
+                )}
+
+                {filteredProducts.length > 0 && (
+                  <>
+                    <div className="pp-pagination">
+                      <button className="pp-page-btn active">1</button>
+                      <button className="pp-page-btn">2</button>
+                      <button className="pp-page-btn">3</button>
+                      <button className="pp-page-btn">→</button>
+                    </div>
+
+                    <div className="pp-see-more">
+                      <button className="pp-see-more-btn">See More Products</button>
+                    </div>
+                  </>
+                )}
+              </div>
+
+            </div>
+          )}
 
         </div>
       </div>
 
       {/* WhatsApp FAB */}
       <a
-  href="https://wa.me/918385007350"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="pp-wa-btn"
->
-  <FaWhatsapp />
-  <span>For Bulk</span>
-</a>
+        href="https://wa.me/918385007350"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="pp-wa-btn"
+      >
+        <FaWhatsapp />
+        <span>For Bulk</span>
+      </a>
 
       <FollowUs />
       <Footer />

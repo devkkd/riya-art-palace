@@ -2,6 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 
+import { CatalogProvider } from "@/app/components/CatalogContext";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -24,7 +26,9 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-screen flex flex-col">
-        {children}
+        <CatalogProvider>
+          {children}
+        </CatalogProvider>
       </body>
     </html>
   );

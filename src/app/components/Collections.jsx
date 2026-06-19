@@ -12,6 +12,8 @@ import diary from "../assets/diary.jpg";
 import christmas from "../assets/christmas.jpg";
 import ottoman from "../assets/ottoman.jpg";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useCatalog } from "@/app/components/CatalogContext";
 const collections = [
   {
     title: "Wall Décor",
@@ -76,6 +78,24 @@ const collections = [
 ];
 
 export default function Collections() {
+  const router = useRouter();
+  const { categories, loading } = useCatalog();
+
+  const LOCAL_IMAGE_MAP = {
+    "Wall Décor": wallDecor,
+    "Table Décor": tableDecor,
+    "Lac Collection": lacCollection,
+    "Event Décor": eventDecor,
+    "Festive Collection": festiveCollection,
+    "Rajasthani Traditional": traditional,
+    "Handmade Accessories": accessories,
+    "Spiritual Items": spiritual,
+    "Handpainted Articles": handpainted,
+    "Diary Collection": diary,
+    "Christmas Items": christmas,
+    "Ottomans & Puffs": ottoman,
+  };
+
   return (
    <section
   style={{
@@ -252,57 +272,87 @@ padding: "0 28px",
 
         {/* Grid */}
         <div className="collections-grid">
-          {collections.map((item, index) => (
-            <div key={index} className="collection-card">
-              <Image src={item.image} alt={item.title} />
-
-              <div
-                style={{
-                  position: "absolute",
-                  inset: "0",
-                  background:
-                    "linear-gradient(to top, #FF8A00 0%, rgba(255,138,0,0.55) 35%, transparent 65%)",
-                }}
-              />
-
-              <div
-                style={{
-                  position: "absolute",
-             bottom:"18px",
-left:"18px",
-right:"18px",
-                  color: "#fff",
-                }}
-              >
-                <h3
-                  style={{
-                   fontSize: "16px",
-fontWeight: "700",
-lineHeight: "1.3",
-fontFamily: "'Manrope', sans-serif",
-letterSpacing: "-0.04em",
-color: "#FFFFFF",
-                  }}
-                >
-                  {item.title}
-                </h3>
-
-                <p
-                  style={{
-                   fontSize: "12px",
-fontFamily: "'Manrope', sans-serif",
-fontWeight: "400",
-lineHeight: "160%",
-letterSpacing: "0",
-color: "#FFFFFF",
-maxWidth: "90%",
-                  }}
-                >
-                  {item.desc} →
-                </p>
-              </div>
+          {loading ? (
+            <div style={{ gridColumn: "span 4", textAlign: "center", padding: "40px 0", color: "#888", fontSize: "14px" }}>
+              Loading collections...
             </div>
-          ))}
+          ) : categories.length === 0 ? (
+            <div style={{ gridColumn: "span 4", textAlign: "center", padding: "40px 0", color: "#888", fontSize: "14px" }}>
+              No collections found in catalog
+            </div>
+          ) : (
+            categories.map((cat) => {
+              const catImg = cat.image || LOCAL_IMAGE_MAP[cat.name] || wallDecor;
+              return (
+                <div
+                  key={cat.id || cat._id}
+                  className="collection-card"
+                  onClick={() => {
+                    router.push(`/products?category=${cat.slug}`);
+                  }}
+                >
+                  {typeof catImg === "string" ? (
+                    <img
+                      src={catImg}
+                      alt={cat.name}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.5s ease" }}
+                      onError={(e) => {
+                        e.target.src = "https://placehold.co/400x390?text=" + encodeURIComponent(cat.name);
+                      }}
+                    />
+                  ) : (
+                    <Image src={catImg} alt={cat.name} />
+                  )}
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: "0",
+                      background:
+                        "linear-gradient(to top, #FF8A00 0%, rgba(255,138,0,0.55) 35%, transparent 65%)",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "18px",
+                      left: "18px",
+                      right: "18px",
+                      color: "#fff",
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "700",
+                        lineHeight: "1.3",
+                        fontFamily: "'Manrope', sans-serif",
+                        letterSpacing: "-0.04em",
+                        color: "#FFFFFF",
+                      }}
+                    >
+                      {cat.name}
+                    </h3>
+
+                    <p
+                      style={{
+                        fontSize: "12px",
+                        fontFamily: "'Manrope', sans-serif",
+                        fontWeight: "400",
+                        lineHeight: "160%",
+                        letterSpacing: "0",
+                        color: "#FFFFFF",
+                        maxWidth: "90%",
+                      }}
+                    >
+                      {cat.description || `Browse our ${cat.name} collection`} →
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </section>

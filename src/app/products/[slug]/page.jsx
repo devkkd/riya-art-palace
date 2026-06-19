@@ -1,12 +1,11 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import Navbar from "../../components/Navbar";
 import FollowUs from "../../components/FollowUs";
 import Footer from "../../components/Footer";
-import { products } from "../../data/products";
+import { useCatalog } from "@/app/components/CatalogContext";
 import ValuesSection from "@/app/components/ValuesSection.jsx";
 
 /* ============================================================
@@ -762,6 +761,10 @@ const styles = `
 function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
   if (!product) return null;
 
+  const formattedPrice = typeof product.price === "number"
+    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+    : product.price;
+
   return (
     <>
       {/* Backdrop */}
@@ -784,18 +787,16 @@ function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
         {/* Cart Item */}
         <div className="cart-item">
           <div className="cart-item-img">
-            <Image
-              src={product.images[0]}
+            <img
+              src={product.images?.[0] || "https://placehold.co/400x300?text=No+Image"}
               alt={product.name}
-              width={72}
-              height={96}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </div>
           <div className="cart-item-details">
             <div className="cart-item-name">{product.name}</div>
-            <div className="cart-item-price">{product.price}</div>
-            <div className="cart-item-sub">{product.subtitle}</div>
+            <div className="cart-item-price">{formattedPrice}</div>
+            <div className="cart-item-sub">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
             <div className="cart-item-qty-row">
               <span className="cart-item-qty-label">QUANTITY</span>
               <div className="cart-item-qty-ctrl">
@@ -868,21 +869,23 @@ function RelatedCard({ product, router }) {
     router.push(`/products/${product.slug}`);
   };
 
+  const formattedPrice = typeof product.price === "number"
+    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+    : product.price;
+
   return (
     <div className="pd-rel-card" onClick={goTo}>
       <div className="pd-rel-img-wrap">
-        <Image
-          src={product.images[0]}
+        <img
+          src={product.images?.[0] || "https://placehold.co/400x300?text=No+Image"}
           alt={product.name}
-          width={200}
-          height={270}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       </div>
       <div className="pd-rel-body">
         <div className="pd-rel-name">{product.name}</div>
-        <div className="pd-rel-price">{product.price}</div>
-        <div className="pd-rel-sub">{product.subtitle}</div>
+        <div className="pd-rel-price">{formattedPrice}</div>
+        <div className="pd-rel-sub">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
 
         <div className="pd-rel-qty-row">
           <span className="pd-rel-qty-label">QTY</span>
@@ -936,10 +939,23 @@ function RelatedCard({ product, router }) {
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
+  const { products, loading } = useCatalog();
   const [qty, setQty] = useState(500);
   const [cartOpen, setCartOpen] = useState(false);
 
   const { slug } = params;
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ display: "flex", justifyContent: "center", padding: "120px 0", background: "#F7F5F3", minHeight: "60vh" }}>
+          <div className="adm-loading-spinner" />
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   const product = products.find((p) => p.slug === slug);
 
@@ -950,7 +966,7 @@ export default function ProductDetailPage() {
         <div className="pp-page">
           <div className="pp-container" style={{ padding: "60px 0", textAlign: "center" }}>
             <h2>Product not found</h2>
-            <button onClick={() => router.push("/products")} style={{ marginTop: 16, cursor: "pointer" }}>
+            <button onClick={() => router.push("/products")} style={{ marginTop: 16, cursor: "pointer", padding: "10px 20px", border: "1px solid #ddd", background: "#fff", borderRadius: "99px" }}>
               ← Back to Products
             </button>
           </div>
@@ -960,7 +976,33 @@ export default function ProductDetailPage() {
     );
   }
 
-  const related = products.filter((p) => p.id !== product.id).slice(0, 5);
+  // Format price helper
+  const formattedPrice = typeof product.price === "number"
+    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+    : product.price;
+
+  const related = products
+    .filter((p) => (p.id || p._id) !== (product.id || product._id) && p.category?.slug === product.category?.slug)
+    .slice(0, 5);
+  // Fallback if not enough related products in the same category
+  if (related.length < 5) {
+    const fallbacks = products
+      .filter((p) => (p.id || p._id) !== (product.id || product._id) && !related.some(r => (r.id || r._id) === (p.id || p._id)))
+      .slice(0, 5 - related.length);
+    related.push(...fallbacks);
+  }
+
+  // Reconstruct specifications object
+  const specs = {
+    "Product Type": product.productType || "—",
+    "Primary Material": product.primaryMaterial || "—",
+    "Style": product.style || "—",
+    "Set Type": product.setType || "—",
+    "Color": product.color || "—",
+    "Size Category": product.sizeCategory || "—",
+    "Theme": product.theme || "—",
+    "Usage Area": product.usageArea || "—",
+  };
 
   const handleAddToCart = () => {
     setCartOpen(true);
@@ -993,7 +1035,7 @@ export default function ProductDetailPage() {
           <div className="pd-breadcrumb">
             <button onClick={() => router.push("/products")}>Products</button>
             <span>›</span>
-            <span>Wall Décor</span>
+            <span>{product.category?.name || "Category"}</span>
             <span>›</span>
             <span style={{ color: "#0E0E0E", fontWeight: 600 }}>{product.name}</span>
           </div>
@@ -1003,24 +1045,32 @@ export default function ProductDetailPage() {
 
             {/* LEFT — 2×2 Image Grid */}
             <div className="pd-img-grid">
-              {product.images.map((img, i) => (
-                <div className="pd-img-cell" key={i}>
-                  <Image
-                    src={img}
-                    alt={`${product.name} ${i + 1}`}
-                    width={400}
-                    height={530}
+              {product.images && product.images.length > 0 ? (
+                product.images.map((img, i) => (
+                  <div className="pd-img-cell" key={i}>
+                    <img
+                      src={img}
+                      alt={`${product.name} ${i + 1}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  </div>
+                ))
+              ) : (
+                <div className="pd-img-cell">
+                  <img
+                    src="https://placehold.co/400x530?text=No+Image"
+                    alt="No Image"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
                 </div>
-              ))}
+              )}
             </div>
 
             {/* RIGHT — Info */}
             <div className="pd-info">
               <h1 className="pd-product-name">{product.name}</h1>
-              <div className="pd-product-price">{product.price}</div>
-              <div className="pd-product-subtitle">{product.subtitle}</div>
+              <div className="pd-product-price">{formattedPrice}</div>
+              <div className="pd-product-subtitle">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
 
               {/* Quantity + Add to Cart */}
               <div className="pd-action-row">
@@ -1062,7 +1112,7 @@ export default function ProductDetailPage() {
               <div className="pd-section-title" style={{ marginTop: "24px" }}>Product Specification</div>
               <table className="pd-spec-table">
                 <tbody>
-                  {Object.entries(product.specs).map(([key, val]) => (
+                  {Object.entries(specs).map(([key, val]) => (
                     <tr key={key}>
                       <td>{key}</td>
                       <td>{val}</td>

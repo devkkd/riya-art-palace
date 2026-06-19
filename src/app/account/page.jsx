@@ -1,863 +1,324 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import Navbar from "../components/Navbar";
 import ValuesSection from "../components/ValuesSection.jsx";
 import FollowUs from "../components/FollowUs";
 import Footer from "../components/Footer";
+import logo from "../assets/logo.png";
 
-/* ============================================================
-   HARDCODED LOGIN NUMBER — change this to your number
-   ============================================================ */
-const VALID_PHONE = "9999999999";
-
-/* ============================================================
-   STYLES
-   ============================================================ */
-const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  .ac-page {
-    background: #F7F5F3;
-    min-height: 100vh;
-    font-family: "Poppins", sans-serif;
-  }
-  .ac-container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 40px 80px;
-  }
-
-  /* ── Login Popup Overlay ── */
-  .login-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  .login-modal {
-    background: #fff;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 420px;
-    padding: 36px 32px 32px;
-    position: relative;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
-    animation: modalIn .25s ease;
-  }
-  @keyframes modalIn {
-    from { opacity:0; transform: scale(0.94) translateY(12px); }
-    to   { opacity:1; transform: scale(1) translateY(0); }
-  }
-  .login-logo {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 8px;
-  }
-  .login-logo img {
-    height: 54px;
-    object-fit: contain;
-  }
-  .login-brand {
-    text-align: center;
-    font-family: "Manrope", sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    color: #0E0E0E;
-    margin-bottom: 4px;
-    letter-spacing: -0.01em;
-  }
-  .login-sub {
-    text-align: center;
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 28px;
-  }
-  .login-label {
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #444;
-    margin-bottom: 8px;
-    display: block;
-  }
-  .login-input-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 6px;
-  }
-  .login-flag-box {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 48px;
-    border: 1.5px solid #C3BCB4;
-    border-radius: 10px;
-    padding: 0 12px;
-    background: #FAF8F6;
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
-    flex-shrink: 0;
-    min-width: 80px;
-  }
-  .login-input {
-    flex: 1;
-    height: 48px;
-    border: 1.5px solid #C3BCB4;
-    border-radius: 10px;
-    padding: 0 16px;
-    font-family: "Poppins", sans-serif;
-    font-size: 15px;
-    color: #333;
-    outline: none;
-    background: #FAF8F6;
-    transition: border-color .2s;
-  }
-  .login-input:focus { border-color: #F85700; }
-  .login-input::placeholder { color: #BCBCBC; }
-  .login-input.error { border-color: #e53e3e; }
-  .login-error {
-    font-family: "Manrope", sans-serif;
-    font-size: 12px;
-    color: #e53e3e;
-    margin-bottom: 16px;
-    min-height: 18px;
-  }
-  .login-btn {
-    width: 100%;
-    height: 50px;
-    border: none;
-    border-radius: 999px;
-    background: #F85700;
-    color: #fff;
-    font-family: "Poppins", sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s;
-    margin-top: 4px;
-  }
-  .login-btn:hover { background: #e84f00; }
-  .login-privacy {
-    text-align: center;
-    font-family: "Manrope", sans-serif;
-    font-size: 11px;
-    color: #AAA;
-    margin-top: 16px;
-    line-height: 1.6;
-  }
-  .login-privacy a { color: #F85700; text-decoration: none; }
-  .login-privacy a:hover { text-decoration: underline; }
-  .login-powered {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 14px;
-    font-family: "Manrope", sans-serif;
-    font-size: 11px;
-    color: #BBB;
-  }
-
-  /* ── Account Page Header ── */
-  .ac-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 32px 0 28px;
-    border-bottom: 1px solid #E0D9D1;
-    margin-bottom: 32px;
-  }
-  .ac-header-title {
-    font-family: "Manrope", sans-serif;
-    font-size: 26px;
-    font-weight: 800;
-    color: #0E0E0E;
-    letter-spacing: -0.02em;
-  }
-  .ac-logout-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: 1.5px solid #C3BCB4;
-    border-radius: 999px;
-    padding: 8px 20px;
-    font-family: "Poppins", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #555;
-    cursor: pointer;
-    transition: border-color .2s, color .2s;
-  }
-  .ac-logout-btn:hover { border-color: #F85700; color: #F85700; }
-
-  /* ── Tabs / Nav ── */
-  .ac-tabs {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid #E0D9D1;
-  }
-  .ac-tab {
-    padding: 12px 20px;
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: #888;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    transition: color .2s, border-color .2s;
-    margin-bottom: -1px;
-  }
-  .ac-tab:hover { color: #F85700; }
-  .ac-tab.active { color: #F85700; border-bottom-color: #F85700; }
-
-  /* ── Section header row ── */
-  .ac-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  .ac-section-title {
-    font-family: "Manrope", sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    color: #0E0E0E;
-  }
-  .ac-back-link {
-    background: none;
-    border: none;
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #F85700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .ac-back-link:hover { text-decoration: underline; }
-
-  /* ── Empty state ── */
-  .ac-empty {
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    color: #888;
-    padding: 12px 0;
-  }
-
-  /* ── Account Detail row ── */
-  .ac-detail-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 0;
-    border-bottom: 1px solid #EDE8E3;
-  }
-  .ac-detail-row:last-child { border-bottom: none; }
-  .ac-detail-label {
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: #0E0E0E;
-    min-width: 160px;
-  }
-  .ac-detail-value {
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    color: #555;
-    flex: 1;
-  }
-  .ac-edit-link {
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: #F85700;
-    background: none;
-    border: none;
-    cursor: pointer;
-    margin-left: 16px;
-  }
-  .ac-edit-link:hover { text-decoration: underline; }
-  .ac-new-member-badge {
-    display: inline-flex;
-    align-items: center;
-    background: #FFF0E8;
-    color: #F85700;
-    font-family: "Manrope", sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 999px;
-    gap: 4px;
-  }
-
-  /* ── Address cards ── */
-  .ac-add-address-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 44px;
-    padding: 0 22px;
-    border: none;
-    border-radius: 999px;
-    background: #F85700;
-    color: #fff;
-    font-family: "Poppins", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s;
-    margin-bottom: 24px;
-  }
-  .ac-add-address-btn:hover { background: #e84f00; }
-
-  .ac-address-card {
-    background: #fff;
-    border: 1.5px solid #E0D9D1;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    position: relative;
-  }
-  .ac-address-name {
-    font-family: "Manrope", sans-serif;
-    font-size: 15px;
-    font-weight: 800;
-    color: #0E0E0E;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .ac-default-badge {
-    font-size: 11px;
-    font-weight: 700;
-    background: #F85700;
-    color: #fff;
-    padding: 2px 10px;
-    border-radius: 999px;
-  }
-  .ac-address-text {
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    color: #666;
-    line-height: 1.7;
-    margin-bottom: 14px;
-  }
-  .ac-address-actions {
-    display: flex;
-    gap: 12px;
-  }
-  .ac-address-btn {
-    height: 36px;
-    padding: 0 18px;
-    border-radius: 999px;
-    font-family: "Poppins", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .2s;
-  }
-  .ac-address-btn.edit {
-    background: #fff;
-    border: 1.5px solid #C3BCB4;
-    color: #333;
-  }
-  .ac-address-btn.edit:hover { border-color: #F85700; color: #F85700; }
-  .ac-address-btn.remove {
-    background: #fff;
-    border: 1.5px solid #e53e3e;
-    color: #e53e3e;
-  }
-  .ac-address-btn.remove:hover { background: #e53e3e; color: #fff; }
-
-  /* ── Add Address Form ── */
-  .ac-form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-  .ac-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .ac-form-group.full { grid-column: 1 / -1; }
-  .ac-form-label {
-    font-family: "Manrope", sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    color: #555;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-  }
-  .ac-form-input, .ac-form-select {
-    height: 46px;
-    border: 1.5px solid #C3BCB4;
-    border-radius: 10px;
-    padding: 0 14px;
-    font-family: "Poppins", sans-serif;
-    font-size: 14px;
-    color: #333;
-    background: #FAF8F6;
-    outline: none;
-    transition: border-color .2s;
-    appearance: none;
-    width: 100%;
-  }
-  .ac-form-input:focus, .ac-form-select:focus { border-color: #F85700; }
-  .ac-form-input::placeholder { color: #BCBCBC; }
-  .ac-default-checkbox {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: "Manrope", sans-serif;
-    font-size: 14px;
-    color: #444;
-    cursor: pointer;
-    margin-bottom: 24px;
-  }
-  .ac-default-checkbox input { width: 16px; height: 16px; accent-color: #F85700; cursor: pointer; }
-  .ac-submit-btn {
-    height: 50px;
-    padding: 0 36px;
-    border: none;
-    border-radius: 999px;
-    background: #F85700;
-    color: #fff;
-    font-family: "Poppins", sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s;
-  }
-  .ac-submit-btn:hover { background: #e84f00; }
-
-  /* ── Responsive ── */
-  @media (max-width: 768px) {
-    .ac-container { padding: 0 16px 60px; }
-    .ac-form-grid { grid-template-columns: 1fr; }
-    .ac-header-title { font-size: 20px; }
-    .ac-tabs { overflow-x: auto; }
-    .ac-tab { white-space: nowrap; }
-  }
-`;
-
-/* ============================================================
-   DUMMY DATA
-   ============================================================ */
-const DUMMY_USER = {
-  name: "John Doe",
-  email: "johndoe@example.com",
-  phone: VALID_PHONE,
-};
-
-const DUMMY_ADDRESS = {
-  id: 1,
-  name: "John Doe",
-  line1: "123 Johari Bazaar, Near Clock Tower",
-  line2: "Jaipur, Rajasthan 302003",
-  country: "India",
-  phone: VALID_PHONE,
-  isDefault: true,
-};
-
-/* ============================================================
-   LOGIN POPUP
-   ============================================================ */
-function LoginPopup({ onSuccess }) {
-  const [phone, setPhone] = useState("");
-  const [error, setError] = useState("");
-
-  const handleLogin = () => {
-    if (phone.trim() === VALID_PHONE) {
-      setError("");
-      onSuccess();
-    } else {
-      setError("Invalid phone number. Please try again.");
-    }
-  };
-
-  const handleKey = (e) => {
-    if (e.key === "Enter") handleLogin();
-  };
-
-  return (
-    <div className="login-overlay">
-      <div className="login-modal">
-        {/* Logo */}
-        <div className="login-logo">
-          {/* Replace src with your actual logo path */}
-          <img src="/logo.png" alt="Riya Art Palace" onError={(e) => { e.target.style.display = "none"; }} />
-        </div>
-        <div className="login-brand">Riya Art Palace</div>
-        <div className="login-sub">Sign in to your account</div>
-
-        <label className="login-label">Mobile Number</label>
-        <div className="login-input-row">
-          <div className="login-flag-box">
-            🇮🇳 +91
-          </div>
-          <input
-            type="tel"
-            maxLength={10}
-            className={`login-input${error ? " error" : ""}`}
-            placeholder="Enter mobile number"
-            value={phone}
-            onChange={(e) => {
-              setPhone(e.target.value.replace(/\D/g, ""));
-              setError("");
-            }}
-            onKeyDown={handleKey}
-            autoFocus
-          />
-        </div>
-        <div className="login-error">{error}</div>
-
-        <button className="login-btn" onClick={handleLogin}>
-          Login →
-        </button>
-
-        <div className="login-privacy">
-          By continuing, you agree to our{" "}
-          <a href="/privacy-policy">Privacy Policy</a> &amp;{" "}
-          <a href="/terms">Terms of Service</a>
-        </div>
-
-        <div className="login-powered">
-          <span>POWERED BY</span>
-          <strong style={{ color: "#444" }}>🚀 Shiprocket</strong>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ============================================================
-   ADD ADDRESS FORM
-   ============================================================ */
 function AddAddressForm({ onCancel, onSave }) {
+  const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    firstName: "", lastName: "",
-    address1: "", address2: "",
-    city: "", zip: "",
-    country: "Select Your Country", state: "Select Your State/Province",
-    phone: "", altPhone: "",
-    isDefault: false,
+    firstName:"",lastName:"",line1:"",line2:"",city:"",state:"",
+    pincode:"",country:"India",phone:"",altPhone:"",isDefault:false
   });
-
-  const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }));
-
+  const set=(k)=>(e)=>setForm(f=>({...f,[k]:e.target.value}));
   return (
     <div>
-      <div className="ac-section-header" style={{ marginBottom: 24 }}>
-        <div>
-          <button className="ac-back-link" onClick={onCancel}>
-            ← Return to account details
-          </button>
-          <div className="ac-section-title" style={{ marginTop: 8 }}>Your Addresses</div>
-        </div>
+      <button style={{background:"none",border:"none",fontSize:13,color:"#F85700",cursor:"pointer",fontFamily:"Manrope,sans-serif",fontWeight:600,marginBottom:20,padding:0}} onClick={onCancel}>
+        ← Back to addresses
+      </button>
+      <div style={{fontFamily:"Manrope,sans-serif",fontSize:20,fontWeight:800,marginBottom:24,color:"#0E0E0E"}}>Add New Address</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+        {[["firstName","First Name"],["lastName","Last Name"],["line1","Address Line 1"],
+          ["line2","Address Line 2"],["city","City"],["pincode","Pincode"],
+          ["state","State"],["country","Country"],["phone","Phone"],["altPhone","Alternate Phone"]
+        ].map(([k,label])=>(
+          <div key={k} style={{display:"flex",flexDirection:"column",gap:6,gridColumn:["line1","line2"].includes(k)?"span 2":"auto"}}>
+            <label style={{fontSize:11,fontWeight:700,color:"#555",textTransform:"uppercase",letterSpacing:"0.4px"}}>{label}</label>
+            <input style={{height:46,border:"1.5px solid #C3BCB4",borderRadius:10,padding:"0 14px",fontSize:14,background:"#FAF8F6",outline:"none",width:"100%",fontFamily:"Poppins,sans-serif"}}
+              placeholder={label} value={form[k]} onChange={set(k)}/>
+          </div>
+        ))}
       </div>
-
-      <h3 style={{
-        fontFamily: '"Manrope",sans-serif',
-        fontSize: 20,
-        fontWeight: 800,
-        color: "#0E0E0E",
-        textAlign: "center",
-        marginBottom: 28,
-      }}>Add a New Address</h3>
-
-      <div className="ac-form-grid">
-        <div className="ac-form-group">
-          <label className="ac-form-label">First Name</label>
-          <input className="ac-form-input" placeholder="First name" value={form.firstName} onChange={set("firstName")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Last Name</label>
-          <input className="ac-form-input" placeholder="Last name" value={form.lastName} onChange={set("lastName")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Address 1</label>
-          <input className="ac-form-input" placeholder="Write your address here" value={form.address1} onChange={set("address1")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Address 2</label>
-          <input className="ac-form-input" placeholder="Write your address here" value={form.address2} onChange={set("address2")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">City / Town / District</label>
-          <input className="ac-form-input" placeholder="Enter your city" value={form.city} onChange={set("city")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Zip</label>
-          <input className="ac-form-input" placeholder="Enter zip code" value={form.zip} onChange={set("zip")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Country</label>
-          <select className="ac-form-select" value={form.country} onChange={set("country")}>
-            <option>Select Your Country</option>
-            <option>India</option>
-            <option>United States</option>
-            <option>United Kingdom</option>
-            <option>UAE</option>
-            <option>Australia</option>
-            <option>Canada</option>
-          </select>
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">State/Province</label>
-          <select className="ac-form-select" value={form.state} onChange={set("state")}>
-            <option>Select Your State/Province</option>
-            <option>Rajasthan</option>
-            <option>Delhi</option>
-            <option>Maharashtra</option>
-            <option>Gujarat</option>
-            <option>Karnataka</option>
-            <option>Tamil Nadu</option>
-            <option>Uttar Pradesh</option>
-          </select>
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Mobile Number</label>
-          <input className="ac-form-input" placeholder="Enter Mobile Number" value={form.phone} onChange={set("phone")} />
-        </div>
-        <div className="ac-form-group">
-          <label className="ac-form-label">Alternate / Whatsapp Number</label>
-          <input className="ac-form-input" placeholder="Enter Alternate Number" value={form.altPhone} onChange={set("altPhone")} />
-        </div>
-      </div>
-
-      <label className="ac-default-checkbox">
-        <input
-          type="checkbox"
-          checked={form.isDefault}
-          onChange={(e) => setForm(f => ({ ...f, isDefault: e.target.checked }))}
-        />
-        Add as default address
+      <label style={{display:"flex",alignItems:"center",gap:10,marginBottom:24,fontSize:14,cursor:"pointer"}}>
+        <input type="checkbox" checked={form.isDefault} onChange={e=>setForm(f=>({...f,isDefault:e.target.checked}))} style={{accentColor:"#F85700",width:16,height:16}}/>
+        Set as default address
       </label>
-
-      <div>
-        <button className="ac-submit-btn" onClick={() => onSave(form)}>
-          Submit Enquiry →
-        </button>
-      </div>
+      <button disabled={saving} onClick={async()=>{setSaving(true);await onSave(form);setSaving(false);}}
+        style={{height:50,padding:"0 36px",border:"none",borderRadius:999,background:saving?"#ccc":"#F85700",color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"Poppins,sans-serif"}}>
+        {saving?"Saving...":"Save Address"}
+      </button>
     </div>
   );
 }
 
-/* ============================================================
-   MAIN ACCOUNT PAGE
-   ============================================================ */
 export default function AccountPage() {
-  const router = useRouter();
+  const [user,setUser]=useState(null);
+  const [authLoading,setAuthLoading]=useState(true);
+  const [step,setStep]=useState("phone");
+  const [phone,setPhone]=useState("");
+  const [otp,setOtp]=useState("");
+  const [sessionToken,setSessionToken]=useState("");
+  const [sending,setSending]=useState(false);
+  const [verifying,setVerifying]=useState(false);
+  const [loginError,setLoginError]=useState("");
+  const [activeTab,setActiveTab]=useState("orders");
+  const [orders,setOrders]=useState([]);
+  const [ordersLoading,setOrdersLoading]=useState(false);
+  const [showAddForm,setShowAddForm]=useState(false);
 
-  // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  useEffect(()=>{
+    fetch("/api/auth/user/me").then(r=>r.json()).then(j=>{if(j.success)setUser(j.data.user);}).catch(()=>{}).finally(()=>setAuthLoading(false));
+  },[]);
 
-  // Active tab: 'orders' | 'details' | 'addresses'
-  const [activeTab, setActiveTab] = useState("orders");
-
-  // Address state
-  const [addresses, setAddresses] = useState([DUMMY_ADDRESS]);
-  const [showAddForm, setShowAddForm] = useState(false);
-
-  // Handle save new address
-  const handleSaveAddress = (form) => {
-    const newAddr = {
-      id: Date.now(),
-      name: `${form.firstName} ${form.lastName}`,
-      line1: `${form.address1}${form.address2 ? ", " + form.address2 : ""}`,
-      line2: `${form.city}${form.zip ? " " + form.zip : ""}${form.state !== "Select Your State/Province" ? ", " + form.state : ""}`,
-      country: form.country !== "Select Your Country" ? form.country : "India",
-      phone: form.phone,
-      isDefault: form.isDefault,
-    };
-    if (form.isDefault) {
-      setAddresses(prev => [
-        newAddr,
-        ...prev.map(a => ({ ...a, isDefault: false })),
-      ]);
-    } else {
-      setAddresses(prev => [...prev, newAddr]);
+  useEffect(()=>{
+    if(user&&activeTab==="orders"){
+      setOrdersLoading(true);
+      fetch("/api/orders/my").then(r=>r.json()).then(j=>{if(j.success)setOrders(j.data);}).catch(()=>{}).finally(()=>setOrdersLoading(false));
     }
-    setShowAddForm(false);
+  },[user,activeTab]);
+
+  const handleSendOtp=async()=>{
+    setLoginError("");
+    const cleaned=phone.replace(/\D/g,"");
+    if(cleaned.length!==10){setLoginError("Please enter a valid 10-digit mobile number");return;}
+    setSending(true);
+    try{
+      const res=await fetch("/api/auth/user/send-otp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:cleaned})});
+      const json=await res.json();
+      if(json.success){setSessionToken(json.data.session_token);setStep("otp");}
+      else setLoginError(json.message||"Failed to send OTP. Please try again.");
+    }catch{setLoginError("Network error. Please try again.");}
+    finally{setSending(false);}
   };
 
-  const handleRemoveAddress = (id) => {
-    setAddresses(prev => prev.filter(a => a.id !== id));
+  const handleVerifyOtp=async()=>{
+    setLoginError("");
+    if(!otp||otp.length<4){setLoginError("Please enter the OTP");return;}
+    setVerifying(true);
+    try{
+      const res=await fetch("/api/auth/user/verify-otp",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone:phone.replace(/\D/g,""),otp,session_token:sessionToken})});
+      const json=await res.json();
+      if(json.success){setUser(json.data.user);setStep("phone");setOtp("");}
+      else setLoginError(json.message||"Invalid OTP. Please try again.");
+    }catch{setLoginError("Network error. Please try again.");}
+    finally{setVerifying(false);}
   };
+
+  const handleLogout=async()=>{
+    await fetch("/api/auth/user/logout",{method:"POST"});
+    setUser(null);setOrders([]);setStep("phone");setPhone("");setOtp("");
+  };
+
+  const fmtDate=(d)=>d?new Date(d).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"";
+  const STATUS_COLOR={
+    pending:{bg:"#FEF3C7",color:"#92400E"},confirmed:{bg:"#DBEAFE",color:"#1E40AF"},
+    processing:{bg:"#EDE9FE",color:"#5B21B6"},shipped:{bg:"#D1FAE5",color:"#065F46"},
+    out_for_delivery:{bg:"#A7F3D0",color:"#064E3B"},delivered:{bg:"#BBF7D0",color:"#14532D"},
+    cancelled:{bg:"#FEE2E2",color:"#991B1B"},
+  };
+
+  if(authLoading)return(<><Navbar/><div style={{minHeight:"60vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#F7F5F3"}}><div style={{width:32,height:32,border:"3px solid #E5DDD5",borderTopColor:"#F85700",borderRadius:"50%",animation:"adm-spin 0.7s linear infinite"}}/></div><Footer/></>);
 
   return (
     <>
-      <Navbar />
-      <style jsx>{styles}</style>
+      <Navbar/>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        @keyframes acSpin{to{transform:rotate(360deg)}}
+        @keyframes acModal{from{opacity:0;transform:scale(0.95) translateY(10px)}to{opacity:1;transform:scale(1)translateY(0)}}
+        .ac-page{background:#F7F5F3;min-height:100vh;font-family:'Poppins',sans-serif}
+        .ac-container{max-width:1100px;margin:0 auto;padding:0 40px 80px}
+        .login-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px}
+        .login-modal{background:#fff;border-radius:16px;width:100%;max-width:440px;padding:40px 36px 36px;box-shadow:0 24px 60px rgba(0,0,0,0.18);animation:acModal .25s ease}
+        .ac-header{display:flex;align-items:center;justify-content:space-between;padding:32px 0 28px;border-bottom:1px solid #E0D9D1;margin-bottom:32px}
+        .ac-header-title{font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:#0E0E0E;letter-spacing:-0.02em}
+        .ac-logout-btn{display:flex;align-items:center;gap:6px;background:none;border:1.5px solid #C3BCB4;border-radius:999px;padding:8px 20px;font-size:13px;font-weight:600;color:#555;cursor:pointer;font-family:'Poppins',sans-serif}
+        .ac-logout-btn:hover{border-color:#F85700;color:#F85700}
+        .ac-tabs{display:flex;gap:4px;margin-bottom:32px;border-bottom:1px solid #E0D9D1}
+        .ac-tab{padding:12px 20px;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;color:#888;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px}
+        .ac-tab:hover{color:#F85700}
+        .ac-tab.active{color:#F85700;border-bottom-color:#F85700}
+        .ac-section-title{font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:#0E0E0E;margin-bottom:20px}
+        .ac-empty{font-family:'Manrope',sans-serif;font-size:14px;color:#888;padding:12px 0}
+        .ac-detail-row{display:flex;align-items:center;padding:18px 0;border-bottom:1px solid #EDE8E3}
+        .ac-detail-row:last-child{border-bottom:none}
+        .ac-detail-label{font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:#0E0E0E;min-width:160px}
+        .ac-detail-value{font-family:'Manrope',sans-serif;font-size:14px;color:#555;flex:1}
+        .order-card{background:#fff;border:1.5px solid #E0D9D1;border-radius:12px;padding:20px 24px;margin-bottom:16px}
+        .order-track-btn{height:36px;padding:0 18px;border:1.5px solid #F85700;border-radius:999px;background:#fff;color:#F85700;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;font-family:'Poppins',sans-serif}
+        .order-track-btn:hover{background:#F85700;color:#fff}
+        .ac-add-btn{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 22px;border:none;border-radius:999px;background:#F85700;color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:24px;font-family:'Poppins',sans-serif}
+        .ac-address-card{background:#fff;border:1.5px solid #E0D9D1;border-radius:12px;padding:20px 24px;margin-bottom:16px}
+        .ac-remove-btn{height:36px;padding:0 18px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;border:1.5px solid #e53e3e;color:#e53e3e;font-family:'Poppins',sans-serif}
+        .ac-remove-btn:hover{background:#e53e3e;color:#fff}
+        @media(max-width:768px){.ac-container{padding:0 16px 60px}.login-modal{padding:28px 20px 24px}}
+      `}</style>
 
-      {/* ── LOGIN POPUP (shown until logged in) ── */}
-      {!isLoggedIn && (
-        <LoginPopup onSuccess={() => setIsLoggedIn(true)} />
+      {!user&&(
+        <div className="login-overlay">
+          <div className="login-modal">
+            <div style={{display:"flex",justifyContent:"center",marginBottom:12}}>
+              <Image src={logo} alt="Riya Art Palace" width={130} height={44} style={{height:44,width:"auto",objectFit:"contain"}} priority/>
+            </div>
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:22,fontWeight:800,color:"#0E0E0E",marginBottom:4}}>Riya Art Palace</div>
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:13,color:"#888",marginBottom:28}}>Sign in to your account</div>
+
+            {step==="phone"?(
+              <>
+                <div style={{fontFamily:"Manrope,sans-serif",fontSize:13,fontWeight:700,color:"#444",marginBottom:8}}>Mobile Number</div>
+                <div style={{display:"flex",gap:8,marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,height:50,border:"1.5px solid #C3BCB4",borderRadius:10,padding:"0 14px",background:"#FAF8F6",fontSize:14,fontWeight:600,color:"#333",flexShrink:0}}>
+                    IN +91
+                  </div>
+                  <input type="tel" maxLength={10}
+                    style={{flex:1,height:50,border:"1.5px solid "+(loginError?"#e53e3e":"#C3BCB4"),borderRadius:10,padding:"0 16px",fontSize:15,color:"#333",outline:"none",background:"#FAF8F6",width:"100%"}}
+                    placeholder="10-digit mobile number" value={phone}
+                    onChange={e=>{setPhone(e.target.value.replace(/\D/g,""));setLoginError("");}}
+                    onKeyDown={e=>e.key==="Enter"&&handleSendOtp()} autoFocus/>
+                </div>
+                {loginError&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#e53e3e",marginBottom:12}}>{loginError}</div>}
+                <button onClick={handleSendOtp} disabled={sending}
+                  style={{width:"100%",height:52,border:"none",borderRadius:999,background:sending?"#ccc":"#F85700",color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"Poppins,sans-serif",marginTop:8}}>
+                  {sending?"Sending OTP...":"Login →"}
+                </button>
+              </>
+            ):(
+              <>
+                <button onClick={()=>{setStep("phone");setOtp("");setLoginError("");}}
+                  style={{background:"none",border:"none",fontSize:13,color:"#F85700",cursor:"pointer",fontWeight:600,marginBottom:16,padding:0,fontFamily:"Manrope,sans-serif"}}>
+                  ← Change number (+91 {phone})
+                </button>
+                <div style={{fontFamily:"Manrope,sans-serif",fontSize:13,fontWeight:700,color:"#444",marginBottom:8}}>Enter OTP</div>
+                <div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#888",marginBottom:14}}>
+                  OTP sent to +91 {phone}
+                </div>
+                <input type="tel" maxLength={6}
+                  style={{height:56,border:"1.5px solid "+(loginError?"#e53e3e":"#C3BCB4"),borderRadius:10,padding:"0 16px",fontSize:28,color:"#333",outline:"none",background:"#FAF8F6",width:"100%",textAlign:"center",letterSpacing:12,marginBottom:6}}
+                  placeholder="----" value={otp}
+                  onChange={e=>{setOtp(e.target.value.replace(/\D/g,""));setLoginError("");}}
+                  onKeyDown={e=>e.key==="Enter"&&handleVerifyOtp()} autoFocus/>
+                {loginError&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#e53e3e",marginBottom:12}}>{loginError}</div>}
+                <button onClick={handleVerifyOtp} disabled={verifying}
+                  style={{width:"100%",height:52,border:"none",borderRadius:999,background:verifying?"#ccc":"#F85700",color:"#fff",fontSize:15,fontWeight:600,cursor:"pointer",fontFamily:"Poppins,sans-serif",marginTop:8}}>
+                  {verifying?"Verifying...":"Verify OTP →"}
+                </button>
+              </>
+            )}
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:11,color:"#AAA",marginTop:16,lineHeight:1.6}}>
+              By continuing, you agree to our{" "}
+              <a href="/privacy-policy" style={{color:"#F85700",textDecoration:"none"}}>Privacy Policy</a>{" "}&amp;{" "}
+              <a href="/terms" style={{color:"#F85700",textDecoration:"none"}}>Terms of Service</a>
+            </div>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,marginTop:14,fontFamily:"Manrope,sans-serif",fontSize:11,color:"#BBB"}}>
+              <span>POWERED BY</span><strong style={{color:"#444"}}>Shiprocket</strong>
+            </div>
+          </div>
+        </div>
       )}
 
       <div className="ac-page">
         <div className="ac-container">
-
-          {/* Header */}
           <div className="ac-header">
             <div className="ac-header-title">My Account</div>
-            <button
-              className="ac-logout-btn"
-              onClick={() => {
-                setIsLoggedIn(false);
-                setActiveTab("orders");
-              }}
-            >
-              Log out ↗
-            </button>
+            <button className="ac-logout-btn" onClick={handleLogout}>Log out</button>
           </div>
 
-          {/* ── ADD ADDRESS FORM view ── */}
-          {showAddForm ? (
-            <AddAddressForm
-              onCancel={() => setShowAddForm(false)}
-              onSave={handleSaveAddress}
-            />
-          ) : (
+          {showAddForm?(
+            <AddAddressForm onCancel={()=>setShowAddForm(false)} onSave={async(form)=>{
+              const res=await fetch("/api/auth/user/addresses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});
+              const j=await res.json();
+              if(j.success)setUser(prev=>({...prev,addresses:j.data.addresses}));
+              setShowAddForm(false);
+            }}/>
+          ):(
             <>
-              {/* Tabs */}
               <div className="ac-tabs">
-                <button
-                  className={`ac-tab${activeTab === "orders" ? " active" : ""}`}
-                  onClick={() => setActiveTab("orders")}
-                >
-                  Order History
-                </button>
-                <button
-                  className={`ac-tab${activeTab === "details" ? " active" : ""}`}
-                  onClick={() => setActiveTab("details")}
-                >
-                  Account Details
-                </button>
-                <button
-                  className={`ac-tab${activeTab === "addresses" ? " active" : ""}`}
-                  onClick={() => setActiveTab("addresses")}
-                >
-                  Addresses
-                </button>
+                {[["orders","Order History"],["details","Account Details"],["addresses","Addresses"]].map(([key,label])=>(
+                  <button key={key} className={"ac-tab"+(activeTab===key?" active":"")} onClick={()=>setActiveTab(key)}>{label}</button>
+                ))}
               </div>
 
-              {/* ── ORDER HISTORY ── */}
-              {activeTab === "orders" && (
+              {activeTab==="orders"&&(
                 <div>
-                  <div className="ac-section-header">
-                    <div className="ac-section-title">Order History</div>
-                  </div>
-                  <div className="ac-empty">
-                    You haven't placed any orders yet.
-                  </div>
-                </div>
-              )}
-
-              {/* ── ACCOUNT DETAILS ── */}
-              {activeTab === "details" && (
-                <div>
-                  <div className="ac-section-header">
-                    <div className="ac-section-title">Account Details</div>
-                    <span className="ac-new-member-badge">✦ New Member</span>
-                  </div>
-
-                  <div className="ac-detail-row">
-                    <div className="ac-detail-label">Name</div>
-                    <div className="ac-detail-value">{DUMMY_USER.name}</div>
-                    <button className="ac-edit-link">Edit</button>
-                  </div>
-                  <div className="ac-detail-row">
-                    <div className="ac-detail-label">Email</div>
-                    <div className="ac-detail-value">{DUMMY_USER.email}</div>
-                    <button className="ac-edit-link">Edit</button>
-                  </div>
-                  <div className="ac-detail-row">
-                    <div className="ac-detail-label">Phone</div>
-                    <div className="ac-detail-value">+91 {DUMMY_USER.phone}</div>
-                    <button className="ac-edit-link">Edit</button>
-                  </div>
-                  <div className="ac-detail-row">
-                    <div className="ac-detail-label">Password</div>
-                    <div className="ac-detail-value">••••••••</div>
-                    <button className="ac-edit-link">Edit</button>
-                  </div>
-                </div>
-              )}
-
-              {/* ── ADDRESSES ── */}
-              {activeTab === "addresses" && (
-                <div>
-                  <div className="ac-section-header">
-                    <div className="ac-section-title">Your Addresses</div>
-                  </div>
-
-                  <button
-                    className="ac-add-address-btn"
-                    onClick={() => setShowAddForm(true)}
-                  >
-                    + Add New Address
-                  </button>
-
-                  {addresses.length === 0 && (
-                    <div className="ac-empty">No addresses saved yet.</div>
-                  )}
-
-                  {addresses.map((addr) => (
-                    <div className="ac-address-card" key={addr.id}>
-                      <div className="ac-address-name">
-                        {addr.name}
-                        {addr.isDefault && (
-                          <span className="ac-default-badge">Default</span>
-                        )}
+                  <div className="ac-section-title">Order History</div>
+                  {ordersLoading?(
+                    <div style={{display:"flex",justifyContent:"center",padding:32}}>
+                      <div style={{width:28,height:28,border:"3px solid #E5DDD5",borderTopColor:"#F85700",borderRadius:"50%",animation:"acSpin 0.7s linear infinite"}}/>
+                    </div>
+                  ):orders.length===0?(
+                    <div className="ac-empty">You haven't placed any orders yet.</div>
+                  ):orders.map(order=>{
+                    const sc=STATUS_COLOR[order.orderStatus]||{bg:"#F3F4F6",color:"#374151"};
+                    return(
+                      <div key={order.id} className="order-card">
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,flexWrap:"wrap",gap:8}}>
+                          <div>
+                            <div style={{fontFamily:"monospace",fontSize:13,fontWeight:700,color:"#0E0E0E"}}>{order.orderId}</div>
+                            <div style={{fontSize:12,color:"#888",marginTop:2}}>{fmtDate(order.createdAt)}</div>
+                          </div>
+                          <span style={{padding:"4px 12px",borderRadius:999,fontSize:12,fontWeight:700,background:sc.bg,color:sc.color}}>
+                            {order.orderStatus?.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase())}
+                          </span>
+                        </div>
+                        <div style={{fontFamily:"Manrope,sans-serif",fontSize:13,color:"#555",marginBottom:8}}>
+                          {order.items?.slice(0,2).map(i=>i.productName).join(", ")}
+                          {order.items?.length>2?(" +" + (order.items.length-2) + " more"):""}
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+                          <div style={{fontFamily:"Manrope,sans-serif",fontSize:15,fontWeight:800,color:"#0E0E0E"}}>
+                            Rs.{order.totalAmount} &middot; {order.paymentMethod}
+                          </div>
+                          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                            {order.awbNumber&&<span style={{fontSize:12,color:"#888"}}>AWB: {order.awbNumber}</span>}
+                            {order.trackingUrl&&<a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="order-track-btn">Track Order</a>}
+                          </div>
+                        </div>
                       </div>
-                      <div className="ac-address-text">
-                        {addr.line1}<br />
-                        {addr.line2}<br />
-                        {addr.country}<br />
+                    );
+                  })}
+                </div>
+              )}
+
+              {activeTab==="details"&&(
+                <div>
+                  <div className="ac-section-title">Account Details</div>
+                  {[["Phone","+91 "+(user?.phone||"")],["Name",user?.name||"—"],["Email",user?.email||"—"]].map(([label,value])=>(
+                    <div key={label} className="ac-detail-row">
+                      <div className="ac-detail-label">{label}</div>
+                      <div className="ac-detail-value">{value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {activeTab==="addresses"&&(
+                <div>
+                  <div className="ac-section-title">Your Addresses</div>
+                  <button className="ac-add-btn" onClick={()=>setShowAddForm(true)}>+ Add New Address</button>
+                  {(!user?.addresses||user.addresses.length===0)?(
+                    <div className="ac-empty">No addresses saved yet.</div>
+                  ):user.addresses.map(addr=>(
+                    <div key={addr._id} className="ac-address-card">
+                      <div style={{fontFamily:"Manrope,sans-serif",fontSize:15,fontWeight:800,color:"#0E0E0E",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+                        {addr.firstName} {addr.lastName}
+                        {addr.isDefault&&<span style={{fontSize:11,fontWeight:700,background:"#F85700",color:"#fff",padding:"2px 10px",borderRadius:999}}>Default</span>}
+                      </div>
+                      <div style={{fontFamily:"Manrope,sans-serif",fontSize:13,color:"#666",lineHeight:1.7,marginBottom:14}}>
+                        {addr.line1}{addr.line2?", "+addr.line2:""}<br/>
+                        {addr.city}, {addr.state} - {addr.pincode}<br/>
+                        {addr.country}<br/>
                         {addr.phone}
                       </div>
-                      <div className="ac-address-actions">
-                        <button className="ac-address-btn edit">Edit</button>
-                        <button
-                          className="ac-address-btn remove"
-                          onClick={() => handleRemoveAddress(addr.id)}
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      <button className="ac-remove-btn" onClick={async()=>{
+                        const res=await fetch("/api/auth/user/addresses/"+addr._id,{method:"DELETE"});
+                        const j=await res.json();
+                        if(j.success)setUser(prev=>({...prev,addresses:j.data.addresses}));
+                      }}>Remove</button>
                     </div>
                   ))}
                 </div>
               )}
             </>
           )}
-
         </div>
       </div>
-
-      <ValuesSection />
-      <FollowUs />
-      <Footer />
+      <ValuesSection/>
+      <FollowUs/>
+      <Footer/>
     </>
   );
 }
