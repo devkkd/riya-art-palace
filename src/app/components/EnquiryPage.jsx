@@ -383,10 +383,37 @@ const categoryRef = useRef(null);
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Enquiry submitted:", { type: activeTab, ...form });
-    alert("Thank you! Your enquiry has been submitted.");
+    setSubmitError("");
+
+    // Basic client-side validation for pills
+    if (!form.customisation) { setSubmitError("Please select customisation option"); return; }
+    if (!form.packaging)     { setSubmitError("Please select packaging option");     return; }
+
+    setSubmitting(true);
+    try {
+      const res  = await fetch("/api/enquiry", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ type: activeTab, ...form }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSubmitSuccess(true);
+        setForm({ ...initialFormState, country: activeTab === "india" ? "India" : "" });
+      } else {
+        setSubmitError(json.message || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setSubmitError("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
   useEffect(() => {
   function handleClickOutside(e) {
@@ -779,9 +806,42 @@ const categoryRef = useRef(null);
 
         {/* Submit */}
         <div className="eq-submit-row">
-          <button type="submit" className="eq-submit-btn">
-            Submit Enquiry →
-          </button>
+          {submitSuccess ? (
+            <div style={{
+              textAlign: "center",
+              background: "#D1FAE5",
+              border: "1.5px solid #6EE7B7",
+              borderRadius: 14,
+              padding: "24px 32px",
+              width: "100%",
+            }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              <div style={{ fontFamily: "Manrope,sans-serif", fontSize: 18, fontWeight: 800, color: "#065F46", marginBottom: 6 }}>
+                Enquiry Submitted!
+              </div>
+              <div style={{ fontFamily: "Manrope,sans-serif", fontSize: 14, color: "#047857" }}>
+                Thank you! Our team will get back to you within 24 hours.
+              </div>
+              <button
+                type="button"
+                onClick={() => setSubmitSuccess(false)}
+                style={{ marginTop: 16, background: "none", border: "1.5px solid #065F46", borderRadius: 999, padding: "8px 24px", fontFamily: "Manrope,sans-serif", fontWeight: 700, color: "#065F46", cursor: "pointer", fontSize: 13 }}
+              >
+                Submit Another Enquiry
+              </button>
+            </div>
+          ) : (
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+              {submitError && (
+                <div style={{ background: "#FEE2E2", border: "1px solid #FCA5A5", borderRadius: 10, padding: "10px 20px", fontFamily: "Manrope,sans-serif", fontSize: 13, color: "#991B1B", width: "100%", textAlign: "center" }}>
+                  {submitError}
+                </div>
+              )}
+              <button type="submit" className="eq-submit-btn" disabled={submitting}>
+                {submitting ? "Submitting…" : "Submit Enquiry →"}
+              </button>
+            </div>
+          )}
         </div>
       </form>
     </div >

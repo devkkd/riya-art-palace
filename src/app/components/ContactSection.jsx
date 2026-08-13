@@ -196,11 +196,59 @@ export default function RiyaArtPalaceForm() {
     message: "",
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
   const set = (key) => (val) => setForm((f) => ({ ...f, [key]: val }));
   const setInput = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = () => {
-    alert("Enquiry submitted successfully!");
+  const handleSubmit = async () => {
+    setSubmitError("");
+
+    // Basic validation
+    if (!form.companyName.trim()) { setSubmitError("Company name is required"); return; }
+    if (!form.contactName.trim()) { setSubmitError("Contact person name is required"); return; }
+    if (!form.email.trim())       { setSubmitError("Business email is required"); return; }
+    if (!form.country)            { setSubmitError("Please select your country"); return; }
+    if (!form.phone.trim())       { setSubmitError("Phone number is required"); return; }
+
+    setSubmitting(true);
+    try {
+      const res  = await fetch("/api/enquiry", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type:            form.country === "India" ? "india" : "export",
+          companyName:     form.companyName,
+          contactName:     form.contactName,
+          businessEmail:   form.email,
+          country:         form.country,
+          phone:           form.phone,
+          enquiryType:     form.enquiryType,
+          orderQty:        form.quantity,
+          productCategory: form.category,
+          customisation:   form.customisation,
+          packaging:       form.packaging,
+          message:         form.message,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSubmitSuccess(true);
+        setForm({
+          companyName: "", contactName: "", email: "", country: "",
+          phone: "", enquiryType: "", quantity: "", category: "",
+          customisation: "Yes", packaging: "Yes", message: "",
+        });
+      } else {
+        setSubmitError(json.message || "Something went wrong. Please try again.");
+      }
+    } catch {
+      setSubmitError("Network error. Please check your connection and try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -528,18 +576,55 @@ color: "#555",}}>{value}</div>
 
             </div>
 
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="rap-submit-btn"
-            >
-              Submit Enquiry
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="12 5 19 12 12 19" />
-              </svg>
-            </button>
+            {submitSuccess ? (
+              <div style={{
+                marginTop: 28, background: "#D1FAE5", border: "1.5px solid #6EE7B7",
+                borderRadius: 14, padding: "24px 28px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+                <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 17, fontWeight: 800, color: "#065F46", marginBottom: 6 }}>
+                  Enquiry Submitted!
+                </div>
+                <div style={{ fontFamily: "Manrope, sans-serif", fontSize: 14, color: "#047857", marginBottom: 16 }}>
+                  Thank you! Our team will get back to you within 24 hours.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmitSuccess(false)}
+                  style={{ background: "none", border: "1.5px solid #065F46", borderRadius: 999, padding: "8px 24px", fontFamily: "Manrope, sans-serif", fontWeight: 700, color: "#065F46", cursor: "pointer", fontSize: 13 }}
+                >
+                  Submit Another Enquiry
+                </button>
+              </div>
+            ) : (
+              <>
+                {submitError && (
+                  <div style={{
+                    marginTop: 16, background: "#FEE2E2", border: "1px solid #FCA5A5",
+                    borderRadius: 10, padding: "10px 18px",
+                    fontFamily: "Manrope, sans-serif", fontSize: 13, color: "#991B1B",
+                  }}>
+                    {submitError}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="rap-submit-btn"
+                  style={{ opacity: submitting ? 0.7 : 1, cursor: submitting ? "not-allowed" : "pointer" }}
+                >
+                  {submitting ? "Submitting…" : "Submit Enquiry"}
+                  {!submitting && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  )}
+                </button>
+              </>
+            )}
 
           </div>
         </div>

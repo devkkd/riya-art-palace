@@ -1,5 +1,6 @@
 import connectDB from "@/lib/db/connect";
 import Order from "@/lib/models/Order";
+import Coupon from "@/lib/models/Coupon";
 import User from "@/lib/models/User";
 import Product from "@/lib/models/Product";
 import { cookies } from "next/headers";
@@ -36,7 +37,7 @@ export const orderController = {
       if (!auth) return errorResponse("Please login to place an order", 401);
 
       const body = await request.json();
-      const { items, shippingAddress, paymentMethod = "COD", notes = "" } = body;
+      const { items, shippingAddress, paymentMethod = "COD", notes = "", couponCode = "" } = body;
 
       if (!items || items.length === 0)   return errorResponse("Cart is empty", 422);
       if (!shippingAddress?.line1)        return errorResponse("Shipping address is required", 422);
@@ -68,8 +69,36 @@ export const orderController = {
         });
       }
 
-      const shippingCharge = subtotal >= 999 ? 0 : 60; // free shipping above ₹999
-      const totalAmount    = subtotal + shippingCharge;
+      const shippingCharge = subtotal >= 999 ? 0 : 60;
+
+      // Apply coupon
+      let couponDiscount = 0;
+      let appliedCouponCode = "";
+      if (couponCode) {
+        const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
+        if (coupon) {
+          const now = new Date();
+          const valid = (!coupon.validUntil || coupon.validUntil >= now) &&
+                        (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
+                        subtotal >= coupon.minOrderAmount &&
+                        (!coupon.onePerUser || !coupon.usedBy.includes(auth.userId));
+          if (valid) {
+            if (coupon.discountType === "percentage") {
+              couponDiscount = Math.round((subtotal * coupon.discountValue) / 100);
+              if (coupon.maxDiscount) couponDiscount = Math.min(couponDiscount, coupon.maxDiscount);
+            } else {
+              couponDiscount = Math.min(coupon.discountValue, subtotal);
+            }
+            appliedCouponCode = coupon.code;
+            // Record usage
+            coupon.usedCount += 1;
+            if (!coupon.usedBy.includes(auth.userId)) coupon.usedBy.push(auth.userId);
+            await coupon.save();
+          }
+        }
+      }
+
+      const totalAmount = subtotal + shippingCharge - couponDiscount;
 
       const orderId = generateOrderId();
 
@@ -80,7 +109,9 @@ export const orderController = {
         shippingAddress,
         subtotal,
         shippingCharge,
-        discount:        0,
+        discount:        couponDiscount,
+        couponCode:      appliedCouponCode,
+        couponDiscount,
         totalAmount,
         paymentMethod,
         paymentStatus:   paymentMethod === "COD" ? "pending" : "pending",

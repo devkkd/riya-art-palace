@@ -13,6 +13,8 @@ import {
   MessageSquare,
   Package,
   ShoppingBag,
+  Star,
+  Tag,
   Users,
   X,
 } from "lucide-react";
@@ -26,7 +28,9 @@ const NAV_ITEMS = [
   { href: "/admin/dashboard/products",      label: "Products",      icon: Package },
   { href: "/admin/dashboard/orders",        label: "Orders",        icon: ShoppingBag },
   { href: "/admin/dashboard/users",         label: "Users",         icon: Users },
-  { href: "#", label: "Enquiries", icon: MessageSquare, disabled: true },
+  { href: "/admin/dashboard/enquiries",     label: "Enquiries",     icon: MessageSquare },
+  { href: "/admin/dashboard/coupons",       label: "Coupons",       icon: Tag },
+  { href: "/admin/dashboard/reviews",       label: "Reviews",       icon: Star },
 ];
 
 export default function AdminShell({ children }) {

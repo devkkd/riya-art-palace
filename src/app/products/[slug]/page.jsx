@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
 import Navbar from "../../components/Navbar";
@@ -7,6 +7,112 @@ import FollowUs from "../../components/FollowUs";
 import Footer from "../../components/Footer";
 import { useCatalog } from "@/app/components/CatalogContext";
 import ValuesSection from "@/app/components/ValuesSection.jsx";
+
+/* ── Reviews Section ────────────────────────────────────────── */
+function StarDisplay({ rating, size = 16 }) {
+  return (
+    <span style={{ display:"inline-flex", gap:1 }}>
+      {[1,2,3,4,5].map(s => (
+        <span key={s} style={{ color: s<=rating ? "#F85700" : "#E0D9D1", fontSize:size, lineHeight:1 }}>★</span>
+      ))}
+    </span>
+  );
+}
+
+function ReviewsSection({ productId }) {
+  const [reviews,    setReviews]    = useState([]);
+  const [avgRating,  setAvgRating]  = useState(0);
+  const [total,      setTotal]      = useState(0);
+  const [loading,    setLoading]    = useState(true);
+
+  useEffect(() => {
+    if (!productId) return;
+    fetch(`/api/reviews?productId=${productId}`)
+      .then(r => r.json())
+      .then(j => {
+        if (j.success) {
+          setReviews(j.data.reviews);
+          setAvgRating(j.data.avgRating);
+          setTotal(j.data.total);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  const fmtDate = d => d ? new Date(d).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" }) : "";
+
+  return (
+    <div style={{ borderTop:"1px solid #E0D9D1", paddingTop:36, marginTop:16, marginBottom:48 }}>
+      {/* Header */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
+        <div>
+          <div style={{ fontFamily:"Manrope,sans-serif", fontSize:20, fontWeight:800, color:"#0E0E0E", marginBottom:6 }}>
+            Customer Reviews
+          </div>
+          {total > 0 && (
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <StarDisplay rating={Math.round(avgRating)} size={20}/>
+              <span style={{ fontFamily:"Manrope,sans-serif", fontSize:15, fontWeight:700, color:"#0E0E0E" }}>{avgRating}</span>
+              <span style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#888" }}>({total} review{total!==1?"s":""})</span>
+            </div>
+          )}
+        </div>
+        <a href="/account" style={{ display:"inline-flex", alignItems:"center", gap:6, height:44, padding:"0 22px", border:"1.5px solid #C3BCB4", borderRadius:999, fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:700, color:"#555", textDecoration:"none", transition:"all .15s" }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor="#F85700";e.currentTarget.style.color="#F85700";}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor="#C3BCB4";e.currentTarget.style.color="#555";}}>
+          ✍ Write a Review
+        </a>
+      </div>
+
+      {loading ? (
+        <div style={{ padding:"32px 0", display:"flex", justifyContent:"center" }}>
+          <div style={{ width:28, height:28, border:"3px solid #E5DDD5", borderTopColor:"#F85700", borderRadius:"50%", animation:"spin 0.7s linear infinite" }}/>
+        </div>
+      ) : reviews.length === 0 ? (
+        <div style={{ textAlign:"center", padding:"32px 0", fontFamily:"Manrope,sans-serif", color:"#aaa", fontSize:14 }}>
+          No reviews yet. Be the first to review this product!
+        </div>
+      ) : (
+        <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
+          {reviews.map(r => (
+            <div key={r.id} style={{ background:"#fff", border:"1.5px solid #E0D9D1", borderRadius:14, padding:"20px 24px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:10, flexWrap:"wrap", gap:8 }}>
+                <div>
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:4 }}>
+                    <div style={{ width:34, height:34, borderRadius:"50%", background:"#F85700", color:"#fff", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Manrope,sans-serif", fontWeight:800, fontSize:14, flexShrink:0 }}>
+                      {(r.userName||"A").charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:14, fontWeight:700, color:"#0E0E0E" }}>{r.userName || "Anonymous"}</div>
+                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:11, color:"#aaa" }}>{fmtDate(r.createdAt)}</div>
+                    </div>
+                  </div>
+                  <StarDisplay rating={r.rating} size={15}/>
+                </div>
+                <span style={{ padding:"3px 10px", borderRadius:999, fontSize:11, fontWeight:700, background:"#D1FAE5", color:"#065F46" }}>✓ Verified Purchase</span>
+              </div>
+
+              {r.title && (
+                <div style={{ fontFamily:"Manrope,sans-serif", fontSize:14, fontWeight:700, color:"#0E0E0E", marginBottom:6 }}>{r.title}</div>
+              )}
+              {r.body && (
+                <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#555", lineHeight:1.7 }}>{r.body}</div>
+              )}
+
+              {r.adminReply && (
+                <div style={{ marginTop:12, background:"#F7F5F3", borderRadius:10, padding:"12px 16px", borderLeft:"3px solid #F85700" }}>
+                  <div style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#F85700", marginBottom:4 }}>SELLER REPLY</div>
+                  <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#555" }}>{r.adminReply}</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ============================================================
    STYLES
@@ -16,6 +122,7 @@ const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .pp-page {
     background: #F7F5F3;
@@ -1122,6 +1229,9 @@ export default function ProductDetailPage() {
               </table>
             </div>
           </div>
+
+          {/* Reviews */}
+          <ReviewsSection productId={product.id || product._id} />
 
           {/* Related Products */}
           <div className="pd-related">

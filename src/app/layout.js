@@ -3,6 +3,8 @@ import "./globals.css";
 
 
 import { CatalogProvider } from "@/app/components/CatalogContext";
+import { CartProvider } from "@/app/components/CartContext";
+import { UserProvider } from "@/app/components/UserContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,11 @@ export default function RootLayout({ children }) {
     >
       <body className="min-h-screen flex flex-col">
         <CatalogProvider>
-          {children}
+          <UserProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </UserProvider>
         </CatalogProvider>
       </body>
     </html>

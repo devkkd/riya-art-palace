@@ -26,38 +26,40 @@ export const userAuthController = {
   async sendOtp(request) {
     try {
       const body = await request.json();
-      const phone = (body.phone || "").replace(/\D/g, "");
+      const email = (body.email || "").trim().toLowerCase();
 
-      if (!phone || phone.length !== 10) {
-        return errorResponse("Please enter a valid 10-digit mobile number", 422);
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return errorResponse("Please enter a valid email address", 422);
       }
 
-      const result = await sendOtp(phone);
-      return successResponse({ session_token: result.session_token, phone });
+      const result = await sendOtp(email);
+      return successResponse({ session_token: result.session_token, email });
     } catch (err) {
       console.error("[user/sendOtp]", err);
-      return errorResponse("Failed to send OTP. Please try again.", 500);
+      return errorResponse(err.message || "Failed to send OTP. Please try again.", 500);
     }
   },
 
   async verifyOtp(request) {
     try {
       const body = await request.json();
-      const phone        = (body.phone || "").replace(/\D/g, "");
+      const email        = (body.email || "").trim().toLowerCase();
       const otp          = (body.otp || "").trim();
       const sessionToken = (body.session_token || "").trim();
 
-      if (!phone || phone.length !== 10) return errorResponse("Invalid phone number", 422);
-      if (!otp)                           return errorResponse("OTP is required",       422);
-      if (!sessionToken)                  return errorResponse("Session expired",        422);
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return errorResponse("Invalid email address", 422);
+      }
+      if (!otp)          return errorResponse("OTP is required",  422);
+      if (!sessionToken) return errorResponse("Session expired",  422);
 
-      const result = await verifyOtp(phone, otp, sessionToken);
+      const result = await verifyOtp(email, otp, sessionToken);
 
       if (!result.verified) {
-        return errorResponse("Invalid or expired OTP. Please try again.", 401);
+        return errorResponse(result.message || "Invalid or expired OTP. Please try again.", 401);
       }
 
-      const { token, user } = await loginOrCreateUser(phone);
+      const { token, user } = await loginOrCreateUser(email);
       await setUserCookie(token);
 
       return successResponse({ user, message: "Login successful" });
@@ -114,6 +116,7 @@ export const userAuthController = {
 
       if (body.name  !== undefined) user.name  = body.name.trim();
       if (body.email !== undefined) user.email = body.email.trim().toLowerCase();
+      if (body.phone !== undefined) user.phone = body.phone.replace(/\D/g, "");
       await user.save();
 
       return successResponse({

@@ -1,20 +1,20 @@
 import connectDB from "@/lib/db/connect";
 import User from "@/lib/models/User";
 import { signToken } from "@/lib/utils/jwt";
-import { sendOtp, verifyOtp } from "@/lib/services/shiprocketService";
+import { sendEmailOtp, verifyEmailOtp } from "@/lib/services/emailOtpService";
 
-export { sendOtp, verifyOtp };
+export { sendEmailOtp as sendOtp, verifyEmailOtp as verifyOtp };
 
 /**
- * After OTP is verified, find-or-create user in MongoDB and return JWT.
+ * After OTP is verified, find-or-create user by email and return JWT.
  */
-export async function loginOrCreateUser(phone) {
+export async function loginOrCreateUser(email) {
   await connectDB();
 
-  let user = await User.findOne({ phone, isActive: true });
+  let user = await User.findOne({ email, isActive: true });
 
   if (!user) {
-    user = await User.create({ phone });
+    user = await User.create({ email });
   } else {
     user.lastLogin = new Date();
     await user.save();
@@ -22,7 +22,7 @@ export async function loginOrCreateUser(phone) {
 
   const token = await signToken({
     userId: user._id.toString(),
-    phone:  user.phone,
+    email:  user.email,
     type:   "user",
   });
 
@@ -30,9 +30,9 @@ export async function loginOrCreateUser(phone) {
     token,
     user: {
       id:        user._id.toString(),
+      email:     user.email,
       phone:     user.phone,
       name:      user.name,
-      email:     user.email,
       addresses: user.addresses,
     },
   };
@@ -47,9 +47,9 @@ export async function getUserById(userId) {
   if (!user || !user.isActive) return null;
   return {
     id:        user._id.toString(),
-    phone:     user.phone,
-    name:      user.name || "",
     email:     user.email || "",
+    phone:     user.phone || "",
+    name:      user.name || "",
     addresses: user.addresses || [],
     createdAt: user.createdAt,
     lastLogin: user.lastLogin,

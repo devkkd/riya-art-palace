@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
 import Footer from "./Footer";
 import { useCatalog } from "@/app/components/CatalogContext";
+import { useCart } from "@/app/components/CartContext";
 
 const moqOptions = ["1 - 100 pcs","100 - 500 pcs","500 - 1000 pcs","1000+ pcs"];
 const sortOptions = ["Recommended","New Arrivals","Price High to Low","Price Low to High"];
@@ -204,8 +205,8 @@ const styles = `
     cursor: pointer;
   }
   .pc-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 18px 36px rgba(0,0,0,.09);
+    transform: translateY(-3px);
+    // box-shadow: 0 18px 36px rgba(0,0,0,.09);
   }
   .pc-img-wrap {
     width: 100%;
@@ -486,12 +487,20 @@ const styles = `
    ============================================================ */
 function ProductCard({ product }) {
   const router = useRouter();
+  const { addToCart } = useCart();
   const [qty, setQty] = useState(500);
+  const [added, setAdded] = useState(false);
 
-  // Format price helper
   const formattedPrice = typeof product.price === "number"
     ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
     : product.price;
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    addToCart(product, qty);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+  };
 
   return (
     <div className="pc-card" onClick={() => router.push(`/products/${product.slug}`)}>
@@ -517,28 +526,19 @@ function ProductCard({ product }) {
           </div>
         </div>
 
-        <button className="pc-cart-btn" onClick={(e) => e.stopPropagation()}>+ Add to Cart</button>
+        <button
+          className="pc-cart-btn"
+          onClick={handleAddToCart}
+          style={added ? { background: "#22c55e" } : {}}
+        >
+          {added ? "✓ Added to Cart" : "+ Add to Cart"}
+        </button>
 
         <div className="pc-enquiry">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              router.push("/enquiry?type=india");
-            }}
-          >
+          <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=india"); }}>
             India Enquiry →
           </a>
-
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              router.push("/enquiry?type=export");
-            }}
-          >
+          <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=export"); }}>
             Export Enquiry →
           </a>
         </div>

@@ -22,13 +22,18 @@ const UserSchema = new mongoose.Schema(
   {
     phone: {
       type: String,
-      required: [true, "Phone number is required"],
-      unique: true,
       trim: true,
+      default: "",
+      sparse: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: "",
       index: true,
     },
     name:  { type: String, trim: true, default: "" },
-    email: { type: String, trim: true, lowercase: true, default: "" },
     isActive: { type: Boolean, default: true },
     lastLogin: { type: Date, default: null },
     addresses: { type: [AddressSchema], default: [] },

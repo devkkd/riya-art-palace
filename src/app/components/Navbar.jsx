@@ -1,40 +1,100 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, ShoppingBag, User, ChevronDown, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import logo from "../assets/logo.png";
-import { useEffect } from "react";
 import { useCatalog } from "@/app/components/CatalogContext";
+import { useCart } from "@/app/components/CartContext";
+import { useUser } from "@/app/components/UserContext";
 
 export default function Navbar() {
   const router = useRouter();
   const { categories, loading: catalogLoading } = useCatalog();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchVal, setSearchVal] = useState("");
-const [showDropdown, setShowDropdown] = useState(false);
-const dropdownRef = useRef(null);
+  const { totalItems } = useCart();
+  const { user, logout, refetchUser } = useUser();
+  const [mobileOpen,   setMobileOpen]   = useState(false);
+  const [searchVal,    setSearchVal]    = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [loginOpen,    setLoginOpen]    = useState(false);
+  const [loginStep,    setLoginStep]    = useState("email");
+  const [loginEmail,   setLoginEmail]   = useState("");
+  const [loginOtp,     setLoginOtp]     = useState("");
+  const [loginSession, setLoginSession] = useState("");
+  const [loginSending, setLoginSending] = useState(false);
+  const [loginVerify,  setLoginVerify]  = useState(false);
+  const [loginError,   setLoginError]   = useState("");
+  const dropdownRef = useRef(null);
+  const userMenuRef = useRef(null);
 
-
-useEffect(() => {
-  function handleClickOutside(event) {
-    if (
-      dropdownRef.current &&
-      !dropdownRef.current.contains(event.target)
-    ) {
-      setShowDropdown(false);
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target))
+        setShowDropdown(false);
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target))
+        setUserMenuOpen(false);
     }
-  }
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
 
-  document.addEventListener("click", handleClickOutside);
+  const handleLogout = async () => {
+    await logout();
+    setUserMenuOpen(false);
+    router.push("/");
+  };
 
-  return () =>
-    document.removeEventListener(
-      "click",
-      handleClickOutside
-    );
-}, []);
+  const handleAccountClick = () => {
+    if (user) {
+      router.push("/account");
+    } else {
+      setLoginOpen(true);
+      setLoginStep("email");
+      setLoginEmail("");
+      setLoginOtp("");
+      setLoginError("");
+    }
+  };
+
+
+  const handleSendOtp = async () => {
+    setLoginError("");
+    const cleaned = loginEmail.trim().toLowerCase();
+    if (!cleaned || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleaned)) {
+      setLoginError("Please enter a valid email address"); return;
+    }
+    setLoginSending(true);
+    try {
+      const res  = await fetch("/api/auth/user/send-otp", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email: cleaned }) });
+      const json = await res.json();
+      if (json.success) { setLoginSession(json.data.session_token); setLoginStep("otp"); }
+      else setLoginError(json.message || "Failed to send OTP");
+    } catch { setLoginError("Network error. Please try again."); }
+    finally { setLoginSending(false); }
+  };
+
+  const handleVerifyOtp = async () => {
+    setLoginError("");
+    if (!loginOtp || loginOtp.length < 6) { setLoginError("Please enter the 6-digit OTP"); return; }
+    setLoginVerify(true);
+    try {
+      const res  = await fetch("/api/auth/user/verify-otp", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ email: loginEmail.trim().toLowerCase(), otp: loginOtp, session_token: loginSession }) });
+      const json = await res.json();
+      if (json.success) {
+        await refetchUser();
+        setLoginOpen(false);
+        router.push("/account");
+      } else setLoginError(json.message || "Invalid OTP");
+    } catch { setLoginError("Network error. Please try again."); }
+    finally { setLoginVerify(false); }
+  };
+
+  // Avatar initials
+  const initials = user?.name
+    ? user.name.split(" ").map(n => n[0]).join("").slice(0,2).toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() || "U";
 
   return (
     <>
@@ -256,6 +316,120 @@ useEffect(() => {
         .nb-icon-btn + .nb-icon-btn {
           margin-left: 4px;
         }
+        .nb-cart-badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          background: #F85700;
+          color: #fff;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 0 4px;
+          margin-left: 2px;
+          line-height: 1;
+        }
+
+        /* ── User avatar button ── */
+        .nb-user-wrap {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+        }
+        .nb-avatar-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 4px 10px 4px 4px;
+          border-radius: 999px;
+          transition: background .15s;
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #1A1A1A;
+        }
+        .nb-avatar-btn:hover { background: #FFF3EB; }
+        .nb-avatar-circle {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: #F85700;
+          color: #fff;
+          font-size: 13px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-family: "Manrope", sans-serif;
+          letter-spacing: 0;
+        }
+        .nb-user-menu {
+          position: absolute;
+          top: calc(100% + 10px);
+          right: 0;
+          background: #fff;
+          border: 1px solid #E0D9D1;
+          border-radius: 14px;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+          min-width: 200px;
+          z-index: 9999;
+          overflow: hidden;
+          animation: nbFadeIn .15s ease;
+        }
+        @keyframes nbFadeIn {
+          from { opacity:0; transform:translateY(-6px); }
+          to   { opacity:1; transform:translateY(0); }
+        }
+        .nb-user-menu-head {
+          padding: 14px 16px 12px;
+          border-bottom: 1px solid #F0EDE9;
+        }
+        .nb-user-menu-name {
+          font-family: "Manrope", sans-serif;
+          font-size: 14px;
+          font-weight: 800;
+          color: #0E0E0E;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 168px;
+        }
+        .nb-user-menu-email {
+          font-family: "Manrope", sans-serif;
+          font-size: 11px;
+          color: #aaa;
+          margin-top: 2px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 168px;
+        }
+        .nb-user-menu-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 12px 16px;
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 600;
+          color: #333;
+          cursor: pointer;
+          background: none;
+          border: none;
+          width: 100%;
+          text-align: left;
+          text-decoration: none;
+          transition: background .12s;
+        }
+        .nb-user-menu-item:hover { background: #FFF3EB; color: #F85700; }
+        .nb-user-menu-item.danger { color: #e53e3e; }
+        .nb-user-menu-item.danger:hover { background: #FEE2E2; color: #e53e3e; }
 
         /* EXPORT BUTTON */
         .nb-enquiry-btn {
@@ -535,12 +709,48 @@ useEffect(() => {
               <button className="nb-icon-btn" onClick={() => router.push("/cart")}>
                 <ShoppingBag size={17} strokeWidth={1.8} />
                 <span>Cart</span>
+                {totalItems > 0 && <span className="nb-cart-badge">{totalItems}</span>}
               </button>
 
-              <button className="nb-icon-btn" onClick={() => router.push("/account")}>
-                <User size={17} strokeWidth={1.8} />
-                <span>Account</span>
-              </button>
+              {/* ── User: logged in → avatar dropdown, guest → Account button ── */}
+              {user ? (
+                <div className="nb-user-wrap" ref={userMenuRef}>
+                  <button className="nb-avatar-btn" onClick={() => setUserMenuOpen(o => !o)}>
+                    <div className="nb-avatar-circle">{initials}</div>
+                    <span style={{ maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                      {user.name || user.email?.split("@")[0]}
+                    </span>
+                    <ChevronDown size={13} strokeWidth={2.5} style={{ transition:"transform .2s", transform: userMenuOpen ? "rotate(180deg)" : "rotate(0)" }}/>
+                  </button>
+
+                  {userMenuOpen && (
+                    <div className="nb-user-menu">
+                      <div className="nb-user-menu-head">
+                        <div className="nb-user-menu-name">{user.name || "My Account"}</div>
+                        <div className="nb-user-menu-email">{user.email}</div>
+                      </div>
+                      <button className="nb-user-menu-item" onClick={() => { setUserMenuOpen(false); router.push("/account"); }}>
+                        👤 My Account
+                      </button>
+                      <button className="nb-user-menu-item" onClick={() => { setUserMenuOpen(false); router.push("/account"); }}>
+                        📦 My Orders
+                      </button>
+                      <button className="nb-user-menu-item" onClick={() => { setUserMenuOpen(false); router.push("/cart"); }}>
+                        🛍️ My Cart
+                      </button>
+                      <div style={{ borderTop:"1px solid #F0EDE9" }}/>
+                      <button className="nb-user-menu-item danger" onClick={handleLogout}>
+                        🚪 Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button className="nb-icon-btn" onClick={handleAccountClick}>
+                  <User size={17} strokeWidth={1.8} />
+                  <span>Account</span>
+                </button>
+              )}
 
               <button
                 className="nb-enquiry-btn"
@@ -563,11 +773,22 @@ useEffect(() => {
               onClick={() => router.push("/")}
             />
             <div className="nb-mobile-icons">
-              <button className="nb-mobile-icon" onClick={() => router.push("/account")}>
-                <User size={20} strokeWidth={1.8} />
+              <button className="nb-mobile-icon" onClick={handleAccountClick}>
+                {user ? (
+                  <div style={{ width:28, height:28, borderRadius:"50%", background:"#F85700", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Manrope,sans-serif" }}>
+                    {initials}
+                  </div>
+                ) : (
+                  <User size={20} strokeWidth={1.8} />
+                )}
               </button>
-              <button className="nb-mobile-icon" onClick={() => router.push("/cart")}>
+              <button className="nb-mobile-icon" onClick={() => router.push("/cart")} style={{position:"relative"}}>
                 <ShoppingBag size={20} strokeWidth={1.8} />
+                {totalItems > 0 && (
+                  <span style={{position:"absolute",top:0,right:0,minWidth:16,height:16,borderRadius:999,background:"#F85700",color:"#fff",fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 3px"}}>
+                    {totalItems}
+                  </span>
+                )}
               </button>
               <button className="nb-mobile-icon" onClick={() => setMobileOpen(true)}>
                 <Menu size={24} strokeWidth={1.8} />
@@ -598,6 +819,65 @@ useEffect(() => {
             <button className="nb-drawer-enquiry" onClick={() => { setMobileOpen(false); router.push("/enquiry?type=export"); }}>
               Export Enquiry
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ══ LOGIN MODAL (shown when guest clicks Account) ══ */}
+      {loginOpen && (
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:20000,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}
+          onClick={e=>{if(e.target===e.currentTarget)setLoginOpen(false)}}>
+          <div style={{background:"#fff",borderRadius:16,width:"100%",maxWidth:420,padding:"36px 32px",boxShadow:"0 24px 60px rgba(0,0,0,0.2)",position:"relative",animation:"nbFadeIn .2s ease"}}>
+
+            {/* Close */}
+            <button onClick={()=>setLoginOpen(false)} style={{position:"absolute",top:14,right:14,width:32,height:32,borderRadius:"50%",background:"#F0EDE9",border:"none",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",color:"#555"}}>✕</button>
+
+            {/* Logo */}
+            <div style={{display:"flex",justifyContent:"center",marginBottom:10}}>
+              <Image src={logo} alt="Riya Art Palace" width={120} height={40} style={{height:40,width:"auto",objectFit:"contain"}} priority/>
+            </div>
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:20,fontWeight:800,color:"#0E0E0E",marginBottom:4}}>Sign In</div>
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:13,color:"#888",marginBottom:24}}>Enter your email to receive a login OTP</div>
+
+            {loginStep==="email" ? (
+              <>
+                <label style={{fontFamily:"Manrope,sans-serif",fontSize:12,fontWeight:700,color:"#555",textTransform:"uppercase",letterSpacing:"0.4px",display:"block",marginBottom:8}}>Email Address</label>
+                <input type="email" autoFocus
+                  style={{width:"100%",height:48,border:`1.5px solid ${loginError?"#e53e3e":"#C3BCB4"}`,borderRadius:10,padding:"0 16px",fontSize:15,color:"#333",outline:"none",background:"#FAF8F6",marginBottom:6,fontFamily:"Poppins,sans-serif"}}
+                  placeholder="you@example.com"
+                  value={loginEmail}
+                  onChange={e=>{setLoginEmail(e.target.value);setLoginError("");}}
+                  onKeyDown={e=>e.key==="Enter"&&handleSendOtp()}/>
+                {loginError&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#e53e3e",marginBottom:8}}>{loginError}</div>}
+                <button onClick={handleSendOtp} disabled={loginSending}
+                  style={{width:"100%",height:50,border:"none",borderRadius:999,background:loginSending?"#ccc":"#F85700",color:"#fff",fontSize:15,fontWeight:700,cursor:loginSending?"not-allowed":"pointer",fontFamily:"Poppins,sans-serif",marginTop:10}}>
+                  {loginSending?"Sending OTP…":"Send OTP →"}
+                </button>
+              </>
+            ) : (
+              <>
+                <button onClick={()=>{setLoginStep("email");setLoginOtp("");setLoginError("");}}
+                  style={{background:"none",border:"none",fontSize:13,color:"#F85700",cursor:"pointer",fontWeight:600,marginBottom:14,padding:0,fontFamily:"Manrope,sans-serif"}}>
+                  ← Change email ({loginEmail})
+                </button>
+                <div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#888",marginBottom:14}}>6-digit OTP sent to {loginEmail}</div>
+                <input type="tel" maxLength={6} autoFocus
+                  style={{width:"100%",height:56,border:`1.5px solid ${loginError?"#e53e3e":"#C3BCB4"}`,borderRadius:10,padding:"0 16px",fontSize:30,color:"#333",outline:"none",background:"#FAF8F6",textAlign:"center",letterSpacing:14,marginBottom:6,fontFamily:"monospace"}}
+                  placeholder="------"
+                  value={loginOtp}
+                  onChange={e=>{setLoginOtp(e.target.value.replace(/\D/g,""));setLoginError("");}}
+                  onKeyDown={e=>e.key==="Enter"&&handleVerifyOtp()}/>
+                {loginError&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#e53e3e",marginBottom:8}}>{loginError}</div>}
+                <button onClick={handleVerifyOtp} disabled={loginVerify}
+                  style={{width:"100%",height:50,border:"none",borderRadius:999,background:loginVerify?"#ccc":"#F85700",color:"#fff",fontSize:15,fontWeight:700,cursor:loginVerify?"not-allowed":"pointer",fontFamily:"Poppins,sans-serif",marginTop:10}}>
+                  {loginVerify?"Verifying…":"Verify OTP →"}
+                </button>
+              </>
+            )}
+
+            <div style={{textAlign:"center",fontFamily:"Manrope,sans-serif",fontSize:11,color:"#BBB",marginTop:16,lineHeight:1.6}}>
+              By continuing you agree to our <a href="/privacy-policy" style={{color:"#F85700",textDecoration:"none"}}>Privacy Policy</a> &amp; <a href="/terms" style={{color:"#F85700",textDecoration:"none"}}>Terms</a>
+            </div>
           </div>
         </div>
       )}
