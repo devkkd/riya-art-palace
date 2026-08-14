@@ -24,13 +24,95 @@ export const productController = {
       if (subcategoryId && subcategoryId.match(/^[0-9a-fA-F]{24}$/)) {
         filter.subcategory = subcategoryId;
       }
-      if (q) {
-        filter.$or = [
-          { name: new RegExp(q, "i") },
-          { description: new RegExp(q, "i") },
-        ];
-      }
+    if (q && q.trim()) {
+  const searchQuery = q.trim();
 
+  // Escape regex special characters
+  const escapedQuery = searchQuery.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    "\\$&"
+  );
+
+  const searchRegex = new RegExp(escapedQuery, "i");
+
+  // ==========================================
+  // 1. SEARCH MATCHING CATEGORIES
+  // ==========================================
+
+  const matchingCategories = await Category.find({
+    $or: [
+      { name: searchRegex },
+      { description: searchRegex },
+    ],
+  })
+    .select("_id name slug image")
+    .lean();
+
+  const categoryIds = matchingCategories.map(
+    (category) => category._id
+  );
+
+  // ==========================================
+  // 2. SEARCH MATCHING SUBCATEGORIES
+  // ==========================================
+
+  const matchingSubcategories = await Subcategory.find({
+    $or: [
+      { name: searchRegex },
+      { description: searchRegex },
+    ],
+  })
+    .select("_id name slug category")
+    .lean();
+
+  const subcategoryIds = matchingSubcategories.map(
+    (subcategory) => subcategory._id
+  );
+
+  // ==========================================
+  // 3. SEARCH PRODUCTS
+  // ==========================================
+
+  filter.$or = [
+    // Product name
+    { name: searchRegex },
+
+    // Product description
+    { description: searchRegex },
+
+    // Product specifications
+    { productType: searchRegex },
+    { primaryMaterial: searchRegex },
+    { style: searchRegex },
+    { setType: searchRegex },
+    { color: searchRegex },
+    { sizeCategory: searchRegex },
+    { theme: searchRegex },
+    { usageArea: searchRegex },
+
+    // Products belonging to matching category
+    ...(categoryIds.length > 0
+      ? [
+          {
+            category: {
+              $in: categoryIds,
+            },
+          },
+        ]
+      : []),
+
+    // Products belonging to matching subcategory
+    ...(subcategoryIds.length > 0
+      ? [
+          {
+            subcategory: {
+              $in: subcategoryIds,
+            },
+          },
+        ]
+      : []),
+  ];
+}
       const products = await Product.find(filter)
         .populate("category", "name slug")
         .populate("subcategory", "name slug")

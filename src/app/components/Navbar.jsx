@@ -16,7 +16,12 @@ export default function Navbar() {
   const { user, logout, refetchUser } = useUser();
   const [mobileOpen,   setMobileOpen]   = useState(false);
   const [searchVal,    setSearchVal]    = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownCloseTimer = useRef(null);
+  const [searchFocused, setSearchFocused] = useState(false);
+const searchRef = useRef(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loginOpen,    setLoginOpen]    = useState(false);
   const [loginStep,    setLoginStep]    = useState("email");
@@ -28,6 +33,33 @@ export default function Navbar() {
   const [loginError,   setLoginError]   = useState("");
   const dropdownRef = useRef(null);
   const userMenuRef = useRef(null);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const mobileSearchInputRef = useRef(null);
+
+  const openDropdown = () => {
+  if (dropdownCloseTimer.current) {
+    clearTimeout(dropdownCloseTimer.current);
+  }
+
+  setShowDropdown(true);
+};
+
+const closeDropdownWithDelay = () => {
+  if (dropdownCloseTimer.current) {
+    clearTimeout(dropdownCloseTimer.current);
+  }
+
+  dropdownCloseTimer.current = setTimeout(() => {
+    setShowDropdown(false);
+  }, 450);
+};
+useEffect(() => {
+  return () => {
+    if (dropdownCloseTimer.current) {
+      clearTimeout(dropdownCloseTimer.current);
+    }
+  };
+}, []);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -40,6 +72,71 @@ export default function Navbar() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
+  // Focus the mobile search input as soon as it opens
+  useEffect(() => {
+    if (mobileSearchOpen && mobileSearchInputRef.current) {
+      mobileSearchInputRef.current.focus();
+    }
+  }, [mobileSearchOpen]);
+
+  const closeMobileSearch = () => {
+    setMobileSearchOpen(false);
+    setSearchVal("");
+    setSearchResults([]);
+    setSearchFocused(false);
+  };
+ const searchProducts = async (query) => {
+  const search = query.trim();
+
+  if (!search || search.length < 2) {
+    setSearchResults([]);
+    return;
+  }
+
+  try {
+    setSearchLoading(true);
+
+    const res = await fetch(
+      `/api/products?q=${encodeURIComponent(search)}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      }
+    );
+
+    const json = await res.json();
+
+    if (json.success) {
+      setSearchResults(json.data || []);
+    } else {
+      setSearchResults([]);
+    }
+  } catch (error) {
+    console.error("Product search error:", error);
+    setSearchResults([]);
+  } finally {
+    setSearchLoading(false);
+  }
+};
+const handleSearchResultClick = (item) => {
+  setSearchVal("");
+  setSearchResults([]);
+  setSearchFocused(false);
+
+  if (item?.slug) {
+    router.push(`/products/${item.slug}`);
+    return;
+  }
+
+  if (item?.id) {
+    router.push(`/products/${item.id}`);
+    return;
+  }
+
+  if (item?.category?.slug) {
+    router.push(`/products?category=${item.category.slug}`);
+  }
+};
   const handleLogout = async () => {
     await logout();
     setUserMenuOpen(false);
@@ -170,6 +267,177 @@ export default function Navbar() {
           width: 100%;
           max-width: 340px;
         }
+          /* ================================
+   SEARCH RESULT DROPDOWN
+   ================================ */
+
+.nb-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+
+  background: #F7F5F3;
+  border: 1px solid #D7CEC5;
+  border-radius: 16px;
+
+  padding: 8px;
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.10);
+
+  z-index: 10000;
+
+  max-height: 430px;
+  overflow-y: auto;
+}
+
+/* Individual result */
+
+.nb-search-result-card {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 9px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: "Manrope", sans-serif;
+
+  transition:
+    background .15s ease,
+    transform .15s ease;
+}
+
+.nb-search-result-card:hover,
+.nb-search-result-card:focus {
+  background: #FFF3EB;
+  outline: none;
+}
+
+/* Product image */
+
+.nb-search-result-image {
+  width: 54px;
+  height: 54px;
+
+  flex-shrink: 0;
+
+  border-radius: 10px;
+
+  overflow: hidden;
+
+  background: #EEE9E4;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nb-search-result-image img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+.nb-search-result-image-empty {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #AAA;
+}
+
+/* Content */
+
+.nb-search-result-content {
+  min-width: 0;
+  flex: 1;
+}
+
+.nb-search-result-name {
+  font-family: "Manrope", sans-serif;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  color: #0E0E0E;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nb-search-result-category {
+  margin-top: 3px;
+
+  font-family: "Manrope", sans-serif;
+
+  font-size: 10px;
+  font-weight: 500;
+
+  color: #999;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nb-search-result-price {
+  margin-top: 4px;
+
+  font-family: "Manrope", sans-serif;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: #F85700;
+}
+
+/* Loading / empty */
+
+.nb-search-status {
+  padding: 18px 12px;
+
+  text-align: center;
+
+  font-family: "Manrope", sans-serif;
+
+  font-size: 12px;
+
+  color: #999;
+}
+
+/* Scrollbar */
+
+.nb-search-results::-webkit-scrollbar {
+  width: 5px;
+}
+
+.nb-search-results::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nb-search-results::-webkit-scrollbar-thumb {
+  background: #D7CEC5;
+  border-radius: 999px;
+}
         .nb-search-icon {
           position: absolute;
           left: 16px;
@@ -234,30 +502,48 @@ export default function Navbar() {
           line-height: 1;
         }
         .nb-nav-link:hover { color: #FF870F; }
-.nb-dropdown-wrap{
+.nb-dropdown-wrap {
   position: relative;
+  padding-bottom: 14px;
+  margin-bottom: -14px;
 }
 
-.nb-dropdown-card{
+.nb-dropdown-card {
   position: absolute;
   top: calc(100% + 14px);
   left: 50%;
   transform: translateX(-50%);
 
-  width: 380px;          /* pehle 580px tha */
+  width: 380px;
+
   background: #F7F5F3;
   border: 1px solid #D7CEC5;
   border-radius: 22px;
 
-  padding: 16px 20px;    /* pehle 28px 36px tha */
+  padding: 16px 20px;
 
   display: grid;
   grid-template-columns: repeat(2, 1fr);
 
-  gap: 8px 16px;        /* pehle 24px 50px tha */
+  gap: 8px 16px;
 
   z-index: 9999;
+
   box-shadow: 0 10px 30px rgba(0,0,0,.08);
+
+  animation: nbDropdownIn .18s ease;
+}
+
+@keyframes nbDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .nb-dropdown-item{
@@ -331,7 +617,6 @@ export default function Navbar() {
           margin-left: 2px;
           line-height: 1;
         }
-
         /* ── User avatar button ── */
         .nb-user-wrap {
           position: relative;
@@ -458,34 +743,194 @@ export default function Navbar() {
         }
 
         /* ── MOBILE ── */
-        .nb-mobile {
-          display: none;
-          align-items: center;
-          justify-content: space-between;
-          height: 64px;
-        }
-        .nb-mobile-logo {
-          height: 38px;
-          width: auto;
-          cursor: pointer;
-          display: block;
-        }
-        .nb-mobile-icons {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .nb-mobile-icon {
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 6px;
-          color: #1A1A1A;
-          display: flex;
-          align-items: center;
-          border-radius: 8px;
-          transition: color .15s, background .15s;
-        }
+       /* ── MOBILE ── */
+
+.nb-mobile {
+  display: none;
+  align-items: center;
+  height: 64px;
+  position: relative;
+}
+
+.nb-mobile-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nb-mobile-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nb-mobile-logo {
+  height: 38px;
+  width: auto;
+  cursor: pointer;
+  display: block;
+}
+
+.nb-mobile-icons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nb-mobile-icon {
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: #1A1A1A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: color .15s, background .15s;
+}
+
+.nb-mobile-icon:hover {
+  color: #FF870F;
+  background: #FFF3EB;
+}
+
+/* MOBILE SEARCH */
+
+.nb-mobile-search {
+  display: none;
+  padding: 0 16px 14px;
+  background: #F7F5F3;
+}
+
+.nb-mobile-search.nb-mobile-search-open {
+  display: block;
+  animation: nbMobileSearchOpen .18s ease;
+}
+
+@keyframes nbMobileSearchOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.nb-mobile-search-inner {
+  position: relative;
+  width: 100%;
+}
+
+.nb-mobile-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #AEAEAE;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.nb-mobile-search-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid #D7CEC5;
+  background: #FFFBF6;
+  padding: 0 48px 0 44px;
+  font-family: "Manrope", sans-serif;
+  font-size: 13px;
+  color: #1A1A1A;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.nb-mobile-search-input:focus {
+  border-color: #FF870F;
+  box-shadow: 0 0 0 3px rgba(255,135,15,0.08);
+}
+
+.nb-mobile-search-input::placeholder {
+  color: #C0B9B2;
+}
+
+.nb-mobile-search-close {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  width: 32px;
+  height: 32px;
+
+  border: none;
+  background: transparent;
+  color: #777;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  border-radius: 50%;
+
+  padding: 0;
+  margin: 0;
+  z-index: 10;
+  touch-action: manipulation;
+}
+
+.nb-mobile-search-close:hover {
+  background: #FFF3EB;
+  color: #FF870F;
+}
+
+.nb-mobile-icon.nb-mobile-icon-active {
+  color: #FF870F;
+  background: #FFF3EB;
+}
+
+/* Mobile search results */
+.nb-mobile-search .nb-search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 60vh;
+  overflow-y: auto;
+  z-index: 10001;
+}
+
+/* Mobile breakpoint */
+
+@media (max-width: 960px) {
+
+  .nb-desktop {
+    display: none !important;
+  }
+
+  .nb-mobile {
+    display: flex !important;
+  }
+
+  .nb-dropdown-card {
+    display: none;
+  }
+
+  .nb-inner {
+    padding: 0 16px;
+  }
+
+  .nb-wrap {
+    position: sticky;
+    top: 0;
+  }
+}
         .nb-mobile-icon:hover { color: #FF870F; background: #FFF3EB; }
 
         /* Mobile drawer */
@@ -625,31 +1070,127 @@ export default function Navbar() {
             </div>
 
             {/* SEARCH */}
-            <div className="nb-search-area">
-              <div className="nb-search-wrap">
-                <span className="nb-search-icon">
-                  <Search size={16} strokeWidth={1.8} />
-                </span>
-                <input
-                  type="text"
-                  className="nb-search-input"
-                  placeholder="Search products you want"
-                  value={searchVal}
-                  onChange={(e) => setSearchVal(e.target.value)}
-                />
+           <div
+  className="nb-search-area"
+  ref={searchRef}
+>
+  <div className="nb-search-wrap">
+
+    <span className="nb-search-icon">
+      <Search size={16} strokeWidth={1.8} />
+    </span>
+
+    <input
+      type="text"
+      className="nb-search-input"
+      placeholder="Search products you want"
+      value={searchVal}
+      onFocus={() => {
+        setSearchFocused(true);
+      }}
+      onChange={(e) => {
+        const value = e.target.value;
+
+        setSearchVal(value);
+        setSearchFocused(true);
+
+        searchProducts(value);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && searchVal.trim()) {
+          setSearchFocused(false);
+          setSearchResults([]);
+
+          router.push(
+            `/products?q=${encodeURIComponent(searchVal.trim())}`
+          );
+        }
+
+        if (e.key === "Escape") {
+          setSearchFocused(false);
+        }
+      }}
+    />
+
+    {/* SEARCH RESULTS DROPDOWN */}
+    {searchFocused && searchVal.trim().length >= 2 && (
+      <div className="nb-search-results">
+
+        {searchLoading ? (
+          <div className="nb-search-status">
+            Searching...
+          </div>
+        ) : searchResults.length === 0 ? (
+          <div className="nb-search-status">
+            No products found
+          </div>
+        ) : (
+          searchResults.slice(0, 8).map((item) => (
+            <button
+              key={item.id || item._id}
+              type="button"
+              className="nb-search-result-card"
+              onClick={() => handleSearchResultClick(item)}
+            >
+
+              {/* IMAGE */}
+              <div className="nb-search-result-image">
+                {item.images?.[0] ? (
+                  <img
+                    src={item.images[0]}
+                    alt={item.name || "Product"}
+                  />
+                ) : (
+                  <div className="nb-search-result-image-empty">
+                    <Search size={16} />
+                  </div>
+                )}
               </div>
-            </div>
+
+              {/* CONTENT */}
+              <div className="nb-search-result-content">
+
+                <div className="nb-search-result-name">
+                  {item.name}
+                </div>
+
+                {item.category?.name && (
+                  <div className="nb-search-result-category">
+                    {item.category.name}
+                    {item.subcategory?.name
+                      ? ` • ${item.subcategory.name}`
+                      : ""}
+                  </div>
+                )}
+
+                {item.price !== undefined && (
+                  <div className="nb-search-result-price">
+                    ₹{Number(item.price).toLocaleString("en-IN")}
+                  </div>
+                )}
+
+              </div>
+
+            </button>
+          ))
+        )}
+
+      </div>
+    )}
+
+  </div>
+</div>
 
             {/* NAV */}
             <nav className="nb-nav">
               <Link href="/" className="nb-nav-home">Home</Link>
               <Link href="/about" className="nb-nav-link">About Us</Link>
-          <div
-            className="nb-dropdown-wrap"
-            ref={dropdownRef}
-            onMouseEnter={() => setShowDropdown(true)}
-            onMouseLeave={() => setShowDropdown(false)}
-          >
+         <div
+  className="nb-dropdown-wrap"
+  ref={dropdownRef}
+  onMouseEnter={openDropdown}
+  onMouseLeave={closeDropdownWithDelay}
+>
             <div className="nb-nav-link">
               <Link
                 href="/products"
@@ -674,8 +1215,12 @@ export default function Navbar() {
               />
             </div>
 
-  {showDropdown && (
-    <div className="nb-dropdown-card">
+{showDropdown && (
+  <div
+    className="nb-dropdown-card"
+    onMouseEnter={openDropdown}
+    onMouseLeave={closeDropdownWithDelay}
+  >
       {catalogLoading ? (
         <span style={{ gridColumn: "span 2", textAlign: "center", fontSize: "12px", color: "var(--adm-muted)", padding: "10px 0" }}>
           Loading collections...
@@ -763,41 +1308,218 @@ export default function Navbar() {
           </div>
 
           {/* ══ MOBILE ══ */}
-          <div className="nb-mobile">
-            <Image
-              src={logo}
-              alt="Riya Art Palace"
-              width={120}
-              height={38}
-              className="nb-mobile-logo"
-              onClick={() => router.push("/")}
-            />
-            <div className="nb-mobile-icons">
-              <button className="nb-mobile-icon" onClick={handleAccountClick}>
-                {user ? (
-                  <div style={{ width:28, height:28, borderRadius:"50%", background:"#F85700", color:"#fff", fontSize:12, fontWeight:800, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Manrope,sans-serif" }}>
-                    {initials}
-                  </div>
-                ) : (
-                  <User size={20} strokeWidth={1.8} />
-                )}
-              </button>
-              <button className="nb-mobile-icon" onClick={() => router.push("/cart")} style={{position:"relative"}}>
-                <ShoppingBag size={20} strokeWidth={1.8} />
-                {totalItems > 0 && (
-                  <span style={{position:"absolute",top:0,right:0,minWidth:16,height:16,borderRadius:999,background:"#F85700",color:"#fff",fontSize:9,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",padding:"0 3px"}}>
-                    {totalItems}
-                  </span>
-                )}
-              </button>
-              <button className="nb-mobile-icon" onClick={() => setMobileOpen(true)}>
-                <Menu size={24} strokeWidth={1.8} />
-              </button>
-            </div>
-          </div>
+       <div className="nb-mobile">
+  <Image
+    src={logo}
+    alt="Riya Art Palace"
+    width={120}
+    height={38}
+    className="nb-mobile-logo"
+    onClick={() => router.push("/")}
+  />
 
+  <div className="nb-mobile-icons">
+
+    <button
+      className={`nb-mobile-icon${mobileSearchOpen ? " nb-mobile-icon-active" : ""}`}
+      onClick={() => {
+        if (mobileSearchOpen) {
+          closeMobileSearch();
+        } else {
+          setMobileSearchOpen(true);
+        }
+      }}
+    >
+      <Search size={20} strokeWidth={1.8} />
+    </button>
+
+    <button
+      className="nb-mobile-icon"
+      onClick={handleAccountClick}
+    >
+      {user ? (
+        <div
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background: "#F85700",
+            color: "#fff",
+            fontSize: 12,
+            fontWeight: 800,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: "Manrope,sans-serif",
+          }}
+        >
+          {initials}
         </div>
-      </header>
+      ) : (
+        <User size={20} strokeWidth={1.8} />
+      )}
+    </button>
+
+    <button
+      className="nb-mobile-icon"
+      onClick={() => router.push("/cart")}
+      style={{ position: "relative" }}
+    >
+      <ShoppingBag size={20} strokeWidth={1.8} />
+
+      {totalItems > 0 && (
+        <span
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            minWidth: 16,
+            height: 16,
+            borderRadius: 999,
+            background: "#F85700",
+            color: "#fff",
+            fontSize: 9,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 3px",
+          }}
+        >
+          {totalItems}
+        </span>
+      )}
+    </button>
+
+    <button
+      className="nb-mobile-icon"
+      onClick={() => setMobileOpen(true)}
+    >
+      <Menu size={24} strokeWidth={1.8} />
+    </button>
+
+  </div>
+</div>
+
+{/* ══ MOBILE SEARCH ══ */}
+{mobileSearchOpen && (
+<div className="nb-mobile-search nb-mobile-search-open">
+  <div className="nb-mobile-search-inner">
+
+    <span className="nb-mobile-search-icon">
+      <Search size={16} strokeWidth={1.8} />
+    </span>
+
+    <input
+      ref={mobileSearchInputRef}
+      type="text"
+      className="nb-mobile-search-input"
+      placeholder="Search products you want"
+      value={searchVal}
+      onFocus={() => setSearchFocused(true)}
+      onChange={(e) => {
+        const value = e.target.value;
+
+        setSearchVal(value);
+        setSearchFocused(true);
+
+        searchProducts(value);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && searchVal.trim()) {
+          setSearchFocused(false);
+          setSearchResults([]);
+
+          router.push(
+            `/products?q=${encodeURIComponent(searchVal.trim())}`
+          );
+        }
+
+        if (e.key === "Escape") {
+          closeMobileSearch();
+        }
+      }}
+    />
+
+    <button
+      type="button"
+      className="nb-mobile-search-close"
+      onClick={closeMobileSearch}
+      aria-label="Close search"
+    >
+      <X size={16} />
+    </button>
+
+    {/* MOBILE SEARCH RESULTS */}
+    {searchFocused && searchVal.trim().length >= 2 && (
+      <div className="nb-search-results">
+
+        {searchLoading ? (
+          <div className="nb-search-status">
+            Searching...
+          </div>
+        ) : searchResults.length === 0 ? (
+          <div className="nb-search-status">
+            No products found
+          </div>
+        ) : (
+          searchResults.slice(0, 8).map((item) => (
+            <button
+              key={item.id || item._id}
+              type="button"
+              className="nb-search-result-card"
+              onClick={() => handleSearchResultClick(item)}
+            >
+
+              <div className="nb-search-result-image">
+                {item.images?.[0] ? (
+                  <img
+                    src={item.images[0]}
+                    alt={item.name || "Product"}
+                  />
+                ) : (
+                  <div className="nb-search-result-image-empty">
+                    <Search size={16} />
+                  </div>
+                )}
+              </div>
+
+              <div className="nb-search-result-content">
+
+                <div className="nb-search-result-name">
+                  {item.name}
+                </div>
+
+                {item.category?.name && (
+                  <div className="nb-search-result-category">
+                    {item.category.name}
+                    {item.subcategory?.name
+                      ? ` • ${item.subcategory.name}`
+                      : ""}
+                  </div>
+                )}
+
+                {item.price !== undefined && (
+                  <div className="nb-search-result-price">
+                    ₹{Number(item.price).toLocaleString("en-IN")}
+                  </div>
+                )}
+
+              </div>
+
+            </button>
+          ))
+        )}
+
+      </div>
+    )}
+
+  </div>
+</div>
+)}
+
+</div>
+</header>
 
       {/* ══ MOBILE DRAWER ══ */}
       {mobileOpen && (

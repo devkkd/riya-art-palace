@@ -100,5 +100,9 @@ const ProductSchema = new mongoose.Schema(
 ProductSchema.index({ category: 1 });
 ProductSchema.index({ subcategory: 1 });
 ProductSchema.index({ slug: 1 });
+ProductSchema.index({ name: 1 });
+ProductSchema.index({ productType: 1 });
+ProductSchema.index({ primaryMaterial: 1 });
+ProductSchema.index({ color: 1 });
 
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);
