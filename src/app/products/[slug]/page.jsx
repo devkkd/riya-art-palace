@@ -7,6 +7,8 @@ import FollowUs from "../../components/FollowUs";
 import Footer from "../../components/Footer";
 import { useCatalog } from "@/app/components/CatalogContext";
 import ValuesSection from "@/app/components/ValuesSection.jsx";
+import { useCart } from "@/app/components/CartContext";
+
 
 /* ── Reviews Section ────────────────────────────────────────── */
 function StarDisplay({ rating, size = 16 }) {
@@ -501,23 +503,45 @@ const styles = `
     text-align: center;
   }
   .pd-rel-cart-btn {
-    width: 100%;
-    height: 38px;
-    border: none;
-    border-radius: 999px;
-    background: #F85700;
-    color: #fff;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: "Poppins", sans-serif;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 8px;
-    transition: background .2s;
-  }
-  .pd-rel-cart-btn:hover { background: #e84f00; }
+  width: 100%;
+  height: 38px;
+  border: none;
+  border-radius: 999px;
+  background: #F85700;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: "Poppins", sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  transition:
+    background .2s ease,
+    transform .15s ease,
+    opacity .2s ease;
+}
+
+.pd-rel-cart-btn:hover {
+  background: #e84f00;
+}
+
+/* Added state */
+.pd-rel-cart-btn.added {
+  background: #16A34A;
+  color: #fff;
+  cursor: default;
+}
+
+.pd-rel-cart-btn.added:hover {
+  background: #16A34A;
+  transform: none;
+}
+
+.pd-rel-cart-btn:active:not(.added) {
+  transform: scale(0.98);
+}
   .pd-rel-enquiry {
     display: flex;
     align-items: center;
@@ -865,7 +889,14 @@ const styles = `
 /* ============================================================
    CART SIDEBAR
    ============================================================ */
-function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
+function CartSidebar({
+  isOpen,
+  onClose,
+  product,
+  qty,
+  setQty,
+  onContinueToCheckout,
+}) {
   if (!product) return null;
 
   const formattedPrice = typeof product.price === "number"
@@ -925,7 +956,7 @@ function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
        
 
         {/* Footer */}
-       <div className="cart-footer">
+      <div className="cart-footer">
 
   <div className="cart-coupon">
     <div className="cart-coupon-label">
@@ -945,13 +976,23 @@ function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
   </div>
 
   <div className="cart-btn-row">
-    <button className="cart-continue-btn">
+
+    <button
+      type="button"
+      className="cart-continue-btn"
+      onClick={onClose}
+    >
       Continue Shopping
     </button>
 
-    <button className="cart-checkout-btn">
+    <button
+      type="button"
+      className="cart-checkout-btn"
+      onClick={onContinueToCheckout}
+    >
       Continue To Checkout
     </button>
+
   </div>
 
   <div className="cart-footer-powered">
@@ -969,51 +1010,127 @@ function CartSidebar({ isOpen, onClose, product, qty, setQty }) {
 /* ============================================================
    RELATED PRODUCT CARD (Compact)
    ============================================================ */
-function RelatedCard({ product, router }) {
+/* ============================================================
+   RELATED PRODUCT CARD (Compact)
+   ============================================================ */
+function RelatedCard({ product, router, addToCart }) {
   const [qty, setQty] = useState(500);
+  const [added, setAdded] = useState(false);
 
   const goTo = () => {
     router.push(`/products/${product.slug}`);
   };
 
-  const formattedPrice = typeof product.price === "number"
-    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
-    : product.price;
+  const formattedPrice =
+    typeof product.price === "number"
+      ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+      : product.price;
+
+  const handleRelatedAddToCart = (e) => {
+    e.stopPropagation();
+
+    // Already added hai to dobara add mat karo
+    if (added) return;
+
+    // Add selected related product to cart
+    addToCart(product, qty);
+
+    // Button state change
+    setAdded(true);
+  };
 
   return (
     <div className="pd-rel-card" onClick={goTo}>
+
+      {/* Product Image */}
       <div className="pd-rel-img-wrap">
         <img
-          src={product.images?.[0] || "https://placehold.co/400x300?text=No+Image"}
+          src={
+            product.images?.[0] ||
+            "https://placehold.co/400x300?text=No+Image"
+          }
           alt={product.name}
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
         />
       </div>
-      <div className="pd-rel-body">
-        <div className="pd-rel-name">{product.name}</div>
-        <div className="pd-rel-price">{formattedPrice}</div>
-        <div className="pd-rel-sub">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
 
+      {/* Product Details */}
+      <div className="pd-rel-body">
+
+        <div className="pd-rel-name">
+          {product.name}
+        </div>
+
+        <div className="pd-rel-price">
+          {formattedPrice}
+        </div>
+
+        <div className="pd-rel-sub">
+          {product.productType ||
+            product.primaryMaterial ||
+            "Handmade Craft"}
+        </div>
+
+        {/* Quantity */}
         <div className="pd-rel-qty-row">
-          <span className="pd-rel-qty-label">QTY</span>
+          <span className="pd-rel-qty-label">
+            QTY
+          </span>
+
           <div className="pd-rel-qty-ctrl">
+
             <button
+              type="button"
               className="pd-rel-qty-btn"
-              onClick={(e) => { e.stopPropagation(); setQty(p => p > 1 ? p - 1 : 1); }}
-            >−</button>
-            <span className="pd-rel-qty-num">{qty}</span>
+              onClick={(e) => {
+                e.stopPropagation();
+
+                if (added) return;
+
+                setQty((p) => (p > 1 ? p - 1 : 1));
+              }}
+            >
+              −
+            </button>
+
+            <span className="pd-rel-qty-num">
+              {qty}
+            </span>
+
             <button
+              type="button"
               className="pd-rel-qty-btn"
-              onClick={(e) => { e.stopPropagation(); setQty(p => p + 1); }}
-            >+</button>
+              onClick={(e) => {
+                e.stopPropagation();
+
+                if (added) return;
+
+                setQty((p) => p + 1);
+              }}
+            >
+              +
+            </button>
+
           </div>
         </div>
 
-        <button className="pd-rel-cart-btn" onClick={(e) => e.stopPropagation()}>
-          + Add to Cart
+        {/* ADD TO CART */}
+        <button
+          type="button"
+          className={`pd-rel-cart-btn ${added ? "added" : ""}`}
+          onClick={handleRelatedAddToCart}
+          disabled={added}
+        >
+          {added ? "✓ Added" : "+ Add to Cart"}
         </button>
 
+        {/* Enquiry */}
         <div className="pd-rel-enquiry">
+
           <a
             href="#"
             onClick={(e) => {
@@ -1024,6 +1141,7 @@ function RelatedCard({ product, router }) {
           >
             India Enquiry →
           </a>
+
           <a
             href="#"
             onClick={(e) => {
@@ -1034,7 +1152,9 @@ function RelatedCard({ product, router }) {
           >
             Export Enquiry →
           </a>
+
         </div>
+
       </div>
     </div>
   );
@@ -1047,6 +1167,8 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
   const { products, loading } = useCatalog();
+  const { addToCart } = useCart();
+
   const [qty, setQty] = useState(500);
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -1111,9 +1233,10 @@ export default function ProductDetailPage() {
     "Usage Area": product.usageArea || "—",
   };
 
-  const handleAddToCart = () => {
-    setCartOpen(true);
-  };
+ const handleAddToCart = () => {
+  addToCart(product, qty);
+  setCartOpen(true);
+};
 
   return (
     <>
@@ -1121,13 +1244,17 @@ export default function ProductDetailPage() {
       <style jsx>{styles}</style>
 
       {/* Cart Sidebar */}
-      <CartSidebar
-        isOpen={cartOpen}
-        onClose={() => setCartOpen(false)}
-        product={product}
-        qty={qty}
-        setQty={setQty}
-      />
+    <CartSidebar
+  isOpen={cartOpen}
+  onClose={() => setCartOpen(false)}
+  product={product}
+  qty={qty}
+  setQty={setQty}
+  onContinueToCheckout={() => {
+    setCartOpen(false);
+    router.push("/cart");
+  }}
+/>
 
       <div className="pp-page">
         <div className="pp-container">
@@ -1237,9 +1364,14 @@ export default function ProductDetailPage() {
           <div className="pd-related">
             <div className="pd-related-title">Related Products</div>
             <div className="pd-related-grid">
-              {related.map((p) => (
-                <RelatedCard key={p.id} product={p} router={router} />
-              ))}
+             {related.map((p) => (
+  <RelatedCard
+    key={p.id || p._id}
+    product={p}
+    router={router}
+    addToCart={addToCart}
+  />
+))}
             </div>
           </div>
 

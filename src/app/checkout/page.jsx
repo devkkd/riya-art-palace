@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useCart } from "@/app/components/CartContext";
+import Script from "next/script";
 
 const STATES = ["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Jammu & Kashmir","Ladakh"];
 
@@ -53,13 +54,14 @@ export default function CheckoutPage() {
   const [step,       setStep]       = useState("address"); // address | payment | confirm
   const [selAddress, setSelAddress] = useState(null);
   const [showNewAddr,setShowNewAddr]= useState(false);
-  const [payMethod,  setPayMethod]  = useState("COD");
+const [payMethod,  setPayMethod]  = useState("PREPAID"); // PREPAID | COD
   const [couponCode, setCouponCode] = useState("");
   const [coupon,     setCoupon]     = useState(null);
   const [couponErr,  setCouponErr]  = useState("");
   const [couponLoad, setCouponLoad] = useState(false);
   const [placing,    setPlacing]    = useState(false);
   const [orderErr,   setOrderErr]   = useState("");
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   useEffect(() => {
     fetch("/api/auth/user/me").then(r => r.json()).then(j => {
@@ -103,34 +105,234 @@ export default function CheckoutPage() {
   const removeCoupon = () => { setCoupon(null); setCouponCode(""); setCouponErr(""); };
 
   const placeOrder = async () => {
-    if (!selAddress) { setOrderErr("Please select a delivery address"); return; }
-    setOrderErr(""); setPlacing(true);
-    try {
-      const res  = await fetch("/api/orders", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map(i => ({ productId: i.productId, quantity: i.quantity })),
-          shippingAddress: {
-            firstName: selAddress.firstName, lastName: selAddress.lastName,
-            line1: selAddress.line1, line2: selAddress.line2 || "",
-            city: selAddress.city, state: selAddress.state,
-            pincode: selAddress.pincode, country: selAddress.country || "India",
-            phone: selAddress.phone,
-          },
-          paymentMethod: payMethod,
-          couponCode: coupon?.code || "",
-        }),
-      });
-      const json = await res.json();
-      if (json.success) {
-        clearCart();
-        router.push(`/order-success?orderId=${json.data.order.orderId}`);
-      } else {
-        setOrderErr(json.message || "Failed to place order");
+  if (!selAddress) {
+    setOrderErr("Please select a delivery address");
+    return;
+  }
+
+  setOrderErr("");
+  setPlacing(true);
+
+  try {
+    const res = await fetch("/api/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+        })),
+
+        shippingAddress: {
+          firstName: selAddress.firstName,
+          lastName: selAddress.lastName,
+          line1: selAddress.line1,
+          line2: selAddress.line2 || "",
+          city: selAddress.city,
+          state: selAddress.state,
+          pincode: selAddress.pincode,
+          country: selAddress.country || "India",
+          phone: selAddress.phone,
+        },
+
+        paymentMethod: payMethod,
+
+        couponCode: coupon?.code || "",
+      }),
+    });
+
+    const json = await res.json();
+
+    if (!json.success) {
+      setOrderErr(json.message || "Failed to place order");
+      setPlacing(false);
+      return;
+    }
+
+    // =========================================================
+    // COD
+    // =========================================================
+
+    if (payMethod === "COD") {
+      clearCart();
+
+      router.push(
+        `/order-success?orderId=${encodeURIComponent(
+          json.data.order.orderId
+        )}`
+      );
+
+      return;
+    }
+
+    // =========================================================
+    // PREPAID / RAZORPAY
+    // =========================================================
+
+    if (payMethod === "PREPAID") {
+      const razorpayData = json.data?.razorpay;
+      console.log("RAZORPAY DATA:", razorpayData);
+console.log("RAZORPAY KEY:", razorpayData?.keyId);
+
+      if (!razorpayData?.orderId) {
+        throw new Error(
+          "Razorpay order was not created by the server."
+        );
       }
-    } catch { setOrderErr("Network error. Please try again."); }
-    finally { setPlacing(false); }
-  };
+
+      // Razorpay SDK loaded?
+      if (!razorpayLoaded || typeof window === "undefined" || !window.Razorpay) {
+  setOrderErr(
+    "Razorpay checkout is still loading. Please try again in a moment."
+  );
+  setPlacing(false);
+  return;
+}
+
+      const options = {
+        key: razorpayData.keyId,
+
+        amount: razorpayData.amount,
+
+        currency: razorpayData.currency || "INR",
+
+        name: "Riya Art Palace",
+
+        description: `Payment for Order ${json.data.order.orderId}`,
+
+        order_id: razorpayData.orderId,
+
+        prefill: {
+          name: `${selAddress.firstName || ""} ${
+            selAddress.lastName || ""
+          }`.trim(),
+
+          contact: selAddress.phone || "",
+        },
+
+        notes: {
+          orderId: json.data.order.orderId,
+        },
+
+        theme: {
+          color: "#F85700",
+        },
+
+        handler: async function (response) {
+          try {
+            setPlacing(true);
+
+            // =====================================================
+            // VERIFY PAYMENT ON BACKEND
+            // =====================================================
+
+            const verifyRes = await fetch(
+              "/api/orders/verify-payment",
+              {
+                method: "POST",
+
+                headers: {
+                  "Content-Type": "application/json",
+                },
+
+          body: JSON.stringify({
+  orderId: json.data.order.orderId,
+
+  razorpay_order_id:
+    response.razorpay_order_id,
+
+  razorpay_payment_id:
+    response.razorpay_payment_id,
+
+  razorpay_signature:
+    response.razorpay_signature,
+}),
+              }
+            );
+
+            const verifyJson = await verifyRes.json();
+
+            if (!verifyJson.success) {
+              setOrderErr(
+                verifyJson.message ||
+                  "Payment verification failed."
+              );
+
+              setPlacing(false);
+              return;
+            }
+
+            // Payment verified successfully
+            clearCart();
+
+            router.push(
+              `/order-success?orderId=${encodeURIComponent(
+                json.data.order.orderId
+              )}`
+            );
+          } catch (error) {
+            console.error(
+              "[frontend/razorpay/verify]",
+              error
+            );
+
+            setOrderErr(
+              "Payment was received, but verification failed. Please contact support."
+            );
+
+            setPlacing(false);
+          }
+        },
+
+        modal: {
+          ondismiss: function () {
+            setPlacing(false);
+
+            setOrderErr(
+              "Payment was cancelled. Your order is still pending."
+            );
+          },
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+
+      razorpay.on(
+        "payment.failed",
+        function (response) {
+          console.error(
+            "[frontend/razorpay/payment-failed]",
+            response
+          );
+
+          setOrderErr(
+            response.error?.description ||
+              "Payment failed. Please try again."
+          );
+
+          setPlacing(false);
+        }
+      );
+
+      razorpay.open();
+
+      return;
+    }
+
+    setOrderErr("Invalid payment method");
+  } catch (error) {
+    console.error("[frontend/order]", error);
+
+    setOrderErr(
+      error.message ||
+        "Network error. Please try again."
+    );
+
+    setPlacing(false);
+  }
+};
 
   const inp = { height:44, border:"1.5px solid #C3BCB4", borderRadius:10, padding:"0 14px", fontSize:14, background:"#FAF8F6", outline:"none", fontFamily:"Poppins,sans-serif" };
 
@@ -141,7 +343,23 @@ export default function CheckoutPage() {
   );
 
   return (
+    
     <>
+   <Script
+  src="https://checkout.razorpay.com/v1/checkout.js"
+  strategy="afterInteractive"
+  onLoad={() => {
+    console.log("[Razorpay] SDK loaded");
+    setRazorpayLoaded(true);
+  }}
+  onError={() => {
+    console.error("[Razorpay] SDK failed to load");
+    setRazorpayLoaded(false);
+    setOrderErr(
+      "Razorpay failed to load. Please refresh the page."
+    );
+  }}
+/>
       <Navbar/>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
@@ -231,21 +449,102 @@ export default function CheckoutPage() {
               </div>
 
               {/* PAYMENT METHOD */}
-              <div className="co-card">
-                <div className="co-card-title">💳 Payment Method</div>
-                {[["COD","Cash on Delivery","Pay when your order arrives at your door"],["PREPAID","Online Payment","UPI, Cards, Net Banking (Coming Soon)"]].map(([val,label,desc]) => (
-                  <div key={val} className={`co-pay-opt${payMethod===val?" selected":""}`} onClick={() => val==="PREPAID" ? null : setPayMethod(val)}
-                    style={{ opacity: val==="PREPAID" ? 0.5 : 1, cursor: val==="PREPAID" ? "not-allowed" : "pointer" }}>
-                    <div style={{ width:20, height:20, borderRadius:"50%", border:`2px solid ${payMethod===val?"#F85700":"#C3BCB4"}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                      {payMethod===val && <div style={{ width:10, height:10, borderRadius:"50%", background:"#F85700" }}/>}
-                    </div>
-                    <div>
-                      <div style={{ fontFamily:"Manrope,sans-serif", fontWeight:700, fontSize:14, color:"#0E0E0E" }}>{label}</div>
-                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:12, color:"#888", marginTop:2 }}>{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+             <div className="co-card">
+  <div className="co-card-title">💳 Payment Method</div>
+
+  {[
+    [
+      "PREPAID",
+      "Online Payment",
+      "UPI, Cards, Net Banking",
+    ],
+    // [
+    //   "COD",
+    //   "Cash on Delivery",
+    //   "Pay when your order arrives at your door",
+    // ],
+    
+  ].map(([val, label, desc]) => (
+    <div
+      key={val}
+      className={`co-pay-opt ${
+        payMethod === val ? "selected" : ""
+      }`}
+      onClick={() => setPayMethod(val)}
+      style={{
+        opacity: 1,
+        cursor: "pointer",
+      }}
+    >
+      <div
+        style={{
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          border: `2px solid ${
+            payMethod === val ? "#F85700" : "#C3BCB4"
+          }`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        {payMethod === val && (
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: "#F85700",
+            }}
+          />
+        )}
+      </div>
+
+      <div>
+        <div
+          style={{
+            fontFamily: "Manrope,sans-serif",
+            fontWeight: 700,
+            fontSize: 14,
+            color: "#0E0E0E",
+          }}
+        >
+          {label}
+        </div>
+
+        <div
+          style={{
+            fontFamily: "Manrope,sans-serif",
+            fontSize: 12,
+            color: "#888",
+            marginTop: 2,
+          }}
+        >
+          {desc}
+        </div>
+      </div>
+
+      {val === "PREPAID" && (
+        <div
+          style={{
+            marginLeft: "auto",
+            fontFamily: "Manrope,sans-serif",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#065F46",
+            background: "#D1FAE5",
+            padding: "5px 9px",
+            borderRadius: 999,
+          }}
+        >
+          Secure
+        </div>
+      )}
+    </div>
+  ))}
+</div>
 
               {/* COUPON */}
               <div className="co-card">
@@ -324,8 +623,21 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
-                <button className="co-place-btn" style={{ marginTop:20 }} onClick={placeOrder} disabled={placing || !selAddress}>
-                  {placing ? "Placing Order…" : `Place Order — ₹${total.toLocaleString("en-IN")}`}
+                <button
+  className="co-place-btn"
+  style={{ marginTop: 20 }}
+  onClick={placeOrder}
+  disabled={
+    placing ||
+    !selAddress ||
+    (payMethod === "PREPAID" && !razorpayLoaded)
+  }
+>
+                {placing
+  ? "Placing Order…"
+  : payMethod === "PREPAID" && !razorpayLoaded
+    ? "Loading Payment…"
+    : `Place Order — ₹${total.toLocaleString("en-IN")}`}
                 </button>
 
                 <div style={{ textAlign:"center", fontFamily:"Manrope,sans-serif", fontSize:11, color:"#aaa", marginTop:12 }}>

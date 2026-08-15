@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Search, ShoppingBag, User, ChevronDown, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import logo from "../assets/logo.png";
 import { useCatalog } from "@/app/components/CatalogContext";
 import { useCart } from "@/app/components/CartContext";
@@ -11,6 +11,7 @@ import { useUser } from "@/app/components/UserContext";
 
 export default function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
   const { categories, loading: catalogLoading } = useCatalog();
   const { totalItems } = useCart();
   const { user, logout, refetchUser } = useUser();
@@ -477,16 +478,24 @@ const handleSearchResultClick = (item) => {
           flex-shrink: 0;
         }
         .nb-nav-home {
-          font-family: "Manrope", sans-serif;
-          font-size: 14px;
-          font-weight: 700;
-          color: #0E0E0E;
-          text-decoration: none;
-          white-space: nowrap;
-          transition: color .15s;
-          line-height: 1;
-        }
-        .nb-nav-home:hover { color: #FF870F; }
+  font-family: "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #0E0E0E;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .15s, font-weight .15s;
+  line-height: 1;
+}
+
+.nb-nav-home.active {
+  font-weight: 700;
+  color: #0E0E0E;
+}
+
+.nb-nav-home:hover {
+  color: #FF870F;
+}
 
         .nb-nav-link {
           font-family: "Manrope", sans-serif;
@@ -506,6 +515,15 @@ const handleSearchResultClick = (item) => {
   position: relative;
   padding-bottom: 14px;
   margin-bottom: -14px;
+}
+  .nb-nav-link.active {
+  font-weight: 700;
+  color: #0E0E0E;
+}
+
+.nb-nav-link.active > a {
+  font-weight: 700;
+  color: #0E0E0E;
 }
 
 .nb-dropdown-card {
@@ -1182,70 +1200,122 @@ const handleSearchResultClick = (item) => {
 </div>
 
             {/* NAV */}
-            <nav className="nb-nav">
-              <Link href="/" className="nb-nav-home">Home</Link>
-              <Link href="/about" className="nb-nav-link">About Us</Link>
-         <div
-  className="nb-dropdown-wrap"
-  ref={dropdownRef}
-  onMouseEnter={openDropdown}
-  onMouseLeave={closeDropdownWithDelay}
->
-            <div className="nb-nav-link">
-              <Link
-                href="/products"
-                style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                }}
-              >
-                Product Collections
-              </Link>
+          <nav className="nb-nav">
 
-              <ChevronDown
-                size={14}
-                strokeWidth={2.5}
-                style={{
-                  cursor: "pointer",
-                  transition: "0.3s",
-                  transform: showDropdown
-                    ? "rotate(180deg)"
-                    : "rotate(0deg)",
-                }}
-              />
-            </div>
+  {/* HOME */}
+  <Link
+    href="/"
+    className={`nb-nav-home ${pathname === "/" ? "active" : ""}`}
+  >
+    Home
+  </Link>
 
-{showDropdown && (
+  {/* ABOUT */}
+  <Link
+    href="/about"
+    className={`nb-nav-link ${
+      pathname === "/about" ? "active" : ""
+    }`}
+  >
+    About Us
+  </Link>
+
+  {/* PRODUCT COLLECTIONS */}
   <div
-    className="nb-dropdown-card"
+    className={`nb-dropdown-wrap ${
+      pathname.startsWith("/products") ? "active" : ""
+    }`}
+    ref={dropdownRef}
     onMouseEnter={openDropdown}
     onMouseLeave={closeDropdownWithDelay}
   >
-      {catalogLoading ? (
-        <span style={{ gridColumn: "span 2", textAlign: "center", fontSize: "12px", color: "var(--adm-muted)", padding: "10px 0" }}>
-          Loading collections...
-        </span>
-      ) : categories.length === 0 ? (
-        <span style={{ gridColumn: "span 2", textAlign: "center", fontSize: "12px", color: "var(--adm-muted)", padding: "10px 0" }}>
-          No collections found
-        </span>
-      ) : (
-        categories.map((cat) => (
-          <Link
-            key={cat.id || cat._id}
-            href={`/products?category=${cat.slug}`}
-            className="nb-dropdown-item"
-            onClick={() => setShowDropdown(false)}
-          >
-            {cat.name}
-          </Link>
-        ))
-      )}
+
+    <div
+      className={`nb-nav-link ${
+        pathname.startsWith("/products") ? "active" : ""
+      }`}
+    >
+      <Link
+        href="/products"
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+        }}
+        onClick={() => setShowDropdown(false)}
+      >
+        Product Collections
+      </Link>
+
+      <ChevronDown
+        size={14}
+        strokeWidth={2.5}
+        style={{
+          cursor: "pointer",
+          transition: "0.3s",
+          transform: showDropdown
+            ? "rotate(180deg)"
+            : "rotate(0deg)",
+        }}
+      />
     </div>
-  )}
-</div>
-              <Link href="/contact" className="nb-nav-link">Contact Us</Link>
-            </nav>
+
+    {showDropdown && (
+      <div
+        className="nb-dropdown-card"
+        onMouseEnter={openDropdown}
+        onMouseLeave={closeDropdownWithDelay}
+      >
+        {catalogLoading ? (
+          <span
+            style={{
+              gridColumn: "span 2",
+              textAlign: "center",
+              fontSize: "12px",
+              color: "var(--adm-muted)",
+              padding: "10px 0",
+            }}
+          >
+            Loading collections...
+          </span>
+        ) : categories.length === 0 ? (
+          <span
+            style={{
+              gridColumn: "span 2",
+              textAlign: "center",
+              fontSize: "12px",
+              color: "var(--adm-muted)",
+              padding: "10px 0",
+            }}
+          >
+            No collections found
+          </span>
+        ) : (
+          categories.map((cat) => (
+            <Link
+              key={cat.id || cat._id}
+              href={`/products?category=${cat.slug}`}
+              className="nb-dropdown-item"
+              onClick={() => setShowDropdown(false)}
+            >
+              {cat.name}
+            </Link>
+          ))
+        )}
+      </div>
+    )}
+  </div>
+
+  {/* CONTACT */}
+  <Link
+    href="/contact"
+    className={`nb-nav-link ${
+      pathname === "/contact" ? "active" : ""
+    }`}
+  >
+    Contact Us
+  </Link>
+
+</nav>
 
             {/* DIVIDER + ICONS + BUTTON */}
             <div className="nb-right">

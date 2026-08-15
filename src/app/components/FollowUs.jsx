@@ -59,7 +59,7 @@ export default function FollowUs() {
     gap: "24px",
   }}
 >
-  <a href="https://instagram.com" target="_blank" rel="noreferrer">
+  <a href="https://www.instagram.com/riya_art_palace/" target="_blank" rel="noreferrer">
     <Image
       src={instagramLogo}
       alt="Instagram"

@@ -9,16 +9,21 @@ import { useCatalog } from "./CatalogContext";
 
 const company = [
   { name: "About Us", href: "/about" },
-  { name: "Our History", href: "#" },
+  { name: "Our History", href: "/#" },
   { name: "Contact Us", href: "/contact" },
-  { name: "Privacy Policy", href: "#" },
-  { name: "Terms & Conditions", href: "#" },
+  { name: "Privacy Policy", href: "/#" },
+  { name: "Terms & Conditions", href: "/#" },
 ];
 
-function FooterCol({ title, items = [], categorySlug = "#" }) {
+function FooterCol({
+  title,
+  items = [],
+  categorySlug = "#",
+  isCompany = false,
+}) {
   return (
     <div>
-      {/* Category Title */}
+      {/* Category / Column Title */}
       <Link
         href={categorySlug}
         style={{
@@ -41,7 +46,7 @@ function FooterCol({ title, items = [], categorySlug = "#" }) {
         {title}
       </Link>
 
-      {/* Subcategories */}
+      {/* Subcategories / Company Links */}
       {items.length > 0 && (
         <ul
           style={{
@@ -52,13 +57,17 @@ function FooterCol({ title, items = [], categorySlug = "#" }) {
         >
           {items.map((item) => (
             <li
-              key={item.id}
+              key={item.id || item.name}
               style={{
                 marginBottom: "6px",
               }}
             >
               <Link
-                href={`/products?subcategory=${encodeURIComponent(item.slug)}`}
+                href={
+                  isCompany
+                    ? item.href
+                    : `/products?subcategory=${encodeURIComponent(item.slug)}`
+                }
                 style={{
                   fontSize: "13px",
                   color: "#555",
@@ -554,11 +563,12 @@ export default function Footer() {
 
           {/* Company */}
           <div>
-            <FooterCol
-              title="Company"
-              items={company}
-              categorySlug="#"
-            />
+           <FooterCol
+  title="Company"
+  items={company}
+  categorySlug="#"
+  isCompany={true}
+/>
           </div>
         </div>
       </div>

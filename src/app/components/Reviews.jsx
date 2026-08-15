@@ -327,27 +327,47 @@ export default function SocialProof() {
   Follow Our Craft Journey
 </h2>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{
-                width: "36px", height: "36px", borderRadius: "10px",
-                background: "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "#fff", flexShrink: "0",
-              }}>
-                <InstagramIcon />
-              </div>
-              <span
+           <a
+  href="https://www.instagram.com/riya_art_palace/"
+  target="_blank"
+  rel="noopener noreferrer"
   style={{
-    fontSize: "18px",
-    color: "#0E0E0E",
-    fontFamily: "'Manrope', sans-serif",
-    fontWeight: "500",
-    letterSpacing: "-0.01em",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    textDecoration: "none",
+    cursor: "pointer",
   }}
 >
-  @riya_art_palace
-</span>
-            </div>
+  <div
+    style={{
+      width: "36px",
+      height: "36px",
+      borderRadius: "10px",
+      background:
+        "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      color: "#fff",
+      flexShrink: "0",
+    }}
+  >
+    <InstagramIcon />
+  </div>
+
+  <span
+    style={{
+      fontSize: "18px",
+      color: "#0E0E0E",
+      fontFamily: "'Manrope', sans-serif",
+      fontWeight: "500",
+      letterSpacing: "-0.01em",
+    }}
+  >
+    @riya_art_palace
+  </span>
+</a>
           </div>
 
           {/* Gallery Grid */}
