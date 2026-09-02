@@ -6,11 +6,11 @@
     "node": "20.x"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "cross-env NODE_OPTIONS=\"--require ./dns-patch.cjs\" next dev",
+    "build": "cross-env NODE_OPTIONS=\"--require ./dns-patch.cjs\" next build",
+    "start": "cross-env NODE_OPTIONS=\"--require ./dns-patch.cjs\" next start",
     "lint": "eslint",
-    "seed:admin": "node scripts/seed-admin.mjs"
+    "seed:admin": "node --require ./dns-patch.cjs scripts/seed-admin.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1070.0",
@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4"

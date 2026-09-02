@@ -47,8 +47,7 @@ function OrderSuccessContent() {
             <button className="os-btn os-btn-sec" onClick={() => router.push("/products")}>
               Continue Shopping
             </button>
-          </div>
-        </div>
+          </div>        </div>
       </div>
       <Footer/>
     </>

@@ -375,12 +375,34 @@ export const orderController = {
       });
 
       // -----------------------------------------------------
-      // IMPORTANT:
-      // DO NOT CREATE SHIPROCKET HERE FOR PREPAID
-      //
-      // Shiprocket will be created AFTER Razorpay payment
-      // is successfully verified.
+      // COD — Create Shiprocket order immediately
+      // PREPAID — Shiprocket will be created after Razorpay
+      //           payment is successfully verified.
       // -----------------------------------------------------
+
+      if (paymentMethod === "COD") {
+        try {
+          const shiprocket = await createShiprocketOrder({
+            orderId:   order.orderId,
+            createdAt: order.createdAt,
+            shippingAddress,
+            items:     orderItems,
+            totalAmount,
+            paymentMethod: "COD",
+            notes,
+          });
+          order.shiprocketOrderId    = shiprocket.shiprocketOrderId;
+          order.shiprocketShipmentId = shiprocket.shiprocketShipmentId;
+          order.awbNumber            = shiprocket.awbNumber;
+          order.courierName          = shiprocket.courierName;
+          order.trackingUrl          = shiprocket.trackingUrl;
+          order.orderStatus          = "processing";
+          await order.save();
+        } catch (srErr) {
+          // Don't fail the order if Shiprocket is down — admin can re-trigger
+          console.error("[order/create/COD/shiprocket]", srErr);
+        }
+      }
 
       // -----------------------------------------------------
       // RESPONSE
@@ -1295,6 +1317,62 @@ export const orderController = {
         "Failed to update order",
         500
       );
+    }
+  },
+
+  // =========================================================
+  // RETRIGGER SHIPROCKET (Admin only)
+  // =========================================================
+
+  async retriggerShiprocket(request, context) {
+    try {
+      await connectDB();
+
+      const { id } = await context.params;
+
+      const order = await Order.findById(id).lean();
+
+      if (!order) {
+        return errorResponse("Order not found", 404);
+      }
+
+      // Only allow for confirmed/processing/paid orders
+      const allowedStatuses = ["confirmed", "processing", "pending"];
+      if (!allowedStatuses.includes(order.orderStatus) && order.paymentStatus !== "paid" && order.paymentMethod !== "COD") {
+        return errorResponse("Order is not eligible for Shiprocket creation", 422);
+      }
+
+      const shiprocket = await createShiprocketOrder({
+        orderId:        order.orderId,
+        createdAt:      order.createdAt,
+        shippingAddress: order.shippingAddress,
+        items:          order.items,
+        totalAmount:    order.totalAmount,
+        paymentMethod:  order.paymentMethod,
+        notes:          order.notes || "",
+      });
+
+      await Order.findByIdAndUpdate(id, {
+        shiprocketOrderId:    shiprocket.shiprocketOrderId,
+        shiprocketShipmentId: shiprocket.shiprocketShipmentId,
+        awbNumber:            shiprocket.awbNumber,
+        courierName:          shiprocket.courierName,
+        trackingUrl:          shiprocket.trackingUrl,
+        orderStatus:          "processing",
+      });
+
+      return successResponse({
+        shiprocketOrderId:    shiprocket.shiprocketOrderId,
+        shiprocketShipmentId: shiprocket.shiprocketShipmentId,
+        awbNumber:            shiprocket.awbNumber,
+        courierName:          shiprocket.courierName,
+        trackingUrl:          shiprocket.trackingUrl,
+        message:              "Shiprocket order created successfully",
+      });
+
+    } catch (err) {
+      console.error("[order/retriggerShiprocket]", err);
+      return errorResponse(err?.message || "Failed to create Shiprocket order", 500);
     }
   },
 };

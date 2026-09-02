@@ -45,6 +45,13 @@ export default function AdminOrdersPage() {
   const [selected, setSelected] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  // AWB edit state
+  const [editAwb, setEditAwb]           = useState("");
+  const [editCourier, setEditCourier]   = useState("");
+  const [editTracking, setEditTracking] = useState("");
+  const [savingShip, setSavingShip]     = useState(false);
+  // Shiprocket re-trigger state
+  const [retrigger, setRetrigger]       = useState(false);
   const LIMIT = 20;
 
   const fetchOrders = async (status = statusFilter, p = page) => {
@@ -73,6 +80,9 @@ export default function AdminOrdersPage() {
   const openOrder = (order) => {
     setSelected(order);
     setNewStatus(order.orderStatus);
+    setEditAwb(order.awbNumber || "");
+    setEditCourier(order.courierName || "");
+    setEditTracking(order.trackingUrl || "");
   };
 
   const handleStatusUpdate = async () => {
@@ -97,6 +107,73 @@ export default function AdminOrdersPage() {
       setError("Network error");
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Save AWB / courier / tracking URL manually
+  const handleSaveShipping = async () => {
+    if (!selected) return;
+    setSavingShip(true);
+    try {
+      const res  = await fetch(`/api/orders/${selected.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          awbNumber:   editAwb.trim(),
+          courierName: editCourier.trim(),
+          trackingUrl: editTracking.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSuccess("Shipping details saved");
+        setSelected(prev => ({ ...prev, awbNumber: editAwb.trim(), courierName: editCourier.trim(), trackingUrl: editTracking.trim() }));
+        fetchOrders();
+        setTimeout(() => setSuccess(""), 3000);
+      } else {
+        setError(json.message || "Save failed");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setSavingShip(false);
+    }
+  };
+
+  // Manually re-trigger Shiprocket order creation
+  const handleRetriggerShiprocket = async () => {
+    if (!selected) return;
+    if (!window.confirm(`Re-create Shiprocket order for ${selected.orderId}? This will override existing Shiprocket data.`)) return;
+    setRetrigger(true);
+    try {
+      const res  = await fetch(`/api/orders/${selected.id}/shiprocket`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSuccess("Shiprocket order created — AWB assigned");
+        const d = json.data;
+        setSelected(prev => ({
+          ...prev,
+          shiprocketOrderId:    d.shiprocketOrderId,
+          shiprocketShipmentId: d.shiprocketShipmentId,
+          awbNumber:            d.awbNumber,
+          courierName:          d.courierName,
+          trackingUrl:          d.trackingUrl,
+        }));
+        setEditAwb(d.awbNumber || "");
+        setEditCourier(d.courierName || "");
+        setEditTracking(d.trackingUrl || "");
+        fetchOrders();
+        setTimeout(() => setSuccess(""), 4000);
+      } else {
+        setError(json.message || "Shiprocket trigger failed");
+      }
+    } catch {
+      setError("Network error");
+    } finally {
+      setRetrigger(false);
     }
   };
 
@@ -357,21 +434,91 @@ export default function AdminOrdersPage() {
 
               {/* Tracking */}
               <div style={{ marginBottom: 16 }}>
-                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 8 }}>Tracking</div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 13 }}>
-                  <div style={{ color: "var(--adm-muted)" }}>AWB Number</div>
-                  <div style={{ fontFamily: "monospace", fontWeight: 600 }}>{selected.awbNumber || "—"}</div>
-                  <div style={{ color: "var(--adm-muted)" }}>Courier</div>
-                  <div>{selected.courierName || "—"}</div>
-                  <div style={{ color: "var(--adm-muted)" }}>Shiprocket Order ID</div>
-                  <div style={{ fontFamily: "monospace" }}>{selected.shiprocketOrderId || "—"}</div>
+                <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Shipping & Tracking</span>
+                  <button
+                    className="adm-btn"
+                    style={{ fontSize: 11, padding: "4px 12px", display: "flex", alignItems: "center", gap: 5 }}
+                    disabled={retrigger}
+                    onClick={handleRetriggerShiprocket}
+                    title="Re-create Shiprocket order (use if first attempt failed)"
+                  >
+                    <Truck size={12} />
+                    {retrigger ? "Creating..." : "Re-trigger Shiprocket"}
+                  </button>
                 </div>
-                {selected.trackingUrl && (
-                  <a href={selected.trackingUrl} target="_blank" rel="noopener noreferrer"
-                    style={{ display: "inline-block", marginTop: 8, color: "var(--adm-accent)", fontSize: 13, fontWeight: 600 }}>
-                    View Live Tracking →
-                  </a>
+
+                {/* Read-only Shiprocket IDs */}
+                {(selected.shiprocketOrderId || selected.shiprocketShipmentId) && (
+                  <div style={{ background: "var(--adm-bg)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, fontSize: 12, display: "grid", gridTemplateColumns: "auto 1fr", gap: "4px 12px" }}>
+                    {selected.shiprocketOrderId && (
+                      <>
+                        <span style={{ color: "var(--adm-muted)" }}>SR Order ID</span>
+                        <span style={{ fontFamily: "monospace" }}>{selected.shiprocketOrderId}</span>
+                      </>
+                    )}
+                    {selected.shiprocketShipmentId && (
+                      <>
+                        <span style={{ color: "var(--adm-muted)" }}>SR Shipment ID</span>
+                        <span style={{ fontFamily: "monospace" }}>{selected.shiprocketShipmentId}</span>
+                      </>
+                    )}
+                  </div>
                 )}
+
+                {/* Editable AWB / Courier / Tracking URL */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--adm-muted)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>AWB Number</label>
+                    <input
+                      className="adm-form-input"
+                      style={{ height: 38, fontFamily: "monospace" }}
+                      placeholder="e.g. 123456789012"
+                      value={editAwb}
+                      onChange={(e) => setEditAwb(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--adm-muted)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>Courier Name</label>
+                    <input
+                      className="adm-form-input"
+                      style={{ height: 38 }}
+                      placeholder="e.g. Delhivery"
+                      value={editCourier}
+                      onChange={(e) => setEditCourier(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--adm-muted)", textTransform: "uppercase", letterSpacing: "0.04em", display: "block", marginBottom: 4 }}>Tracking URL</label>
+                    <input
+                      className="adm-form-input"
+                      style={{ height: 38 }}
+                      placeholder="https://..."
+                      value={editTracking}
+                      onChange={(e) => setEditTracking(e.target.value)}
+                    />
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button
+                      className="adm-btn adm-btn-primary"
+                      style={{ fontSize: 12 }}
+                      disabled={savingShip}
+                      onClick={handleSaveShipping}
+                    >
+                      {savingShip ? "Saving..." : "Save Shipping Details"}
+                    </button>
+                    {selected.awbNumber && (
+                      <a
+                        href={`/track/${encodeURIComponent(selected.awbNumber)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: 12, color: "var(--adm-accent)", fontWeight: 600 }}
+                      >
+                        View Tracking Page →
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* Update Status */}

@@ -2,6 +2,11 @@
  * Seed default admin into MongoDB.
  * Run: npm run seed:admin
  */
+import dns from "dns";
+// Use Google's public DNS to bypass router SRV blocking
+dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
+dns.setDefaultResultOrder("ipv4first");
+
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { readFileSync, existsSync } from "fs";

@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useCart } from "@/app/components/CartContext";
-import Script from "next/script";
 
 const STATES = ["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Jammu & Kashmir","Ladakh"];
 
@@ -62,6 +61,23 @@ const [payMethod,  setPayMethod]  = useState("PREPAID"); // PREPAID | COD
   const [placing,    setPlacing]    = useState(false);
   const [orderErr,   setOrderErr]   = useState("");
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  // Pincode serviceability
+  const [serviceability, setServiceability] = useState(null); // null | { available, couriers }
+  const [serviceLoading,  setServiceLoading]  = useState(false);
+
+  // Load Razorpay SDK manually — more reliable than Next.js Script component
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Already loaded
+    if (window.Razorpay) { setRazorpayLoaded(true); return; }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => { console.log("[Razorpay] SDK loaded"); setRazorpayLoaded(true); };
+    script.onerror = () => { console.error("[Razorpay] SDK failed to load"); setRazorpayLoaded(false); };
+    document.head.appendChild(script);
+    return () => { try { document.head.removeChild(script); } catch {} };
+  }, []);
 
   useEffect(() => {
     fetch("/api/auth/user/me").then(r => r.json()).then(j => {
@@ -79,6 +95,23 @@ const [payMethod,  setPayMethod]  = useState("PREPAID"); // PREPAID | COD
   useEffect(() => {
     if (!authLoading && items.length === 0) router.replace("/cart");
   }, [authLoading, items]);
+
+  // Check delivery serviceability whenever address changes
+  useEffect(() => {
+    if (!selAddress?.pincode || selAddress.pincode.length !== 6) {
+      setServiceability(null);
+      return;
+    }
+    let cancelled = false;
+    setServiceLoading(true);
+    setServiceability(null);
+    fetch(`/api/serviceability?pincode=${selAddress.pincode}`)
+      .then(r => r.json())
+      .then(j => { if (!cancelled) setServiceability(j.success ? j.data : { available: false, couriers: [] }); })
+      .catch(() => { if (!cancelled) setServiceability(null); })
+      .finally(() => { if (!cancelled) setServiceLoading(false); });
+    return () => { cancelled = true; };
+  }, [selAddress?.pincode]);
 
   const subtotal       = items.reduce((s, i) => s + i.price * i.quantity, 0);
   const shipping       = subtotal >= 999 ? 0 : 60;
@@ -345,21 +378,6 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
   return (
     
     <>
-   <Script
-  src="https://checkout.razorpay.com/v1/checkout.js"
-  strategy="afterInteractive"
-  onLoad={() => {
-    console.log("[Razorpay] SDK loaded");
-    setRazorpayLoaded(true);
-  }}
-  onError={() => {
-    console.error("[Razorpay] SDK failed to load");
-    setRazorpayLoaded(false);
-    setOrderErr(
-      "Razorpay failed to load. Please refresh the page."
-    );
-  }}
-/>
       <Navbar/>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap');
@@ -424,6 +442,13 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
                     <button onClick={() => setShowNewAddr(true)} style={{ background:"none", border:"1.5px dashed #C3BCB4", borderRadius:12, padding:"12px 20px", fontSize:13, fontWeight:600, color:"#555", cursor:"pointer", width:"100%", fontFamily:"Manrope,sans-serif" }}>
                       + Add New Address
                     </button>
+
+                    {/* Serviceability — only show if delivery NOT available */}
+                    {selAddress?.pincode && serviceability !== null && !serviceability.available && (
+                      <div style={{ marginTop:12, background:"#FEF2F2", border:"1.5px solid #FECACA", borderRadius:10, padding:"10px 14px", fontSize:12, fontWeight:700, color:"#DC2626", fontFamily:"Manrope,sans-serif" }}>
+                        ❌ Delivery not available to pincode {selAddress.pincode}. Please use a different address.
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -630,6 +655,7 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
   disabled={
     placing ||
     !selAddress ||
+    (serviceability !== null && !serviceability.available) ||
     (payMethod === "PREPAID" && !razorpayLoaded)
   }
 >
@@ -637,7 +663,9 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
   ? "Placing Order…"
   : payMethod === "PREPAID" && !razorpayLoaded
     ? "Loading Payment…"
-    : `Place Order — ₹${total.toLocaleString("en-IN")}`}
+    : serviceability !== null && !serviceability.available
+      ? "Delivery Not Available"
+      : `Place Order — ₹${total.toLocaleString("en-IN")}`}
                 </button>
 
                 <div style={{ textAlign:"center", fontFamily:"Manrope,sans-serif", fontSize:11, color:"#aaa", marginTop:12 }}>

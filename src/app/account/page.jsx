@@ -425,7 +425,7 @@ export default function AccountPage() {
                             </div>
                             <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
                               {order.awbNumber&&<span style={{fontSize:11,color:"#888",fontFamily:"monospace"}}>AWB: {order.awbNumber}</span>}
-                              {order.trackingUrl&&<a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="order-track-btn">🚚 Track Order</a>}
+                              {order.awbNumber&&<a href={`/track/${encodeURIComponent(order.awbNumber)}`} className="order-track-btn">🚚 Track Order</a>}
                               {!["pending","cancelled","returned"].includes(order.orderStatus)&&(
                                 <button className="order-track-btn" style={{borderColor:"#0E0E0E",color:"#0E0E0E"}} onClick={()=>setReviewOrder(order)}>✍ Write Review</button>
                               )}
