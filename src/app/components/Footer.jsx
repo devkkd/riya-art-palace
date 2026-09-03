@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import logo from "../assets/logo.png";
 import indiamartLogo from "../assets/indiamart.png";
@@ -8,11 +7,12 @@ import Link from "next/link";
 import { useCatalog } from "./CatalogContext";
 
 const company = [
-  { name: "About Us", href: "/about" },
-  { name: "Our History", href: "/#" },
-  { name: "Contact Us", href: "/contact" },
-  { name: "Privacy Policy", href: "/#" },
-  { name: "Terms & Conditions", href: "/#" },
+  { name: "About Us",           href: "/about" },
+  { name: "Contact Us",         href: "/contact" },
+  { name: "Privacy Policy",     href: "/privacy-policy" },
+  { name: "Terms & Conditions", href: "/terms-and-conditions" },
+  { name: "Refund Policy",      href: "/refund-policy" },
+  { name: "Shipping Policy",    href: "/shipping-policy" },
 ];
 
 function FooterCol({
@@ -45,7 +45,6 @@ function FooterCol({
       >
         {title}
       </Link>
-
       {/* Subcategories / Company Links */}
       {items.length > 0 && (
         <ul
@@ -101,19 +100,10 @@ export default function Footer() {
     loading: catalogLoading,
   } = useCatalog();
 
-  /*
-   * Backend categories + subcategories ko combine kar rahe hain.
-   *
-   * Important:
-   * - Categories ki koi hardcoded list nahi hai.
-   * - Jitni categories backend se aayengi, utni hi show hongi.
-   * - Har category ki saari available subcategories show hongi.
-   */
   const footerCategories = categories.map((category) => {
     const categorySubcategories = subcategories.filter(
       (sub) => sub.category === category.id
     );
-
     return {
       ...category,
       subcategories: categorySubcategories,
@@ -129,13 +119,11 @@ export default function Footer() {
     >
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
-
         .footer-newsletter {
           background: #fce8dc;
           border-bottom: 1px solid #e8d0c0;
           padding: 40px clamp(16px, 5vw, 64px);
         }
-
         .footer-newsletter-inner {
           max-width: 1280px;
           margin: 0 auto;
@@ -145,14 +133,12 @@ export default function Footer() {
           flex-wrap: wrap;
           gap: 24px;
         }
-
         .footer-newsletter-right {
           display: flex;
           align-items: flex-end;
           gap: 16px;
           flex-wrap: wrap;
         }
-
         .footer-email-input {
           width: 360px;
           padding: 14px 18px;
@@ -167,20 +153,17 @@ export default function Footer() {
           outline: none;
           box-sizing: border-box;
         }
-
         .footer-brand {
           background: #fce8dc;
           border-bottom: 1px solid #e8d0c0;
           padding: 36px clamp(16px, 5vw, 64px);
           text-align: center;
         }
-
         .footer-links {
           background: #fce8dc;
           border-bottom: 1px solid #e8d0c0;
           padding: 48px clamp(16px, 5vw, 64px);
         }
-
         .footer-links-grid {
           max-width: 1280px;
           margin: 0 auto;
@@ -188,61 +171,49 @@ export default function Footer() {
           grid-template-columns: 220px 1fr 1fr 1fr 1fr 1fr;
           gap: 32px;
         }
-
         .footer-cats-grid {
           display: contents;
         }
-
         .footer-bottom {
           background: #f7dfd0;
           padding: 18px clamp(16px, 5vw, 64px);
           text-align: center;
         }
-
         .footer-bottom a:hover {
           text-decoration: underline;
         }
-
         @media (max-width: 1024px) {
           .footer-links-grid {
             grid-template-columns: 1fr 1fr 1fr;
           }
-
           .footer-contact-col {
             grid-column: 1 / -1;
           }
         }
-
         @media (max-width: 768px) {
           .footer-links-grid {
             grid-template-columns: 1fr 1fr;
           }
-
           .footer-contact-col {
             grid-column: 1 / -1;
           }
-
           .footer-email-input {
             width: 100%;
           }
-
           .footer-newsletter-right {
             width: 100%;
             flex-direction: column;
             align-items: stretch;
           }
-
           .footer-subscribe-btn {
             width: 100%;
             justify-content: center;
           }
         }
-
         @media (max-width: 480px) {
           .footer-links-grid {
             grid-template-columns: 1fr;
           }
-
           .footer-contact-col {
             grid-column: 1 / -1;
           }
@@ -266,7 +237,6 @@ export default function Footer() {
             >
               Join the Riya Art Palace Circle
             </h3>
-
             <p
               style={{
                 fontFamily: "'Manrope', sans-serif",
@@ -280,14 +250,8 @@ export default function Footer() {
               your inbox.
             </p>
           </div>
-
           <div className="footer-newsletter-right">
-            <div
-              style={{
-                flex: 1,
-                minWidth: "220px",
-              }}
-            >
+            <div style={{ flex: 1, minWidth: "220px" }}>
               <label
                 style={{
                   display: "block",
@@ -301,7 +265,6 @@ export default function Footer() {
               >
                 Email Address
               </label>
-
               <input
                 type="email"
                 placeholder="Your email address"
@@ -310,7 +273,6 @@ export default function Footer() {
                 className="footer-email-input"
               />
             </div>
-
             <button
               type="button"
               className="footer-subscribe-btn"
@@ -340,12 +302,7 @@ export default function Footer() {
 
       {/* Brand */}
       <div className="footer-brand">
-        <div
-          style={{
-            maxWidth: "1280px",
-            margin: "0 auto",
-          }}
-        >
+        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
           <Image
             src={logo}
             alt="Riya Art Palace Logo"
@@ -356,7 +313,6 @@ export default function Footer() {
               margin: "0 auto 16px",
             }}
           />
-
           <p
             style={{
               fontSize: "18px",
@@ -369,7 +325,6 @@ export default function Footer() {
           >
             "Crafting Tradition for You"
           </p>
-
           <p
             style={{
               fontSize: "18px",
@@ -417,7 +372,6 @@ export default function Footer() {
                 }}
               />
             </div>
-
             <p
               style={{
                 fontSize: "13px",
@@ -428,7 +382,6 @@ export default function Footer() {
             >
               Visit Our Indiamart Store →
             </p>
-
             <p
               style={{
                 fontSize: "13px",
@@ -439,7 +392,6 @@ export default function Footer() {
             >
               Let's Connect
             </p>
-
             <p
               style={{
                 fontSize: "13px",
@@ -451,81 +403,34 @@ export default function Footer() {
               Whether you're a retailer, importer, or interior brand we're
               ready to discuss pricing, samples, and custom requirements.
             </p>
-
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(180px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 gap: "0 32px",
               }}
             >
               <div>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#1a1a1a",
-                    marginBottom: "4px",
-                  }}
-                >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
                   Address
                 </p>
-
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#555",
-                    lineHeight: 1.6,
-                    marginBottom: "14px",
-                  }}
-                >
+                <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>
                   A-97, Subhash Nagar Shopping Centre,
                   <br />
                   Shastri Nagar, Jaipur – 302016, Rajasthan
                 </p>
               </div>
-
               <div>
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#1a1a1a",
-                    marginBottom: "4px",
-                  }}
-                >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
                   Phone / WhatsApp
                 </p>
-
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#555",
-                    marginBottom: "14px",
-                  }}
-                >
+                <p style={{ fontSize: "13px", color: "#555", marginBottom: "14px" }}>
                   +91 80476 35730
                 </p>
-
-                <p
-                  style={{
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#1a1a1a",
-                    marginBottom: "4px",
-                  }}
-                >
+                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
                   Business Info
                 </p>
-
-                <p
-                  style={{
-                    fontSize: "13px",
-                    color: "#555",
-                    lineHeight: 1.6,
-                  }}
-                >
+                <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
                   GST: 08AIBPM9441J1ZZ · IEC: AIBPM9441J
                   <br />
                   IndiaMART Verified · Est. 1995
@@ -549,26 +454,24 @@ export default function Footer() {
             </div>
           ) : (
             footerCategories.map((category) => (
-  <div key={category.id}>
-    <FooterCol
-      title={category.name}
-      categorySlug={`/products?category=${encodeURIComponent(
-        category.slug
-      )}`}
-      items={category.subcategories}
-    />
-  </div>
-))
+              <div key={category.id}>
+                <FooterCol
+                  title={category.name}
+                  categorySlug={`/products?category=${encodeURIComponent(category.slug)}`}
+                  items={category.subcategories}
+                />
+              </div>
+            ))
           )}
 
           {/* Company */}
           <div>
-           <FooterCol
-  title="Company"
-  items={company}
-  categorySlug="#"
-  isCompany={true}
-/>
+            <FooterCol
+              title="Company"
+              items={company}
+              categorySlug="#"
+              isCompany={true}
+            />
           </div>
         </div>
       </div>
@@ -589,11 +492,7 @@ export default function Footer() {
             href="https://www.kontentkraftdigital.com/"
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              color: "#FF6500",
-              fontWeight: 700,
-              textDecoration: "none",
-            }}
+            style={{ color: "#FF6500", fontWeight: 700, textDecoration: "none" }}
           >
             Kontent Kraft Digital
           </a>
