@@ -22,6 +22,8 @@ export async function POST(request) {
     const categoryMap = new Map();
     allCategories.forEach((c) => {
       categoryMap.set(c.name.toLowerCase().trim(), c._id.toString());
+      // Also map by slug so CSV can use either name or slug
+      if (c.slug) categoryMap.set(c.slug.toLowerCase().trim(), c._id.toString());
     });
 
     const subcategoryMap = new Map();
@@ -29,6 +31,11 @@ export async function POST(request) {
       const parentId = s.category ? s.category.toString() : "";
       const key = `${parentId}:${s.name.toLowerCase().trim()}`;
       subcategoryMap.set(key, s._id.toString());
+      // Also map by slug
+      if (s.slug) {
+        const slugKey = `${parentId}:${s.slug.toLowerCase().trim()}`;
+        subcategoryMap.set(slugKey, s._id.toString());
+      }
     });
 
     const successItems = [];

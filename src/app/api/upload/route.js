@@ -2,6 +2,16 @@ import { uploadToR2 } from "@/lib/services/cloudflareService";
 import { isAuthenticated } from "@/lib/utils/auth";
 import { errorResponse, successResponse } from "@/lib/utils/response";
 
+// Increase body size limit for image uploads on Vercel
+export const config = {
+  api: {
+    bodyParser: false,
+    responseLimit: "10mb",
+  },
+};
+
+export const maxDuration = 30; // seconds
+
 export async function POST(request) {
   try {
     const authenticated = await isAuthenticated();
@@ -20,8 +30,8 @@ export async function POST(request) {
       return errorResponse("Invalid file upload", 400);
     }
 
-    // Check size limit (e.g. 5MB)
-    const MAX_SIZE = 5 * 1024 * 1024;
+    // Check size limit (10MB)
+    const MAX_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       return errorResponse("File size exceeds 5MB limit", 400);
     }

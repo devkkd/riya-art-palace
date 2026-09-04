@@ -236,8 +236,8 @@ export default function ProductsPage() {
         return;
       }
 
-      if (file.size > 5 * 1024 * 1024) {
-        setFormError("File size exceeds 5MB limit.");
+      if (file.size > 10 * 1024 * 1024) {
+        setFormError("File size exceeds 10MB limit.");
         setUploading(false);
         return;
       }
