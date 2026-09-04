@@ -220,6 +220,30 @@ export default function ProductsPage() {
     setModalOpen(true);
   };
 
+  // Upload a single file via presigned URL (bypasses Vercel 4.5MB limit)
+  const uploadFileViaPresign = async (file) => {
+    // 1. Get presigned URL from server
+    const params = new URLSearchParams({
+      filename: file.name,
+      contentType: file.type,
+    });
+    const presignRes = await fetch(`/api/upload/presign?${params}`);
+    const presignJson = await presignRes.json();
+    if (!presignJson.success) throw new Error(presignJson.message || "Failed to get upload URL");
+
+    const { presignedUrl, publicUrl } = presignJson.data;
+
+    // 2. Upload directly to R2 from browser (no size limit)
+    const uploadRes = await fetch(presignedUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
+    if (!uploadRes.ok) throw new Error(`R2 upload failed: ${uploadRes.status}`);
+
+    return publicUrl;
+  };
+
   const handleFileChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -236,33 +260,14 @@ export default function ProductsPage() {
         return;
       }
 
-      if (file.size > 10 * 1024 * 1024) {
-        setFormError("File size exceeds 10MB limit.");
-        setUploading(false);
-        return;
-      }
-
-      const data = new FormData();
-      data.append("file", file);
-
       try {
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: data,
-        });
-
-        const json = await res.json();
-        if (json.success) {
-          setFormData((prev) => ({
-            ...prev,
-            images: [...prev.images, json.data.url],
-          }));
-        } else {
-          setFormError(json.message || "Upload failed. Please check R2 config.");
-          break;
-        }
+        const url = await uploadFileViaPresign(file);
+        setFormData((prev) => ({
+          ...prev,
+          images: [...prev.images, url],
+        }));
       } catch (err) {
-        setFormError("Network error. Image upload failed.");
+        setFormError(err.message || "Image upload failed.");
         break;
       }
     }
@@ -388,21 +393,9 @@ export default function ProductsPage() {
     const newList = [...uploadedMediaList];
 
     for (const file of files) {
-      const formData = new FormData();
-      formData.append("file", file);
-
       try {
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const json = await res.json();
-        if (json.success) {
-          newList.unshift({
-            name: file.name,
-            url: json.data.url,
-          });
-        }
+        const url = await uploadFileViaPresign(file);
+        newList.unshift({ name: file.name, url });
       } catch (err) {
         console.error("Failed to upload helper image", err);
       }
@@ -516,36 +509,20 @@ export default function ProductsPage() {
 
     for (const file of files) {
       const fileName = file.name;
-      
-      if (imageUploadStatus[fileName] === undefined) {
-        continue;
-      }
+
+      if (imageUploadStatus[fileName] === undefined) continue;
 
       setImageUploadStatus(prev => ({
         ...prev,
         [fileName]: { ...prev[fileName], status: "uploading" }
       }));
 
-      const formData = new FormData();
-      formData.append("file", file);
-
       try {
-        const res = await fetch("/api/upload", {
-          method: "POST",
-          body: formData,
-        });
-        const json = await res.json();
-        if (json.success) {
-          setImageUploadStatus(prev => ({
-            ...prev,
-            [fileName]: { status: "done", url: json.data.url }
-          }));
-        } else {
-          setImageUploadStatus(prev => ({
-            ...prev,
-            [fileName]: { ...prev[fileName], status: "failed" }
-          }));
-        }
+        const url = await uploadFileViaPresign(file);
+        setImageUploadStatus(prev => ({
+          ...prev,
+          [fileName]: { status: "done", url }
+        }));
       } catch (err) {
         setImageUploadStatus(prev => ({
           ...prev,
