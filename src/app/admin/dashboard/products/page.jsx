@@ -220,28 +220,59 @@ export default function ProductsPage() {
     setModalOpen(true);
   };
 
-  // Upload a single file via presigned URL (bypasses Vercel 4.5MB limit)
+  // Compress image client-side to stay under Vercel's 4.5MB body limit
+  const compressImage = (file, maxSizeBytes = 3.5 * 1024 * 1024) => {
+    return new Promise((resolve) => {
+      // If already small enough, skip compression
+      if (file.size <= maxSizeBytes) { resolve(file); return; }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement("canvas");
+        let { width, height } = img;
+
+        // Scale down if very large
+        const MAX_DIM = 2000;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          const ratio = Math.min(MAX_DIM / width, MAX_DIM / height);
+          width  = Math.round(width  * ratio);
+          height = Math.round(height * ratio);
+        }
+        canvas.width  = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+        // Try progressively lower quality until size is acceptable
+        let quality = 0.85;
+        const tryCompress = () => {
+          canvas.toBlob((blob) => {
+            if (!blob) { resolve(file); return; }
+            if (blob.size <= maxSizeBytes || quality <= 0.3) {
+              resolve(new File([blob], file.name, { type: "image/jpeg" }));
+            } else {
+              quality -= 0.1;
+              tryCompress();
+            }
+          }, "image/jpeg", quality);
+        };
+        tryCompress();
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  };
+
+  // Upload via /api/upload (with compression to stay under 4.5MB Vercel limit)
   const uploadFileViaPresign = async (file) => {
-    // 1. Get presigned URL from server
-    const params = new URLSearchParams({
-      filename: file.name,
-      contentType: file.type,
-    });
-    const presignRes = await fetch(`/api/upload/presign?${params}`);
-    const presignJson = await presignRes.json();
-    if (!presignJson.success) throw new Error(presignJson.message || "Failed to get upload URL");
-
-    const { presignedUrl, publicUrl } = presignJson.data;
-
-    // 2. Upload directly to R2 from browser (no size limit)
-    const uploadRes = await fetch(presignedUrl, {
-      method: "PUT",
-      body: file,
-      headers: { "Content-Type": file.type },
-    });
-    if (!uploadRes.ok) throw new Error(`R2 upload failed: ${uploadRes.status}`);
-
-    return publicUrl;
+    const compressed = await compressImage(file);
+    const data = new FormData();
+    data.append("file", compressed);
+    const res  = await fetch("/api/upload", { method: "POST", body: data });
+    const json = await res.json();
+    if (json.success) return json.data.url;
+    throw new Error(json.message || "Upload failed");
   };
 
   const handleFileChange = async (e) => {

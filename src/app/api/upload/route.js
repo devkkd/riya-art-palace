@@ -30,8 +30,8 @@ export async function POST(request) {
       return errorResponse("Invalid file upload", 400);
     }
 
-    // Check size limit (10MB)
-    const MAX_SIZE = 10 * 1024 * 1024;
+    // Check size limit (4MB — compressed images should be well under this)
+    const MAX_SIZE = 4 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       return errorResponse("File size exceeds 5MB limit", 400);
     }
