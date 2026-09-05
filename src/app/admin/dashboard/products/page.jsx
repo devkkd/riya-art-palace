@@ -541,23 +541,28 @@ export default function ProductsPage() {
     for (const file of files) {
       const fileName = file.name;
 
-      if (imageUploadStatus[fileName] === undefined) continue;
+      // Case-insensitive filename match
+      const matchedKey = Object.keys(imageUploadStatus).find(
+        k => k.toLowerCase() === fileName.toLowerCase()
+      );
+
+      if (matchedKey === undefined) continue;
 
       setImageUploadStatus(prev => ({
         ...prev,
-        [fileName]: { ...prev[fileName], status: "uploading" }
+        [matchedKey]: { ...prev[matchedKey], status: "uploading" }
       }));
 
       try {
         const url = await uploadFileViaPresign(file);
         setImageUploadStatus(prev => ({
           ...prev,
-          [fileName]: { status: "done", url }
+          [matchedKey]: { status: "done", url }
         }));
       } catch (err) {
         setImageUploadStatus(prev => ({
           ...prev,
-          [fileName]: { ...prev[fileName], status: "failed" }
+          [matchedKey]: { ...prev[matchedKey], status: "failed" }
         }));
       }
     }
@@ -573,7 +578,11 @@ export default function ProductsPage() {
         if (img.startsWith("http://") || img.startsWith("https://") || img.startsWith("/")) {
           return img;
         }
-        return imageUploadStatus[img]?.url || "";
+        // Case-insensitive lookup
+        const matchedKey = Object.keys(imageUploadStatus).find(
+          k => k.toLowerCase() === img.toLowerCase()
+        );
+        return matchedKey ? (imageUploadStatus[matchedKey]?.url || "") : "";
       }).filter(Boolean);
 
       return {

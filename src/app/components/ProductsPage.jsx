@@ -193,120 +193,177 @@ const styles = `
   }
 
   /* ══════════════════════════════════════
-     PRODUCT CARD
+     PRODUCT CARD — Classic Design
   ══════════════════════════════════════ */
   .pc-card {
     width: 100%;
-    background: #F7F5F3;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #E8E2DC;
     display: flex;
     flex-direction: column;
-    transition: transform .25s ease, box-shadow .25s ease;
+    transition: box-shadow .25s ease, transform .25s ease;
     overflow: hidden;
     cursor: pointer;
+    position: relative;
   }
   .pc-card:hover {
+    box-shadow: 0 8px 32px rgba(0,0,0,.10);
     transform: translateY(-3px);
-    // box-shadow: 0 18px 36px rgba(0,0,0,.09);
   }
+
+  /* Image */
   .pc-img-wrap {
     width: 100%;
-    height: 400px;
+    aspect-ratio: 1 / 1;
     overflow: hidden;
-    position: relative;
+    background: #F7F5F3;
+    border-radius: 12px 12px 0 0;
     flex-shrink: 0;
   }
   .pc-img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
     display: block;
+    transition: transform .5s ease;
   }
+  .pc-card:hover .pc-img { transform: scale(1.06); }
+
+  /* Body */
   .pc-body {
-    padding: 16px 16px 14px;
+    padding: 14px 14px 16px;
     display: flex;
     flex-direction: column;
     flex: 1;
+    border-top: 1px solid #F0EDE9;
   }
+
+  /* Category tag */
+  .pc-tag {
+    font-family: "Manrope", sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #F85700;
+    margin-bottom: 5px;
+  }
+
   .pc-title {
     font-family: "Manrope", sans-serif;
-    font-size: 17px;
+    font-size: 13px;
     font-weight: 700;
-    line-height: 160%;
-    letter-spacing: -0.02em;
-    color: #0E0E0E;
-    margin-bottom: 14px;
+    line-height: 1.45;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Price row */
+  .pc-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 12px;
   }
   .pc-price {
     font-family: "Manrope", sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    line-height: 160%;
-    letter-spacing: -0.02em;
-    color: #0E0E0E;
-    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 800;
+    color: #1a1a1a;
   }
+  .pc-price-unit {
+    font-family: "Manrope", sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: #999;
+  }
+
   .pc-subtitle {
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 400;
-  line-height: 160%;
-    color: #4B4B4B;
-    margin-bottom: 0;
+    line-height: 1.5;
+    color: #999;
+    margin-bottom: 12px;
   }
+
+  /* Divider */
+  .pc-divider {
+    border: none;
+    border-top: 1px solid #F0EDE9;
+    margin: 0 0 12px;
+  }
+
+  /* Qty row */
   .pc-qty-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 20px;
-    margin-bottom: 14px;
+    margin-bottom: 10px;
   }
   .pc-qty-label {
-    font-size: 13px;
+    font-size: 10px;
     font-family: "Manrope", sans-serif;
-    font-weight: 900;
-    letter-spacing: 0.6px;
-    color: #0E0E0E;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #aaa;
     text-transform: uppercase;
   }
   .pc-qty-ctrl {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    width: 118px;
-    height: 46px;
-    border: 1px solid #C3BCB4;
+    gap: 0;
+    border: 1px solid #D7CEC5;
     border-radius: 999px;
-    padding: 0 14px;
-    background: transparent;
+    overflow: hidden;
+    height: 34px;
   }
   .pc-qty-btn {
     border: none;
-    background: transparent;
-    font-size: 26px;
-    font-weight: 300;
-    color: #111;
+    background: #F7F5F3;
+    font-size: 18px;
+    font-weight: 400;
+    color: #333;
     cursor: pointer;
-    line-height: 1;
-    padding: 0;
+    width: 32px;
+    height: 34px;
     display: flex;
     align-items: center;
+    justify-content: center;
     user-select: none;
+    transition: background .15s;
   }
+  .pc-qty-btn:hover { background: #EDE8E3; }
   .pc-qty-num {
-  font-family: "Manrope", sans-serif;
-    font-size: 15px;
-    font-weight: 500;
-    min-width: 38px;
+    font-family: "Manrope", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 32px;
     text-align: center;
-    color: #1D1D1D;
+    color: #1a1a1a;
+    background: #fff;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-left: 1px solid #D7CEC5;
+    border-right: 1px solid #D7CEC5;
   }
+
+  /* Cart button */
   .pc-cart-btn {
     width: 100%;
-    height: 50px;
+    height: 42px;
     border: none;
-    border-radius: 999px;
-    background: #F85700;
+    border-radius: 8px;
+    background: #1a1a1a;
     color: #fff;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 700;
     font-family: "Manrope", sans-serif;
     cursor: pointer;
@@ -314,26 +371,36 @@ const styles = `
     align-items: center;
     justify-content: center;
     gap: 6px;
-    margin-bottom: 14px;
-    transition: background .2s, transform .15s;
+    margin-bottom: 10px;
+    transition: background .2s;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
-  .pc-cart-btn:hover { background: #e84f00; transform: translateY(-1px); }
+  .pc-cart-btn:hover { background: #F85700; }
+  .pc-cart-btn.added { background: #16a34a; }
+
+  /* Enquiry links */
   .pc-enquiry {
     display: flex;
     align-items: center;
-    gap: 24px;
-    margin-top: 2px;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid #F0EDE9;
   }
   .pc-enquiry a {
-  font-family: "Manrope", sans-serif;
-
-    font-size: 13px;
-    font-weight: 700;
-    color: #111;
+    font-family: "Manrope", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
     text-decoration: none;
-    white-space: nowrap;
+    transition: color .15s;
   }
   .pc-enquiry a:hover { color: #F85700; }
+  .pc-enquiry-sep {
+    width: 1px;
+    height: 12px;
+    background: #D7CEC5;
+  }
 
   /* ── Pagination ── */
   .pp-pagination {
@@ -455,21 +522,19 @@ const styles = `
     .pp-container { padding: 0 16px; }
     .pp-title { font-size: 26px; }
     .pp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .pc-img-wrap { height: 170px; }
-    .pc-body { padding: 10px; }
-    .pc-title { font-size: 14px; }
-    .pc-price { font-size: 13px; }
-    .pc-subtitle { font-size: 11px; }
-    .pc-qty-ctrl { width: 100px; height: 38px; padding: 0 10px; }
-    .pc-qty-num { font-size: 14px; }
-    .pc-qty-btn { font-size: 22px; }
-    .pc-cart-btn { height: 42px; font-size: 12px; }
-    .pc-enquiry a { font-size: 11px; }
-    
+    .pc-body { padding: 10px 10px 12px; }
+    .pc-tag { font-size: 9px; }
+    .pc-title { font-size: 12px; }
+    .pc-price { font-size: 14px; }
+    .pc-subtitle { font-size: 10px; }
+    .pc-qty-btn { width: 26px; font-size: 16px; }
+    .pc-qty-num { min-width: 26px; font-size: 12px; }
+    .pc-cart-btn { height: 36px; font-size: 10px; letter-spacing: 0.02em; }
+    .pc-enquiry a { font-size: 10px; }
   }
   @media (max-width: 480px) {
-    .pc-img-wrap { height: 140px; }
-    .pc-qty-ctrl { width: 88px; }
+    .pc-enquiry { flex-direction: column; align-items: flex-start; gap: 6px; }
+    .pc-enquiry-sep { display: none; }
   }
 `;
 
@@ -506,19 +571,28 @@ function ProductCard({ product }) {
     <div className="pc-card" onClick={() => router.push(`/products/${product.slug}`)}>
       <div className="pc-img-wrap">
         <img
-          src={product.images?.[0] || "https://placehold.co/400x300?text=No+Image"}
+          src={product.images?.[0] || "https://placehold.co/400x400?text=No+Image"}
           alt={product.name}
           className="pc-img"
-          style={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
       </div>
       <div className="pc-body">
+        {product.subcategory?.name && (
+          <div className="pc-tag">{product.subcategory.name}</div>
+        )}
         <h3 className="pc-title">{product.name}</h3>
-        <div className="pc-price">{formattedPrice}</div>
-        <div className="pc-subtitle">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
+        <div className="pc-price-row">
+          <span className="pc-price">₹{product.price?.toLocaleString("en-IN")}</span>
+          <span className="pc-price-unit">/ {product.priceUnit || "Piece"}</span>
+        </div>
+        {(product.productType || product.primaryMaterial) && (
+          <div className="pc-subtitle">{product.productType || product.primaryMaterial}</div>
+        )}
+
+        <hr className="pc-divider" />
 
         <div className="pc-qty-row">
-          <span className="pc-qty-label">QUANTITY</span>
+          <span className="pc-qty-label">Qty</span>
           <div className="pc-qty-ctrl">
             <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setQty(p => p > 1 ? p - 1 : 1); }} aria-label="Decrease">−</button>
             <span className="pc-qty-num">{qty}</span>
@@ -527,17 +601,17 @@ function ProductCard({ product }) {
         </div>
 
         <button
-          className="pc-cart-btn"
+          className={`pc-cart-btn${added ? " added" : ""}`}
           onClick={handleAddToCart}
-          style={added ? { background: "#22c55e" } : {}}
         >
-          {added ? "✓ Added to Cart" : "+ Add to Cart"}
+          {added ? "✓ Added to Cart" : "Add to Cart"}
         </button>
 
         <div className="pc-enquiry">
           <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=india"); }}>
             India Enquiry →
           </a>
+          <div className="pc-enquiry-sep" />
           <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=export"); }}>
             Export Enquiry →
           </a>

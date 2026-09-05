@@ -1,6 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Increase body size limit for image uploads (Vercel default is 4.5MB)
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "pub-3447ead4a96a4be8a608ac77c67ea079.r2.dev",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
