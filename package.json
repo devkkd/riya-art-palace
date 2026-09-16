@@ -19,7 +19,7 @@
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "lucide-react": "^0.511.0",
-    "mongoose": "^9.7.0",
+    "mongoose": "^9.10.1",
     "next": "15.2.4",
     "nodemailer": "^9.0.5",
     "razorpay": "^2.9.8",

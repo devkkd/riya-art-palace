@@ -8,6 +8,7 @@ import { Globe, Star } from "lucide-react";
 import intIcon from "../assets/int.png";
 import bulkIcon from "../assets/bulk.png";
 import Image from "next/image";
+import Link from "next/link";
 export default function GlobalPresenceSection() {
   return (
   <section
@@ -404,6 +405,7 @@ style={{
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }}>
+           <Link href={"/enquiry?type=export"}>
             <button
               style={{
                 display: "flex",
@@ -436,6 +438,7 @@ fontWeight: "700",
               Send Export Enquiry
               <span style={{ marginLeft: "8px", fontSize: "14px" }}>→</span>
             </button>
+            </Link>
           </div>
         </div>
       </div>

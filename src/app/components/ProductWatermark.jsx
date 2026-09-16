@@ -60,13 +60,14 @@ export default function ProductWatermark({
   };
 
   return (
-    <div
-      className={`rap-watermark rap-watermark-${size} rap-watermark-${position} ${className}`}
-      style={containerStyle}
-      title="Riya Art Palace"
-      aria-label="Watermark"
-    >
-      <Copyright size={cfg.iconSize} strokeWidth={2.4} />
-    </div>
+    <div></div>
+    // <div
+    //   className={`rap-watermark rap-watermark-${size} rap-watermark-${position} ${className}`}
+    //   style={containerStyle}
+    //   title="Riya Art Palace"
+    //   aria-label="Watermark"
+    // >
+    //   <Copyright size={cfg.iconSize} strokeWidth={2.4} />
+    // </div>
   );
 }
