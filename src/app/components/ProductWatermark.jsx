@@ -1,6 +1,6 @@
 "use client";
 
-import { Copyright } from "lucide-react";
+import Image from "next/image";
 
 export default function ProductWatermark({
   size = "default",
@@ -10,18 +10,15 @@ export default function ProductWatermark({
 }) {
   const configs = {
     sm: {
-      boxSize: 20,
-      iconSize: 11,
+      boxSize: 28,
       offset: 7,
     },
     default: {
-      boxSize: 22,
-      iconSize: 12,
+      boxSize: 34,
       offset: 8,
     },
     lg: {
-      boxSize: 28,
-      iconSize: 16,
+      boxSize: 44,
       offset: 12,
     },
   };
@@ -41,33 +38,39 @@ export default function ProductWatermark({
     zIndex: 10,
     width: `${cfg.boxSize}px`,
     height: `${cfg.boxSize}px`,
-    borderRadius: "50%",
+    // borderRadius: "50%",
     pointerEvents: "none",
     userSelect: "none",
     WebkitUserSelect: "none",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
-    background: "rgba(255, 255, 255, 0.75)",
-    backdropFilter: "blur(4px)",
-    WebkitBackdropFilter: "blur(4px)",
-    border: "1px solid rgba(255, 255, 255, 0.85)",
-    boxShadow: "0 1px 5px rgba(0, 0, 0, 0.12)",
-    color: "#2D241E",
-    lineHeight: 1,
+    // background: "rgba(255, 255, 255, 0.55)",
+    backdropFilter: "blur(3px)",
+    WebkitBackdropFilter: "blur(3px)",
+    border: "1px solid rgba(255, 255, 255, 0.65)",
+    boxShadow: "0 1px 5px rgba(0, 0, 0, 0.1)",
+    overflow: "hidden",
     flexShrink: 0,
+    opacity: 0.9,
     ...style,
   };
 
   return (
-    <div></div>
-    // <div
-    //   className={`rap-watermark rap-watermark-${size} rap-watermark-${position} ${className}`}
-    //   style={containerStyle}
-    //   title="Riya Art Palace"
-    //   aria-label="Watermark"
-    // >
-    //   <Copyright size={cfg.iconSize} strokeWidth={2.4} />
-    // </div>
+    <div
+      className={`rap-watermark rap-watermark-${size} rap-watermark-${position} ${className}`}
+      style={containerStyle}
+      title="Riya Art Palace"
+      aria-label="Riya Art Palace Watermark"
+    >
+      <Image
+        src="/watermark.png"
+        alt="Riya Art Palace"
+        width={cfg.boxSize}
+        height={cfg.boxSize}
+        style={{ objectFit: "contain", borderRadius: "50%" }}
+        draggable={false}
+      />
+    </div>
   );
 }
