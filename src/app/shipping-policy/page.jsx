@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "Can I change my delivery address after placing an order?",
-    a: "Address changes can only be made before the order is dispatched. Contact us immediately at riyaartpalace08@gmail.com with your Order ID.",
+    a: "Address changes can only be made before the order is dispatched. Contact us immediately at riya_art_palace@yahoo.com with your Order ID.",
   },
   {
     q: "What if I'm not available at the time of delivery?",
@@ -157,7 +157,7 @@ export default function ShippingPolicyPage() {
         {/* Damaged in Transit */}
         <div className="pol-section">
           <div className="pol-section-title">Damaged in Transit</div>
-          <p>If your order arrives damaged, please photograph the damaged packaging and product immediately and contact us at <a href="mailto:riyaartpalace08@gmail.com" style={{ color: "#FF6500", fontWeight: 700 }}>riyaartpalace08@gmail.com</a> within <strong>48 hours of delivery</strong>.</p>
+          <p>If your order arrives damaged, please photograph the damaged packaging and product immediately and contact us at <a href="mailto:riya_art_palace@yahoo.com" style={{ color: "#FF6500", fontWeight: 700 }}>riya_art_palace@yahoo.com</a> within <strong>48 hours of delivery</strong>.</p>
           <p>Please refer to our <Link href="/refund-policy" style={{ color: "#FF6500", fontWeight: 700, textDecoration: "none" }}>Refund Policy</Link> for the complete return process.</p>
         </div>
 
@@ -177,7 +177,7 @@ export default function ShippingPolicyPage() {
         <div className="pol-contact">
           <h3>Shipping Queries?</h3>
           <p>For any questions about your shipment, contact us and we'll respond within 24 hours.</p>
-          <a href="mailto:riyaartpalace08@gmail.com">riyaartpalace08@gmail.com</a>
+          <a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a>
           <p style={{ marginTop: 16, marginBottom: 0 }}>
             <Link href="/refund-policy" style={{ color: "#FF6500", fontWeight: 700, textDecoration: "none" }}>View Refund Policy →</Link>
           </p>

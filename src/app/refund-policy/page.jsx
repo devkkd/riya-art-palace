@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const STEPS = [
   { icon: "📸", title: "Document the Issue", desc: "Take clear photos/videos of the damaged or defective product within 48 hours of delivery." },
-  { icon: "📧", title: "Contact Us", desc: "Email us at riyaartpalace08@gmail.com with your Order ID, photos, and a brief description of the issue." },
+  { icon: "📧", title: "Contact Us", desc: "Email us at riya_art_palace@yahoo.com with your Order ID, photos, and a brief description of the issue." },
   { icon: "✅", title: "Approval", desc: "Our team will review your request within 2 business days and notify you of the approval status." },
   { icon: "📦", title: "Return Shipment", desc: "Once approved, ship the product back in original packaging. We will share the return address." },
   { icon: "💰", title: "Refund / Replacement", desc: "After receiving and inspecting the return, we will process your refund or dispatch a replacement within 5–7 business days." },
@@ -144,7 +144,7 @@ export default function RefundPolicyPage() {
         <div className="pol-contact">
           <h3>Need Help with a Return?</h3>
           <p>Contact our support team and we will guide you through the process.</p>
-          <a href="mailto:riyaartpalace08@gmail.com">riyaartpalace08@gmail.com</a>
+          <a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a>
           <p style={{ marginTop: 16, marginBottom: 0 }}>
             <Link href="/shipping-policy" style={{ color: "#FF6500", fontWeight: 700, textDecoration: "none" }}>View Shipping Policy →</Link>
           </p>

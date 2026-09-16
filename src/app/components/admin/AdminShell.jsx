@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   FolderTree,
+  Film,
   Layers,
   LayoutDashboard,
   LogOut,
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { href: "/admin/dashboard/enquiries",     label: "Enquiries",     icon: MessageSquare },
   { href: "/admin/dashboard/coupons",       label: "Coupons",       icon: Tag },
   { href: "/admin/dashboard/reviews",       label: "Reviews",       icon: Star },
+  { href: "/admin/dashboard/reels",         label: "Reels",         icon: Film },
 ];
 
 export default function AdminShell({ children }) {

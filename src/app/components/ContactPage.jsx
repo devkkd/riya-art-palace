@@ -6,6 +6,63 @@ import FollowUs from "./FollowUs";
 import Footer from "./Footer";
 import ValuesSection from "./ValuesSection.jsx";
 
+/* ── Hover accordion help item ── */
+function HelpItem({ icon, title, body }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      style={{
+        border: `1.5px solid ${open ? "#F85700" : "#E8E2DC"}`,
+        borderRadius: 12,
+        marginBottom: 12,
+        padding: "16px 18px",
+        background: open ? "#FFFAF7" : "#fff",
+        boxShadow: open ? "0 4px 18px rgba(248,87,0,.08)" : "none",
+        transition: "border-color .2s, box-shadow .2s, background .2s",
+        cursor: "default",
+      }}
+    >
+      {/* Title row */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10,
+        fontFamily: "Manrope, sans-serif", fontSize: 13, fontWeight: 700,
+        lineHeight: 1.4, color: open ? "#F85700" : "#1a1a1a",
+        transition: "color .2s",
+      }}>
+        <span style={{
+          width: 32, height: 32, borderRadius: 9,
+          background: open ? "#FFF0E6" : "#F7F5F3",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 15, flexShrink: 0, transition: "background .2s",
+        }}>{icon}</span>
+        <span style={{ flex: 1 }}>{title}</span>
+        <span style={{
+          fontSize: 11, color: open ? "#F85700" : "#ccc",
+          display: "inline-block",
+          transform: open ? "rotate(180deg)" : "rotate(0)",
+          transition: "transform .25s, color .2s", flexShrink: 0,
+        }}>▾</span>
+      </div>
+
+      {/* Body */}
+      <div style={{
+        overflow: "hidden",
+        maxHeight: open ? "160px" : 0,
+        opacity: open ? 1 : 0,
+        transition: "max-height .35s ease, opacity .3s ease",
+      }}>
+        <div style={{
+          fontFamily: "Manrope, sans-serif", fontSize: 12, fontWeight: 400,
+          lineHeight: 1.65, color: "#888",
+          paddingLeft: 42, paddingTop: 8,
+        }}>{body}</div>
+      </div>
+    </div>
+  );
+}
+
 /* ============================================================
    CONTACT PAGE
    ============================================================ */
@@ -94,146 +151,145 @@ export default function ContactPage() {
 
         /* ── Info + Help Section ── */
         .cp-two-col {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 40px 80px;
-
-  display: flex;
-  align-items: stretch;;
-
-  
-}
-
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 48px 40px 64px;
+          display: flex;
+          align-items: flex-start;
+          gap: 0;
+        }
 
         /* LEFT */
-.cp-left {
-  flex: 1;
-  padding-right: 56px;
-  border-right: 1px solid #D9D0C6;
-  display: flex;
-  flex-direction: column;
-}
-
-
+        .cp-left {
+          flex: 0 0 360px;
+          width: 360px;
+          padding-right: 48px;
+          border-right: 1px solid #E8E2DC;
+          display: flex;
+          flex-direction: column;
+        }
 
         .cp-left-heading {
-  font-family: "Playfair Display", serif;
-  font-size: 40px;
-  font-weight: 800;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-
-  margin-bottom: 18px;
-}
-       .cp-left-subheading {
-  font-family: "Manrope", sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.04em;
-  color: #0E0E0E;
-
-  width: 650px;
-  max-width: 100%;
-  margin-bottom: 24px;
-}
+          font-family: "Playfair Display", serif;
+          font-size: 26px;
+          font-weight: 800;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          color: #0E0E0E;
+          margin-bottom: 8px;
+        }
+        .cp-left-subheading {
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #0E0E0E;
+          margin-bottom: 8px;
+          line-height: 1.5;
+        }
         .cp-left-desc {
-  width: 650px;
-  max-width: 100%;
-
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 1.6;
-  letter-spacing: -0.02em;
-
-  color: #0E0E0E;
-
-  margin-bottom: 36px;
-}
+          font-family: "Manrope", sans-serif;
+          font-size: 12.5px;
+          font-weight: 400;
+          line-height: 1.7;
+          color: #777;
+          margin-bottom: 20px;
+        }
 
         .cp-info-block {
-  padding: 20px 0;
-  border-top: 1px solid #D9D0C6;
-  flex: 1;  /* <-- add this */
-}
-        .cp-info-block:last-child { border-bottom: none; }
+          padding: 12px 0;
+          border-top: 1px solid #EEEBE7;
+        }
+        .cp-info-block:last-child { border-bottom: 1px solid #EEEBE7; }
         .cp-info-label {
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-
-  margin-bottom: 6px;
-}
+          font-family: "Manrope", sans-serif;
+          font-size: 10px;
+          font-weight: 800;
+          color: #bbb;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          margin-bottom: 3px;
+        }
         .cp-info-value {
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-}
- 
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          line-height: 1.55;
+          color: #333;
+        }
+
         /* RIGHT */
- .cp-right{
-  flex: 1;
-  padding-left: 56px;
-}
-        .cp-right-heading{
-  font-family: "Manrope", sans-serif;
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.04em;
-  color: #0E0E0E;
+        .cp-right {
+          flex: 1;
+          padding-left: 52px;
+          min-width: 0;
+        }
+        .cp-right-heading {
+          font-family: "Playfair Display", serif;
+          font-size: 26px;
+          font-weight: 800;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          color: #0E0E0E;
+          margin-bottom: 6px;
+        }
+        .cp-right-intro {
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 400;
+          line-height: 1.6;
+          color: #999;
+          margin-bottom: 24px;
+        }
 
-  margin-bottom: 24px;
-}
-        .cp-right-intro{
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-
-  max-width: 750px;
-  margin-bottom: 32px;
-}
-        .cp-help-item{
-  margin-bottom: 36px;
-}
-        .cp-help-title{
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-
-  margin-bottom: 8px;
-}
-        .cp-help-title span.icon {  font-size: 18px;
-  flex-shrink: 0; }
-        .cp-help-body{
-  font-family: "Manrope", sans-serif;
-  font-size: 18px;
-  font-weight: 400;
-  line-height: 160%;
-  letter-spacing: -0.02em;
-  color: #0E0E0E;
-
-  padding-left: 28px;
-  max-width: 750px;
-}
+        /* Help items — accordion cards */
+        .cp-help-item {
+          border: 1.5px solid #E8E2DC;
+          border-radius: 12px;
+          margin-bottom: 12px;
+          padding: 16px 18px;
+          background: #fff;
+          transition: border-color .2s, box-shadow .2s, background .2s;
+          cursor: default;
+        }
+        .cp-help-item:hover {
+          border-color: #F85700;
+          background: #FFFAF7;
+          box-shadow: 0 4px 18px rgba(248,87,0,.08);
+        }
+        .cp-help-title {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1.4;
+          color: #1a1a1a;
+          transition: color .2s;
+        }
+        .cp-help-item:hover .cp-help-title { color: #F85700; }
+        .cp-help-title .icon {
+          width: 32px;
+          height: 32px;
+          background: #F7F5F3;
+          border-radius: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 15px;
+          flex-shrink: 0;
+          transition: background .2s;
+        }
+        .cp-help-item:hover .cp-help-title .icon { background: #FFF0E6; }
+        .cp-help-body {
+          font-family: "Manrope", sans-serif;
+          font-size: 12px;
+          font-weight: 400;
+          line-height: 1.65;
+          color: #888;
+          padding-left: 42px;
+          padding-top: 8px;
+        }
 
         /* ── Form Section ── */
         .cp-form-section {
@@ -429,33 +485,20 @@ export default function ContactPage() {
 
         /* ── Responsive ── */
         @media (max-width: 768px) {
-  .cp-two-col {
-    flex-direction: column;
-    padding: 0 20px 50px;
-  }
-
-  .cp-left {
-    width: 100%;
-    padding-right: 0;
-    padding-bottom: 40px;
-    margin-bottom: 40px;
-    border-right: none;
-    border-bottom: 1px solid #D9D0C6;
-  }
-
-  .cp-right {
-    width: 100%;
-    padding-left: 0;
-  }
-}
-        @media (max-width: 900px) {
           .cp-two-col {
-            grid-template-columns: 1fr;
+            flex-direction: column;
             padding: 0 20px 40px;
           }
-          .cp-left { border-right: none; border-bottom: 1px solid #D9D0C6; padding: 32px 24px; }
-          .cp-right { padding: 32px 24px; }
-          .cp-form-row { grid-template-columns: 1fr; }
+          .cp-left {
+            width: 100%;
+            flex: none;
+            padding-right: 0;
+            padding-bottom: 28px;
+            margin-bottom: 28px;
+            border-right: none;
+            border-bottom: 1px solid #E8E2DC;
+          }
+          .cp-right { padding-left: 0; }
         }
         @media (max-width: 600px) {
           .cp-hero-title { font-size: 26px; }
@@ -530,30 +573,15 @@ export default function ContactPage() {
                         <h2 className="cp-right-heading">How Can We Help You?</h2>
                         <p className="cp-right-intro">We Handle All Kinds Of Enquiries - Just Let Us Know What You Need:</p>
 
-                        <div className="cp-help-item">
-                            <div className="cp-help-title"><span className="icon">🧡</span> Product &amp; Gifting Enquiries</div>
-                            <div className="cp-help-body">Looking For A Specific Product, Gift Set, Or Occasion-based Collection? Tell Us What You Have In Mind And We Will Help You Find The Perfect Piece.</div>
-                        </div>
-
-                        <div className="cp-help-item">
-                            <div className="cp-help-title"><span className="icon">🧡</span> Bulk &amp; Wholesale Orders</div>
-                            <div className="cp-help-body">Planning A Large Order For Retail, Corporate Gifting, Or An Event? Share Your Requirements And We Will Send You A Detailed Quotation.</div>
-                        </div>
-
-                        <div className="cp-help-item">
-                            <div className="cp-help-title"><span className="icon">🌐</span> Export &amp; International Enquiries</div>
-                            <div className="cp-help-body">We Export To Spain, Netherlands, Denmark, And Beyond. If You Are An International Buyer Or Importer, We Would Love To Connect And Discuss Your Requirements.</div>
-                        </div>
-
-                        <div className="cp-help-item">
-                            <div className="cp-help-title"><span className="icon">🎁</span> Custom &amp; Personalised Orders</div>
-                            <div className="cp-help-body">Need A Product In A Specific Colour, Size, Design, Or With Your Brand's Logo? We Offer Customisation Across Most Of Our Product Range.</div>
-                        </div>
-
-                        <div className="cp-help-item">
-                            <div className="cp-help-title"><span className="icon">📋</span> Trade &amp; Wholesale Registration</div>
-                            <div className="cp-help-body">Want To Become A Verified Trade Partner And Access Our Full Product Catalogue With Complete Specifications? Start Your Registration Here.</div>
-                        </div>
+                        {[
+                          { icon:"🧡", title:"Product & Gifting Enquiries",       body:"Looking For A Specific Product, Gift Set, Or Occasion-based Collection? Tell Us What You Have In Mind And We Will Help You Find The Perfect Piece." },
+                          { icon:"🧡", title:"Bulk & Wholesale Orders",            body:"Planning A Large Order For Retail, Corporate Gifting, Or An Event? Share Your Requirements And We Will Send You A Detailed Quotation." },
+                          { icon:"🌐", title:"Export & International Enquiries",   body:"We Export To Spain, Netherlands, Denmark, And Beyond. If You Are An International Buyer Or Importer, We Would Love To Connect And Discuss Your Requirements." },
+                          { icon:"🎁", title:"Custom & Personalised Orders",       body:"Need A Product In A Specific Colour, Size, Design, Or With Your Brand's Logo? We Offer Customisation Across Most Of Our Product Range." },
+                          { icon:"📋", title:"Trade & Wholesale Registration",     body:"Want To Become A Verified Trade Partner And Access Our Full Product Catalogue With Complete Specifications? Start Your Registration Here." },
+                        ].map((item, idx) => (
+                          <HelpItem key={idx} icon={item.icon} title={item.title} body={item.body} />
+                        ))}
                     </div>
 
                 </div>

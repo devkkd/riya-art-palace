@@ -9,9 +9,9 @@ export const categoryController = {
   async getAllCategories() {
     try {
       await connectDB();
-      const categories = await Category.find({}).sort({ name: 1 }).lean();
+      // Sort by order ASC, then by name ASC as tiebreaker
+      const categories = await Category.find({}).sort({ order: 1, name: 1 }).lean();
       
-      // Get subcategory counts for each category
       const categoriesWithCounts = await Promise.all(
         categories.map(async (cat) => {
           const subCount = await Subcategory.countDocuments({ category: cat._id });
@@ -19,6 +19,7 @@ export const categoryController = {
             ...cat,
             id: cat._id.toString(),
             subcategoriesCount: subCount,
+            showOnHome: cat.showOnHome !== false, // default true
           };
         })
       );
@@ -41,10 +42,9 @@ export const categoryController = {
         return errorResponse(message, 422);
       }
 
-      const { name, description, image } = parsed.data;
+      const { name, description, image, order, showOnHome } = parsed.data;
       const slug = slugify(name);
 
-      // Check if category or slug already exists
       const existing = await Category.findOne({
         $or: [{ name: new RegExp(`^${name}$`, "i") }, { slug }],
       });
@@ -54,20 +54,21 @@ export const categoryController = {
       }
 
       const newCategory = await Category.create({
-        name,
-        slug,
-        description,
-        image,
+        name, slug, description, image,
+        order: order ?? 0,
+        showOnHome: showOnHome !== false,
       });
 
       return successResponse(
         {
           category: {
-            id: newCategory._id.toString(),
-            name: newCategory.name,
-            slug: newCategory.slug,
+            id:          newCategory._id.toString(),
+            name:        newCategory.name,
+            slug:        newCategory.slug,
             description: newCategory.description,
-            image: newCategory.image,
+            image:       newCategory.image,
+            order:       newCategory.order,
+            showOnHome:  newCategory.showOnHome,
           },
           message: "Category created successfully",
         },
@@ -97,16 +98,14 @@ export const categoryController = {
         return errorResponse("Category not found", 404);
       }
 
-      const { name, description, image } = parsed.data;
+      const { name, description, image, order, showOnHome } = parsed.data;
 
       if (name && name.toLowerCase() !== category.name.toLowerCase()) {
         const slug = slugify(name);
-        // Check if another category has the same name or slug
         const existing = await Category.findOne({
           _id: { $ne: id },
           $or: [{ name: new RegExp(`^${name}$`, "i") }, { slug }],
         });
-
         if (existing) {
           return errorResponse("Another category with this name or slug already exists", 400);
         }
@@ -115,17 +114,21 @@ export const categoryController = {
       }
 
       if (description !== undefined) category.description = description;
-      if (image) category.image = image;
+      if (image)                     category.image = image;
+      if (order !== undefined)       category.order = order;
+      if (showOnHome !== undefined)  category.showOnHome = showOnHome;
 
       await category.save();
 
       return successResponse({
         category: {
-          id: category._id.toString(),
-          name: category.name,
-          slug: category.slug,
+          id:          category._id.toString(),
+          name:        category.name,
+          slug:        category.slug,
           description: category.description,
-          image: category.image,
+          image:       category.image,
+          order:       category.order,
+          showOnHome:  category.showOnHome,
         },
         message: "Category updated successfully",
       });

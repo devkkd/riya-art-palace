@@ -134,6 +134,65 @@ function ReviewModal({ order, onClose }) {
   );
 }
 
+/* ── Edit Review Modal ──────────────────────────────────── */
+function EditReviewModal({ review, onClose, onSaved }) {
+  const [rating,setRating]=useState(review.rating||5);
+  const [hover,setHover]=useState(0);
+  const [title,setTitle]=useState(review.title||"");
+  const [body,setBody]=useState(review.body||"");
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState("");
+  const LABELS=["","Poor","Fair","Good","Very Good","Excellent"];
+  const inp={height:44,border:"1.5px solid #C3BCB4",borderRadius:10,padding:"0 14px",fontSize:14,background:"#FAF8F6",outline:"none",width:"100%",fontFamily:"Poppins,sans-serif",color:"#0E0E0E"};
+
+  const submit=async()=>{
+    if(rating===0){setError("Please select a rating");return;}
+    setError("");setSaving(true);
+    try{
+      const res=await fetch(`/api/reviews/${review.id}/user`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({rating,title:title.trim(),body:body.trim()})});
+      const json=await res.json();
+      if(json.success)onSaved({id:review.id,rating,title:title.trim(),body:body.trim()});
+      else setError(json.message||"Failed to update");
+    }catch{setError("Network error.");}
+    finally{setSaving(false);}
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(4px)"}}
+      onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{background:"#fff",borderRadius:20,width:"100%",maxWidth:480,padding:"28px 28px 32px",boxShadow:"0 32px 80px rgba(0,0,0,.2)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:22}}>
+          <div style={{fontFamily:"Manrope,sans-serif",fontSize:18,fontWeight:800,color:"#0E0E0E"}}>Edit Review</div>
+          <button onClick={onClose} style={{background:"#F0EDE9",border:"none",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",color:"#555"}}>✕</button>
+        </div>
+        <div style={{marginBottom:20}}>
+          <div style={{fontFamily:"Manrope,sans-serif",fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:".5px",marginBottom:10}}>Rating *</div>
+          <div style={{display:"flex",alignItems:"center",gap:4}}>
+            {[1,2,3,4,5].map(s=>(
+              <button key={s} type="button" onMouseEnter={()=>setHover(s)} onMouseLeave={()=>setHover(0)} onClick={()=>setRating(s)}
+                style={{fontSize:36,background:"none",border:"none",cursor:"pointer",color:s<=(hover||rating)?"#F85700":"#E0D9D1",lineHeight:1,padding:"0 2px",transition:"color .1s,transform .1s",transform:s<=(hover||rating)?"scale(1.12)":"scale(1)"}}>★</button>
+            ))}
+            {(hover||rating)>0&&<span style={{marginLeft:8,fontFamily:"Manrope,sans-serif",fontSize:13,fontWeight:700,color:"#F85700"}}>{LABELS[hover||rating]}</span>}
+          </div>
+        </div>
+        <div style={{marginBottom:14}}>
+          <label style={{fontFamily:"Manrope,sans-serif",fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:8}}>Review Title</label>
+          <input style={inp} placeholder="e.g. Great quality!" value={title} onChange={e=>setTitle(e.target.value)} maxLength={100}/>
+        </div>
+        <div style={{marginBottom:20}}>
+          <label style={{fontFamily:"Manrope,sans-serif",fontSize:11,fontWeight:700,color:"#888",textTransform:"uppercase",letterSpacing:".5px",display:"block",marginBottom:8}}>Your Review</label>
+          <textarea style={{...inp,height:96,padding:"12px 14px",resize:"vertical",lineHeight:1.65}} placeholder="Share your experience…" value={body} onChange={e=>setBody(e.target.value)} maxLength={1000}/>
+          <div style={{fontFamily:"Manrope,sans-serif",fontSize:10,color:"#bbb",textAlign:"right",marginTop:3}}>{body.length}/1000</div>
+        </div>
+        {error&&<div style={{background:"#FEE2E2",border:"1px solid #FCA5A5",borderRadius:8,padding:"9px 14px",fontFamily:"Manrope,sans-serif",fontSize:12,color:"#991B1B",marginBottom:14}}>{error}</div>}
+        <button onClick={submit} disabled={saving} style={{width:"100%",height:48,border:"none",borderRadius:999,background:saving?"#ccc":"#F85700",color:"#fff",fontFamily:"Manrope,sans-serif",fontSize:14,fontWeight:700,cursor:saving?"not-allowed":"pointer"}}>
+          {saving?"Saving…":"Save Changes"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /* ── Account Details Tab ────────────────────────────────── */
 function AccountDetailsTab({ user, onUpdate }) {
   const [editing,setEditing]=useState(false);
@@ -220,6 +279,9 @@ export default function AccountPage() {
   const [activeTab,setActiveTab]=useState("orders");
   const [orders,setOrders]=useState([]);
   const [ordersLoading,setOrdersLoading]=useState(false);
+  const [myReviews,setMyReviews]=useState([]);
+  const [reviewsLoading,setReviewsLoading]=useState(false);
+  const [editReview,setEditReview]=useState(null); // {id, rating, title, body}
   const [showAddForm,setShowAddForm]=useState(false);
   const [reviewOrder,setReviewOrder]=useState(null);
 
@@ -230,6 +292,10 @@ export default function AccountPage() {
     if(user&&activeTab==="orders"){
       setOrdersLoading(true);
       fetch("/api/orders/my").then(r=>r.json()).then(j=>{if(j.success)setOrders(j.data);}).catch(()=>{}).finally(()=>setOrdersLoading(false));
+    }
+    if(user&&activeTab==="reviews"){
+      setReviewsLoading(true);
+      fetch("/api/reviews/my").then(r=>r.json()).then(j=>{if(j.success)setMyReviews(j.data.reviews||[]);}).catch(()=>{}).finally(()=>setReviewsLoading(false));
     }
   },[user,activeTab]);
 
@@ -377,7 +443,7 @@ export default function AccountPage() {
             ):(
               <>
                 <div className="ac-tabs">
-                  {[["orders","Order History"],["details","Account Details"],["addresses","Addresses"]].map(([key,label])=>(
+                  {[["orders","Order History"],["details","Account Details"],["addresses","Addresses"],["reviews","My Reviews"]].map(([key,label])=>(
                     <button key={key} className={"ac-tab"+(activeTab===key?" active":"")} onClick={()=>setActiveTab(key)}>{label}</button>
                   ))}
                 </div>
@@ -467,6 +533,73 @@ export default function AccountPage() {
                     ))}
                   </div>
                 )}
+
+                {activeTab==="reviews"&&(
+                  <div>
+                    <div className="ac-section-title">My Reviews</div>
+                    {reviewsLoading?(
+                      <div style={{display:"flex",justifyContent:"center",padding:32}}>
+                        <div style={{width:28,height:28,border:"3px solid #E5DDD5",borderTopColor:"#F85700",borderRadius:"50%",animation:"spin 0.7s linear infinite"}}/>
+                      </div>
+                    ):myReviews.length===0?(
+                      <div className="ac-empty">You haven't written any reviews yet.</div>
+                    ):(
+                      <div style={{display:"flex",flexDirection:"column",gap:14}}>
+                        {myReviews.map(rev=>(
+                          <div key={rev.id} style={{background:"#fff",border:"1.5px solid #E0D9D1",borderRadius:14,padding:"18px 20px"}}>
+                            {/* Product name */}
+                            <div style={{fontFamily:"Manrope,sans-serif",fontSize:13,fontWeight:700,color:"#0E0E0E",marginBottom:6}}>
+                              {rev.product?.name||"Product"}
+                            </div>
+                            {/* Stars + status */}
+                            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                              <span style={{color:"#F85700",fontSize:16,letterSpacing:2}}>
+                                {"★".repeat(rev.rating)}{"☆".repeat(5-rev.rating)}
+                              </span>
+                              <span style={{
+                                fontSize:10,fontWeight:700,padding:"2px 8px",borderRadius:999,
+                                background: rev.status==="approved"?"#D1FAE5":rev.status==="rejected"?"#FEE2E2":"#FEF3C7",
+                                color:      rev.status==="approved"?"#065F46":rev.status==="rejected"?"#991B1B":"#92400E",
+                              }}>
+                                {rev.status?.charAt(0).toUpperCase()+rev.status?.slice(1)}
+                              </span>
+                              <span style={{fontFamily:"Manrope,sans-serif",fontSize:11,color:"#aaa",marginLeft:"auto"}}>
+                                {rev.createdAt?new Date(rev.createdAt).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):""}
+                              </span>
+                            </div>
+                            {rev.title&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:14,fontWeight:700,color:"#1a1a1a",marginBottom:4}}>{rev.title}</div>}
+                            {rev.body&&<div style={{fontFamily:"Manrope,sans-serif",fontSize:13,color:"#555",lineHeight:1.65,marginBottom:rev.adminReply?12:0}}>{rev.body}</div>}
+                            {/* Admin reply */}
+                            {rev.adminReply&&(
+                              <div style={{background:"#FFF9F6",border:"1px solid #F85700",borderRadius:8,padding:"10px 14px",marginTop:10}}>
+                                <div style={{fontFamily:"Manrope,sans-serif",fontSize:10,fontWeight:700,color:"#F85700",letterSpacing:"0.05em",marginBottom:4}}>SELLER REPLY</div>
+                                <div style={{fontFamily:"Manrope,sans-serif",fontSize:12,color:"#555",lineHeight:1.6}}>{rev.adminReply}</div>
+                              </div>
+                            )}
+                            {/* Actions */}
+                            <div style={{display:"flex",gap:8,marginTop:14,paddingTop:12,borderTop:"1px solid #F0EDE9"}}>
+                              <button onClick={()=>setEditReview({id:rev.id,rating:rev.rating,title:rev.title||"",body:rev.body||""})}
+                                style={{height:32,padding:"0 16px",border:"1.5px solid #C3BCB4",borderRadius:999,background:"transparent",fontSize:12,fontWeight:600,color:"#555",cursor:"pointer",fontFamily:"Manrope,sans-serif",transition:"all .15s"}}
+                                onMouseEnter={e=>e.currentTarget.style.borderColor="#F85700"}
+                                onMouseLeave={e=>e.currentTarget.style.borderColor="#C3BCB4"}
+                              >✏ Edit</button>
+                              <button onClick={async()=>{
+                                if(!confirm("Delete this review?"))return;
+                                const res=await fetch(`/api/reviews/${rev.id}`,{method:"DELETE"});
+                                const j=await res.json();
+                                if(j.success)setMyReviews(prev=>prev.filter(r=>r.id!==rev.id));
+                              }}
+                                style={{height:32,padding:"0 16px",border:"1.5px solid #FCA5A5",borderRadius:999,background:"transparent",fontSize:12,fontWeight:600,color:"#e53e3e",cursor:"pointer",fontFamily:"Manrope,sans-serif",transition:"all .15s"}}
+                                onMouseEnter={e=>{e.currentTarget.style.background="#FEE2E2"}}
+                                onMouseLeave={e=>{e.currentTarget.style.background="transparent"}}
+                              >🗑 Delete</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )
           )}
@@ -477,6 +610,16 @@ export default function AccountPage() {
       <FollowUs/>
       <Footer/>
       {reviewOrder&&<ReviewModal order={reviewOrder} onClose={()=>setReviewOrder(null)}/>}
+      {editReview&&(
+        <EditReviewModal
+          review={editReview}
+          onClose={()=>setEditReview(null)}
+          onSaved={(updated)=>{
+            setMyReviews(prev=>prev.map(r=>r.id===updated.id?{...r,...updated}:r));
+            setEditReview(null);
+          }}
+        />
+      )}
     </>
   );
 }

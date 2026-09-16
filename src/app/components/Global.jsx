@@ -13,7 +13,7 @@ export default function GlobalPresenceSection() {
   <section
   style={{
     backgroundColor: "#F7F5F3",
-    paddingTop: "50px",
+    // paddingTop: "50px",
     paddingBottom: "60px",
   }}
 >

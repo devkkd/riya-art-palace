@@ -8,6 +8,8 @@ import Footer from "../../components/Footer";
 import { useCatalog } from "@/app/components/CatalogContext";
 import ValuesSection from "@/app/components/ValuesSection.jsx";
 import { useCart } from "@/app/components/CartContext";
+import { useCurrency } from "@/app/components/CurrencyContext";
+import ProductWatermark from "@/app/components/ProductWatermark";
 
 
 /* ── Reviews Section ────────────────────────────────────────── */
@@ -896,12 +898,13 @@ function CartSidebar({
   qty,
   setQty,
   onContinueToCheckout,
+  format,
 }) {
   if (!product) return null;
 
-  const formattedPrice = typeof product.price === "number"
-    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
-    : product.price;
+  const formattedPrice = format
+    ? format(product.price)
+    : (typeof product.price === "number" ? `₹ ${product.price}/${product.priceUnit || "Piece"}` : product.price);
 
   return (
     <>
@@ -1013,18 +1016,15 @@ function CartSidebar({
 /* ============================================================
    RELATED PRODUCT CARD (Compact)
    ============================================================ */
-function RelatedCard({ product, router, addToCart }) {
+function RelatedCard({ product, router, addToCart, format }) {
   const [qty, setQty] = useState(500);
   const [added, setAdded] = useState(false);
 
-  const goTo = () => {
-    router.push(`/products/${product.slug}`);
-  };
+  const goTo = () => router.push(`/products/${product.slug}`);
 
-  const formattedPrice =
-    typeof product.price === "number"
-      ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
-      : product.price;
+  const formattedPrice = format
+    ? format(product.price)
+    : (typeof product.price === "number" ? `₹ ${product.price}/${product.priceUnit || "Piece"}` : product.price);
 
   const handleRelatedAddToCart = (e) => {
     e.stopPropagation();
@@ -1043,7 +1043,7 @@ function RelatedCard({ product, router, addToCart }) {
     <div className="pd-rel-card" onClick={goTo}>
 
       {/* Product Image */}
-      <div className="pd-rel-img-wrap">
+      <div className="pd-rel-img-wrap" style={{ position: "relative" }}>
         <img
           src={
             product.images?.[0] ||
@@ -1056,6 +1056,7 @@ function RelatedCard({ product, router, addToCart }) {
             objectFit: "cover",
           }}
         />
+        <ProductWatermark size="sm" />
       </div>
 
       {/* Product Details */}
@@ -1168,11 +1169,18 @@ export default function ProductDetailPage() {
   const params = useParams();
   const { products, loading } = useCatalog();
   const { addToCart } = useCart();
+  const { format } = useCurrency();
 
   const [qty, setQty] = useState(500);
   const [cartOpen, setCartOpen] = useState(false);
 
   const { slug } = params;
+
+  // Set qty to product's minOrderQty once product is found
+  const product = products.find((p) => p.slug === slug);
+  useEffect(() => {
+    if (product?.minOrderQty) setQty(product.minOrderQty);
+  }, [product?.minOrderQty]);
 
   if (loading) {
     return (
@@ -1186,9 +1194,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const product = products.find((p) => p.slug === slug);
-
-  if (!product) {
+  if (!loading && !product) {
     return (
       <>
         <Navbar />
@@ -1206,9 +1212,7 @@ export default function ProductDetailPage() {
   }
 
   // Format price helper
-  const formattedPrice = typeof product.price === "number"
-    ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
-    : product.price;
+  const formattedPrice = format(product.price);
 
   const related = products
     .filter((p) => (p.id || p._id) !== (product.id || product._id) && p.category?.slug === product.category?.slug)
@@ -1250,6 +1254,7 @@ export default function ProductDetailPage() {
   product={product}
   qty={qty}
   setQty={setQty}
+  format={format}
   onContinueToCheckout={() => {
     setCartOpen(false);
     router.push("/cart");
@@ -1281,37 +1286,60 @@ export default function ProductDetailPage() {
             <div className="pd-img-grid">
               {product.images && product.images.length > 0 ? (
                 product.images.map((img, i) => (
-                  <div className="pd-img-cell" key={i}>
+                  <div className="pd-img-cell" key={i} style={{ position: "relative" }}>
                     <img
                       src={img}
                       alt={`${product.name} ${i + 1}`}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
+                    <ProductWatermark size="lg" />
                   </div>
                 ))
               ) : (
-                <div className="pd-img-cell">
+                <div className="pd-img-cell" style={{ position: "relative" }}>
                   <img
                     src="https://placehold.co/400x530?text=No+Image"
                     alt="No Image"
                     style={{ width: "100%", height: "100%", objectFit: "cover" }}
                   />
+                  <ProductWatermark size="lg" />
                 </div>
               )}
             </div>
 
             {/* RIGHT — Info */}
             <div className="pd-info">
+              {/* SKU + Retail badge */}
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8 }}>
+                {product.sku && (
+                  <span style={{ fontFamily:"monospace", fontSize:11, fontWeight:700, background:"#EDE9FE", color:"#5B21B6", padding:"2px 10px", borderRadius:6, letterSpacing:"0.05em" }}>
+                    SKU: {product.sku}
+                  </span>
+                )}
+                {product.showInRetail && (
+                  <span style={{ fontSize:11, fontWeight:700, background:"#D1FAE5", color:"#065F46", padding:"2px 10px", borderRadius:6 }}>
+                    Retail Offer
+                  </span>
+                )}
+              </div>
+
               <h1 className="pd-product-name">{product.name}</h1>
               <div className="pd-product-price">{formattedPrice}</div>
               <div className="pd-product-subtitle">{product.productType || product.primaryMaterial || "Handmade Craft"}</div>
+
+              {/* MOQ info */}
+              {(product.minOrderQty && product.minOrderQty > 1) && (
+                <div style={{ display:"inline-flex", alignItems:"center", gap:6, background:"#FFF3EB", border:"1px solid #FDBA74", borderRadius:8, padding:"5px 12px", marginBottom:12, fontFamily:"Manrope,sans-serif", fontSize:12, fontWeight:600, color:"#92400E" }}>
+                  Min. Order: {product.minOrderQty} {product.priceUnit || "Piece"}s
+                </div>
+              )}
 
               {/* Quantity + Add to Cart */}
               <div className="pd-action-row">
                 <div className="pd-qty-row">
                   <span className="pd-qty-label">QUANTITY</span>
                   <div className="pd-qty-ctrl">
-                    <button className="pd-qty-btn" onClick={() => setQty(p => p > 1 ? p - 1 : 1)}>−</button>
+                    <button className="pd-qty-btn" onClick={() => setQty(p => p > (product.minOrderQty ?? 1) ? p - 1 : (product.minOrderQty ?? 1))}>−</button>
                     <span className="pd-qty-num">{qty}</span>
                     <button className="pd-qty-btn" onClick={() => setQty(p => p + 1)}>+</button>
                   </div>
@@ -1370,6 +1398,7 @@ export default function ProductDetailPage() {
     product={p}
     router={router}
     addToCart={addToCart}
+    format={format}
   />
 ))}
             </div>

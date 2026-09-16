@@ -15,6 +15,14 @@ const ProductSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
+    // ── SKU ──────────────────────────────────────────────────
+    sku: {
+      type: String,
+      unique: true,
+      sparse: true,   // allows multiple null values
+      trim: true,
+      default: "",
+    },
     description: {
       type: String,
       trim: true,
@@ -29,6 +37,18 @@ const ProductSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: "Piece",
+    },
+    // ── MOQ ──────────────────────────────────────────────────
+    minOrderQty: {
+      type: Number,
+      default: 500,
+      min: 1,
+    },
+    // ── Retail Offer ─────────────────────────────────────────
+    showInRetail: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
     category: {
       type: mongoose.Schema.Types.ObjectId,
@@ -45,54 +65,16 @@ const ProductSchema = new mongoose.Schema(
       default: [],
     },
     // Specifications
-    productType: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    primaryMaterial: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    style: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    setType: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    color: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    sizeCategory: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    theme: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    usageArea: {
-      type: String,
-      trim: true,
-      default: "",
-    },
-    bestSelling: {
-      type: Boolean,
-      default: false,
-    },
-    newArrival: {
-      type: Boolean,
-      default: false,
-    },
+    productType:     { type: String, trim: true, default: "" },
+    primaryMaterial: { type: String, trim: true, default: "" },
+    style:           { type: String, trim: true, default: "" },
+    setType:         { type: String, trim: true, default: "" },
+    color:           { type: String, trim: true, default: "" },
+    sizeCategory:    { type: String, trim: true, default: "" },
+    theme:           { type: String, trim: true, default: "" },
+    usageArea:       { type: String, trim: true, default: "" },
+    bestSelling:     { type: Boolean, default: false },
+    newArrival:      { type: Boolean, default: false },
   },
   { timestamps: true }
 );
@@ -101,8 +83,7 @@ ProductSchema.index({ category: 1 });
 ProductSchema.index({ subcategory: 1 });
 ProductSchema.index({ slug: 1 });
 ProductSchema.index({ name: 1 });
-ProductSchema.index({ productType: 1 });
-ProductSchema.index({ primaryMaterial: 1 });
-ProductSchema.index({ color: 1 });
+ProductSchema.index({ sku: 1 });
+ProductSchema.index({ showInRetail: 1 });
 
 export default mongoose.models.Product || mongoose.model("Product", ProductSchema);

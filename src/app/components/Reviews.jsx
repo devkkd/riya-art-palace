@@ -1,5 +1,5 @@
 "use client";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import insta1 from "../assets/insta1.jpg";
 import insta2 from "../assets/insta2.jpg";
@@ -7,6 +7,7 @@ import insta3 from "../assets/insta3.jpg";
 import insta4 from "../assets/insta4.jpg";
 import insta5 from "../assets/insta5.jpg";
 import indiamart from "../assets/indiamart.png";
+import { useUser } from "@/app/components/UserContext";
 
 const InstagramIcon = () => (
   <svg
@@ -26,33 +27,408 @@ const InstagramIcon = () => (
   </svg>
 );
 
-const reviews = [
-  {
-    text: "Loved the attention to detail and authentic handmade finish. Highly recommended for handicraft lovers worldwide.",
-    author: "Verified International Buyer",
-  },
-  {
-    text: "Beautiful craftsmanship and premium quality products. Delivery was smooth and professional.",
-    author: "Verified International Buyer",
-  },
-  {
-    text: "Excellent export packaging and authentic Rajasthani artistry. Will order again.",
-    author: "Verified International Buyer",
-  },
-  {
-    text: "Unique handcrafted products with outstanding detailing and finishing.",
-    author: "Verified International Buyer",
-  },
-  {
-    text: "Great communication and beautiful handmade collections for our store.",
-    author: "Verified International Buyer",
-  },
+const STATIC_REVIEWS = [
+  { id:"s1", userName:"Verified International Buyer", rating:5, title:"", body:"Loved the attention to detail and authentic handmade finish. Highly recommended for handicraft lovers worldwide." },
+  { id:"s2", userName:"Verified International Buyer", rating:5, title:"", body:"Beautiful craftsmanship and premium quality products. Delivery was smooth and professional." },
+  { id:"s3", userName:"Verified International Buyer", rating:5, title:"", body:"Excellent export packaging and authentic Rajasthani artistry. Will order again." },
+  { id:"s4", userName:"Verified International Buyer", rating:5, title:"", body:"Unique handcrafted products with outstanding detailing and finishing." },
+  { id:"s5", userName:"Verified International Buyer", rating:5, title:"", body:"Great communication and beautiful handmade collections for our store." },
 ];
+
+/* ── Write Review Modal (guest — for homepage button) ── */
+function WriteReviewModal({ onClose }) {
+  const { user } = useUser();
+  const [orders,  setOrders]  = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selOrder, setSelOrder] = useState(null);
+  const [selIdx,   setSelIdx]   = useState(0);
+  const [rating,   setRating]   = useState(0);
+  const [hover,    setHover]    = useState(0);
+  const [title,    setTitle]    = useState("");
+  const [body,     setBody]     = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [success,    setSuccess]    = useState(false);
+  const [error,      setError]      = useState("");
+  const LABELS = ["","Poor","Fair","Good","Very Good","Excellent"];
+
+  useEffect(() => {
+    if (!user) { setLoading(false); return; }
+    fetch("/api/orders/my")
+      .then(r => r.json())
+      .then(j => {
+        if (j.success) {
+          const eligible = (j.data.orders || []).filter(o =>
+            !["pending","cancelled","returned"].includes(o.orderStatus)
+          );
+          setOrders(eligible);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [user]);
+
+  const items = selOrder?.items || [];
+  const selProduct = items[selIdx];
+
+  const submit = async () => {
+    if (!selProduct) { setError("Please select a product"); return; }
+    if (rating === 0) { setError("Please select a rating"); return; }
+    setError(""); setSubmitting(true);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: selProduct.productId?.toString(), orderId: selOrder.id || selOrder._id, rating, title: title.trim(), body: body.trim() }),
+      });
+      const json = await res.json();
+      if (json.success) setSuccess(true);
+      else setError(json.message || "Failed to submit");
+    } catch { setError("Network error. Please try again."); }
+    finally { setSubmitting(false); }
+  };
+
+  const inp = { width:"100%", padding:"11px 14px", border:"1.5px solid #E0D9D1", borderRadius:10, background:"#FAF8F6", fontFamily:"Manrope,sans-serif", fontSize:13, color:"#1a1a1a", outline:"none", boxSizing:"border-box" };
+
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,.55)", zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:16, backdropFilter:"blur(4px)" }}
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={{ background:"#fff", borderRadius:20, width:"100%", maxWidth:520, padding:"28px 28px 32px", boxShadow:"0 32px 80px rgba(0,0,0,.2)", maxHeight:"92vh", overflowY:"auto" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:22 }}>
+          <div style={{ fontFamily:"Manrope,sans-serif", fontSize:19, fontWeight:800, color:"#1a1a1a" }}>Write a Review</div>
+          <button onClick={onClose} style={{ background:"#F0EDE9", border:"none", width:32, height:32, borderRadius:"50%", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", fontSize:15, color:"#555" }}>✕</button>
+        </div>
+
+        {success ? (
+          <div style={{ textAlign:"center", padding:"24px 0" }}>
+            <div style={{ fontSize:52, marginBottom:12 }}>🎉</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontWeight:800, fontSize:18, color:"#1a1a1a", marginBottom:8 }}>Thank you!</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#888", marginBottom:24 }}>Your review has been submitted.</div>
+            <button onClick={onClose} style={{ height:46, padding:"0 32px", border:"none", borderRadius:999, background:"#F85700", color:"#fff", fontFamily:"Manrope,sans-serif", fontSize:14, fontWeight:700, cursor:"pointer" }}>Done</button>
+          </div>
+        ) : !user ? (
+          <div style={{ textAlign:"center", padding:"20px 0" }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>🔐</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontSize:15, fontWeight:700, color:"#1a1a1a", marginBottom:8 }}>Login Required</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#888", marginBottom:20 }}>Please login to your account to write a review.</div>
+          </div>
+        ) : loading ? (
+          <div style={{ textAlign:"center", padding:40 }}><div style={{ width:32, height:32, border:"3px solid #E5DDD5", borderTopColor:"#F85700", borderRadius:"50%", animation:"spin .7s linear infinite", margin:"0 auto" }}/></div>
+        ) : orders.length === 0 ? (
+          <div style={{ textAlign:"center", padding:"20px 0" }}>
+            <div style={{ fontSize:40, marginBottom:12 }}>📦</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontSize:14, fontWeight:700, color:"#1a1a1a", marginBottom:8 }}>No eligible orders</div>
+            <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, color:"#888" }}>You can only review products from confirmed orders.</div>
+          </div>
+        ) : (
+          <>
+            {/* Order select */}
+            <div style={{ marginBottom:16 }}>
+              <label style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:".5px", display:"block", marginBottom:8 }}>Select Order</label>
+              <select value={selOrder?.id || ""} onChange={e => { const o = orders.find(ord => (ord.id||ord._id) === e.target.value); setSelOrder(o||null); setSelIdx(0); }}
+                style={{ ...inp, height:42, cursor:"pointer" }}>
+                <option value="">— Pick an order —</option>
+                {orders.map(o => <option key={o.id||o._id} value={o.id||o._id}>{o.orderId} · ₹{o.totalAmount}</option>)}
+              </select>
+            </div>
+
+            {selOrder && items.length > 1 && (
+              <div style={{ marginBottom:16 }}>
+                <label style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:".5px", display:"block", marginBottom:8 }}>Select Product</label>
+                <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                  {items.map((item,idx) => (
+                    <div key={idx} onClick={() => setSelIdx(idx)} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", border:`1.5px solid ${selIdx===idx?"#F85700":"#E0D9D1"}`, borderRadius:10, cursor:"pointer", background:selIdx===idx?"#FFF9F6":"#fff" }}>
+                      {item.image && <img src={item.image} alt={item.productName} style={{ width:38, height:38, borderRadius:6, objectFit:"cover", flexShrink:0 }}/>}
+                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:600 }}>{item.productName}</div>
+                      {selIdx===idx && <span style={{ marginLeft:"auto", color:"#F85700" }}>✓</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {selOrder && items.length === 1 && selProduct && (
+              <div style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", background:"#F7F5F3", borderRadius:10, marginBottom:16 }}>
+                {selProduct.image && <img src={selProduct.image} alt={selProduct.productName} style={{ width:40, height:40, borderRadius:6, objectFit:"cover" }}/>}
+                <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:600 }}>{selProduct?.productName}</div>
+              </div>
+            )}
+
+            {/* Stars */}
+            <div style={{ marginBottom:18 }}>
+              <div style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:".5px", marginBottom:10 }}>Rating *</div>
+              <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                {[1,2,3,4,5].map(s => (
+                  <button key={s} type="button" onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)} onClick={() => setRating(s)}
+                    style={{ fontSize:36, background:"none", border:"none", cursor:"pointer", color:s<=(hover||rating)?"#F85700":"#E0D9D1", lineHeight:1, padding:"0 2px", transition:"color .1s, transform .1s", transform:s<=(hover||rating)?"scale(1.12)":"scale(1)" }}>★</button>
+                ))}
+                {(hover||rating) > 0 && <span style={{ marginLeft:8, fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:700, color:"#F85700" }}>{LABELS[hover||rating]}</span>}
+              </div>
+            </div>
+
+            <div style={{ marginBottom:12 }}>
+              <label style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:".5px", display:"block", marginBottom:7 }}>Review Title</label>
+              <input style={inp} placeholder="e.g. Great quality!" value={title} onChange={e => setTitle(e.target.value)} maxLength={100}/>
+            </div>
+
+            <div style={{ marginBottom:18 }}>
+              <label style={{ fontFamily:"Manrope,sans-serif", fontSize:11, fontWeight:700, color:"#888", textTransform:"uppercase", letterSpacing:".5px", display:"block", marginBottom:7 }}>Your Review</label>
+              <textarea style={{ ...inp, height:96, padding:"10px 14px", resize:"vertical", lineHeight:1.65 }} placeholder="Share your experience…" value={body} onChange={e => setBody(e.target.value)} maxLength={1000}/>
+              <div style={{ fontFamily:"Manrope,sans-serif", fontSize:10, color:"#bbb", textAlign:"right", marginTop:3 }}>{body.length}/1000</div>
+            </div>
+
+            {error && <div style={{ background:"#FEE2E2", border:"1px solid #FCA5A5", borderRadius:8, padding:"9px 14px", fontFamily:"Manrope,sans-serif", fontSize:12, color:"#991B1B", marginBottom:14 }}>{error}</div>}
+
+            <button onClick={submit} disabled={submitting || rating === 0 || !selOrder} style={{ width:"100%", height:48, border:"none", borderRadius:999, background:(submitting||rating===0||!selOrder)?"#ccc":"#F85700", color:"#fff", fontFamily:"Manrope,sans-serif", fontSize:14, fontWeight:700, cursor:(submitting||rating===0||!selOrder)?"not-allowed":"pointer", transition:"background .2s" }}>
+              {submitting ? "Submitting…" : "Submit Review"}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const gallery = [insta1, insta2, insta3, insta4, insta5];
 
+/* ── Reel Card — autoplay on hover ── */
+function ReelCard({ reel }) {
+  const videoRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [muted,   setMuted]   = useState(true);
+
+  // IntersectionObserver — autoplay when visible on mobile
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { el.play().catch(() => {}); setPlaying(true); }
+        else { el.pause(); setPlaying(false); }
+      },
+      { threshold: 0.6 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const handleMouseEnter = () => {
+    videoRef.current?.play().catch(() => {});
+    setPlaying(true);
+  };
+  const handleMouseLeave = () => {
+    videoRef.current?.pause();
+    setPlaying(false);
+  };
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    if (!videoRef.current) return;
+    videoRef.current.muted = !muted;
+    setMuted(p => !p);
+  };
+
+  return (
+    <div
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        position:"relative", flexShrink:0,
+        width:220, aspectRatio:"9/16",
+        borderRadius:18, overflow:"hidden",
+        background:"#111", cursor:"pointer",
+        boxShadow:"0 8px 28px rgba(0,0,0,.18)",
+        transition:"transform .3s, box-shadow .3s",
+      }}
+      onMouseOver={e => { e.currentTarget.style.transform="scale(1.03)"; e.currentTarget.style.boxShadow="0 16px 40px rgba(0,0,0,.28)"; }}
+      onMouseOut={e  => { e.currentTarget.style.transform="scale(1)";    e.currentTarget.style.boxShadow="0 8px 28px rgba(0,0,0,.18)";  }}
+    >
+      <video
+        ref={videoRef}
+        src={reel.videoUrl}
+        poster={reel.thumbUrl || undefined}
+        muted={muted}
+        loop
+        playsInline
+        preload="metadata"
+        style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }}
+      />
+
+      {/* Gradient overlay */}
+      <div style={{
+        position:"absolute", inset:0,
+        background:"linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 45%)",
+        pointerEvents:"none",
+      }}/>
+
+      {/* Instagram icon top-right */}
+      <div style={{
+        position:"absolute", top:12, right:12,
+        width:32, height:32, borderRadius:8,
+        background:"radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
+        display:"flex", alignItems:"center", justifyContent:"center", color:"#fff",
+      }}>
+        <InstagramIcon />
+      </div>
+
+      {/* Play indicator */}
+      {!playing && (
+        <div style={{
+          position:"absolute", inset:0,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          pointerEvents:"none",
+        }}>
+          <div style={{
+            width:48, height:48, borderRadius:"50%",
+            background:"rgba(255,255,255,.2)", backdropFilter:"blur(4px)",
+            display:"flex", alignItems:"center", justifyContent:"center",
+          }}>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="white"><polygon points="6,3 20,12 6,21"/></svg>
+          </div>
+        </div>
+      )}
+
+      {/* Mute toggle + title */}
+      <div style={{ position:"absolute", bottom:12, left:12, right:12, display:"flex", alignItems:"flex-end", justifyContent:"space-between", gap:8 }}>
+        {reel.title && (
+          <div style={{
+            fontFamily:"Manrope,sans-serif", fontSize:12, fontWeight:700, color:"#fff",
+            lineHeight:1.4, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+            textShadow:"0 1px 4px rgba(0,0,0,.5)",
+          }}>{reel.title}</div>
+        )}
+        <button onClick={toggleMute} style={{
+          flexShrink:0, width:28, height:28, borderRadius:"50%",
+          background:"rgba(255,255,255,.2)", backdropFilter:"blur(4px)",
+          border:"none", cursor:"pointer", color:"#fff",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontSize:12,
+        }}>
+          {muted ? "🔇" : "🔊"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Reels Section ── */
+function ReelsSection() {
+  const [reels,   setReels]   = useState([]);
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    fetch("/api/reels")
+      .then(r => r.json())
+      .then(j => { if (j.success) setReels(j.data || []); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Auto-scroll loop
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || reels.length === 0) return;
+    let animId;
+    let speed = 0.6; // px per frame
+    const tick = () => {
+      if (el.scrollLeft >= el.scrollWidth - el.clientWidth - 2) {
+        el.scrollLeft = 0;
+      } else {
+        el.scrollLeft += speed;
+      }
+      animId = requestAnimationFrame(tick);
+    };
+    animId = requestAnimationFrame(tick);
+    const pause = () => cancelAnimationFrame(animId);
+    const resume = () => { animId = requestAnimationFrame(tick); };
+    el.addEventListener("mouseenter", pause);
+    el.addEventListener("mouseleave", resume);
+    el.addEventListener("touchstart", pause);
+    return () => {
+      cancelAnimationFrame(animId);
+      el.removeEventListener("mouseenter", pause);
+      el.removeEventListener("mouseleave", resume);
+      el.removeEventListener("touchstart", pause);
+    };
+  }, [reels]);
+
+  // Show nothing if no reels
+  if (!loading && reels.length === 0) return null;
+
+  return (
+    <div>
+      {/* Label */}
+      <div style={{ display:"flex", alignItems:"center", gap:"16px", marginBottom:"20px" }}>
+        <div style={{ width:"72px", height:"1px", backgroundColor:"#FF6500" }} />
+        <span style={{ color:"#FF6500", fontSize:"13px", fontWeight:"700", textTransform:"uppercase", letterSpacing:"0.8px", fontFamily:"'Manrope',sans-serif" }}>
+          SOCIAL THAT FEELS HUMAN
+        </span>
+      </div>
+
+      {/* Header */}
+      <div style={{ display:"flex", flexWrap:"wrap", alignItems:"center", justifyContent:"space-between", gap:16, marginBottom:36 }}>
+        <h2 style={{ fontFamily:"'Playfair Display',serif", fontSize:"clamp(32px,3vw,44px)", fontWeight:"800", color:"#0E0E0E", margin:0, lineHeight:1.2, letterSpacing:"-0.02em" }}>
+          Follow Our Craft Journey
+        </h2>
+        <a href="https://www.instagram.com/riya_art_palace/" target="_blank" rel="noopener noreferrer"
+          style={{ display:"flex", alignItems:"center", gap:10, textDecoration:"none", cursor:"pointer" }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"radial-gradient(circle at 30% 107%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%)", display:"flex", alignItems:"center", justifyContent:"center", color:"#fff", flexShrink:0 }}>
+            <InstagramIcon />
+          </div>
+          <span style={{ fontSize:18, color:"#0E0E0E", fontFamily:"'Manrope',sans-serif", fontWeight:500, letterSpacing:"-0.01em" }}>@riya_art_palace</span>
+        </a>
+      </div>
+
+      {/* Reels row */}
+      {loading ? (
+        <div style={{ display:"flex", gap:16 }}>
+          {[1,2,3,4,5].map(i => (
+            <div key={i} style={{ flexShrink:0, width:220, aspectRatio:"9/16", borderRadius:18, background:"linear-gradient(110deg,#ede8e3 25%,#e4ddd6 50%,#ede8e3 75%)", backgroundSize:"200% 100%", animation:"shimmer 1.4s infinite" }}/>
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={scrollRef}
+          style={{
+            display:"flex", gap:16,
+            overflowX:"auto", paddingBottom:8,
+            scrollbarWidth:"none", msOverflowStyle:"none",
+            cursor:"grab",
+          }}
+        >
+          {/* Duplicate for seamless loop */}
+          {[...reels, ...reels].map((reel, i) => (
+            <ReelCard key={`${reel.id}-${i}`} reel={reel} />
+          ))}
+        </div>
+      )}
+
+      <style>{`@keyframes shimmer { to { background-position: -200% 0; } }`}</style>
+    </div>
+  );
+}
+
 export default function SocialProof() {
   const scrollRef = useRef(null);
+  const [writeOpen, setWriteOpen]   = useState(false);
+  const [dbReviews, setDbReviews]   = useState([]);
+  const [avgRating, setAvgRating]   = useState(4.8);
+  const [loadingRev, setLoadingRev] = useState(true);
+
+  // Fetch latest approved reviews (no productId = general fetch won't work,
+  // so we use admin endpoint without auth — create a public endpoint for homepage)
+  useEffect(() => {
+    fetch("/api/reviews/homepage")
+      .then(r => r.json())
+      .then(j => {
+        if (j.success && j.data.reviews?.length > 0) {
+          setDbReviews(j.data.reviews);
+          if (j.data.avgRating) setAvgRating(j.data.avgRating);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingRev(false));
+  }, []);
+
+  const displayReviews = dbReviews.length > 0 ? dbReviews : STATIC_REVIEWS;
 
   return (
     <section
@@ -207,7 +583,7 @@ export default function SocialProof() {
     whiteSpace: "nowrap",
   }}
 >
-  4.8 Reviews ★★★★★
+  {avgRating.toFixed(1)} Reviews ★★★★★
 </span>
 
               {/* Google Logo */}
@@ -234,13 +610,17 @@ export default function SocialProof() {
 />
             </div>
 
-            <button style={{
+            <button onClick={() => setWriteOpen(true)} style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               height: "48px", minWidth: "170px", padding: "0 28px",
               borderRadius: "999px", backgroundColor: "#111", color: "#fff",
               fontSize: "13px", fontWeight: "500", whiteSpace: "nowrap",
               border: "none", cursor: "pointer", fontFamily: "sans-serif", letterSpacing: "0.2px",
-            }}>
+              transition: "background .2s",
+            }}
+              onMouseEnter={e => e.currentTarget.style.background="#F85700"}
+              onMouseLeave={e => e.currentTarget.style.background="#111"}
+            >
               Write a Review &nbsp;→
             </button>
           </div>
@@ -257,9 +637,9 @@ export default function SocialProof() {
               msOverflowStyle: "none",
             }}
           >
-            {reviews.map((item, index) => (
+            {displayReviews.map((item, index) => (
               <div
-                key={index}
+                key={item.id || index}
                 style={{
                   flexShrink: "0",
                   width: "260px",
@@ -272,134 +652,42 @@ export default function SocialProof() {
                   flexDirection: "column",
                 }}
               >
-                <p style={{ fontSize: "16px", letterSpacing: "3px", color: "#1A1A1A", margin: "0 0 20px 0", fontFamily: "sans-serif" }}>
-                  ★★★★★
+                <p style={{ fontSize: "16px", letterSpacing: "3px", color: "#F85700", margin: "0 0 16px 0" }}>
+                  {"★".repeat(item.rating || 5)}
+                  <span style={{ color:"#E0D8D0" }}>{"★".repeat(5-(item.rating||5))}</span>
                 </p>
-                <p style={{ fontSize: "15px", lineHeight: "1.7", color: "#333", flex: "1", margin: "0", fontFamily: "'Manrope', sans-serif", }}>
-                  {item.text}
+                {item.title && (
+                  <p style={{ fontFamily:"'Manrope',sans-serif", fontSize:14, fontWeight:700, color:"#1a1a1a", margin:"0 0 8px 0" }}>{item.title}</p>
+                )}
+                <p style={{ fontSize: "14px", lineHeight: "1.7", color: "#555", flex: "1", margin: "0", fontFamily: "'Manrope', sans-serif" }}>
+                  {item.body || item.text}
                 </p>
-                <div style={{ marginTop: "24px" }}>
-                  <p style={{ fontSize: "14px", letterSpacing: "3px", color: "#1A1A1A", margin: "0 0 8px 0", fontFamily: "sans-serif" }}>
-                    ★★★★★
+                <div style={{ marginTop: "20px", paddingTop:"16px", borderTop:"1px solid #F0EDE9" }}>
+                  <p style={{ fontFamily:"'Manrope',sans-serif", fontSize:12, fontWeight:700, color:"#1a1a1a", margin:"0 0 2px" }}>
+                    {item.userName || item.author || "Verified Buyer"}
                   </p>
-                  <p style={{ fontSize: "12px", color: "#555", margin: "0", fontFamily: "sans-serif" }}>
-                    {item.author}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Instagram Gallery ── */}
-        <div>
-
-          {/* Label */}
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
-            <div style={{ width: "72px", height: "1px", backgroundColor: "#FF6500" }} />
-         <span
-  style={{
-    color: "#FF6500",
-    fontSize: "13px",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: "0.8px",
-    fontFamily: "'Manrope', sans-serif",
-  }}
->
-  SOCIAL THAT FEELS HUMAN
-</span>
-          </div>
-
-          {/* Header row */}
-          <div className="sp-insta-header">
-           <h2
-  style={{
-    fontFamily: "'Playfair Display', serif",
-    fontSize: "clamp(34px, 3vw, 44px)",
-    fontWeight: "800",
-    color: "#0E0E0E",
-    margin: "0",
-    lineHeight: "1.2",
-    letterSpacing: "-0.02em",
-  }}
->
-  Follow Our Craft Journey
-</h2>
-
-           <a
-  href="https://www.instagram.com/riya_art_palace/"
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    textDecoration: "none",
-    cursor: "pointer",
-  }}
->
-  <div
-    style={{
-      width: "36px",
-      height: "36px",
-      borderRadius: "10px",
-      background:
-        "radial-gradient(circle at 30% 107%, #fdf497 0%, #fdf497 5%, #fd5949 45%, #d6249f 60%, #285AEB 90%)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "#fff",
-      flexShrink: "0",
-    }}
-  >
-    <InstagramIcon />
-  </div>
-
-  <span
-    style={{
-      fontSize: "18px",
-      color: "#0E0E0E",
-      fontFamily: "'Manrope', sans-serif",
-      fontWeight: "500",
-      letterSpacing: "-0.01em",
-    }}
-  >
-    @riya_art_palace
-  </span>
-</a>
-          </div>
-
-          {/* Gallery Grid */}
-          <div className="sp-gallery">
-            {gallery.map((img, index) => (
-              <div
-                key={index}
-                className="sp-gallery-item"
-                style={{ position: "relative", overflow: "hidden" }}
-              >
-                <Image
-                  src={img}
-                  alt=""
-                  className="sp-gallery-img"
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                />
-                <div style={{
-                  position: "absolute", top: "10px", right: "10px",
-                  width: "28px", height: "28px", borderRadius: "50%",
-                  backgroundColor: "rgba(0,0,0,0.45)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="white" xmlns="http://www.w3.org/2000/svg">
-                    <polygon points="5,3 19,12 5,21" />
-                  </svg>
+                  {item.createdAt && (
+                    <p style={{ fontSize:11, color:"#bbb", margin:0 }}>
+                      {new Date(item.createdAt).toLocaleDateString("en-IN", { month:"short", year:"numeric" })}
+                    </p>
+                  )}
+                  {item.adminReply && (
+                    <div style={{ marginTop:10, background:"#FFF9F6", border:"1px solid #F85700", borderRadius:8, padding:"8px 10px" }}>
+                      <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:10, fontWeight:700, color:"#F85700", marginBottom:3 }}>SELLER REPLY</div>
+                      <div style={{ fontFamily:"'Manrope',sans-serif", fontSize:12, color:"#555", lineHeight:1.5 }}>{item.adminReply}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Write Review Modal */}
+          {writeOpen && <WriteReviewModal onClose={() => setWriteOpen(false)} />}
         </div>
+
+        {/* ── Reels / Instagram Section ── */}
+        <ReelsSection />
       </div>
     </section>
   );

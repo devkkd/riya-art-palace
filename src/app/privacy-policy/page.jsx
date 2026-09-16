@@ -55,7 +55,7 @@ const SECTIONS = [
     title: "7. Your Rights",
     content: [
       "You have the right to access, correct, or delete your personal information held by us.",
-      "You may request a copy of your data or ask us to restrict its processing by contacting us at riyaartpalace08@gmail.com.",
+      "You may request a copy of your data or ask us to restrict its processing by contacting us at riya_art_palace@yahoo.com.",
       "If you believe your data has been misused, you have the right to lodge a complaint with the relevant data protection authority.",
     ],
   },
@@ -140,7 +140,7 @@ export default function PrivacyPolicyPage() {
         <div className="pol-contact">
           <h3>Questions about this policy?</h3>
           <p>If you have any questions or concerns about our Privacy Policy or how we handle your data, please reach out to us.</p>
-          <a href="mailto:riyaartpalace08@gmail.com">riyaartpalace08@gmail.com</a>
+          <a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a>
           <br /><br />
           <p style={{ marginBottom: 0 }}>
             Riya Art Palace &nbsp;·&nbsp; Jaipur, Rajasthan, India

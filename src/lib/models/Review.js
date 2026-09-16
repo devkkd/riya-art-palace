@@ -22,6 +22,7 @@ const ReviewSchema = new mongoose.Schema(
     rating:  { type: Number, required: true, min: 1, max: 5 },
     title:   { type: String, trim: true, default: "" },
     body:    { type: String, trim: true, default: "" },
+    reviewerName: { type: String, trim: true, default: "" }, // for admin-created reviews
 
     // Moderation
     status: {

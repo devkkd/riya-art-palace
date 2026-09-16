@@ -6,6 +6,20 @@ import { successResponse, errorResponse } from "@/lib/utils/response";
 import { createProductSchema, updateProductSchema } from "@/lib/validators/productValidator";
 import { slugify } from "@/lib/utils/slug";
 
+// Auto-generate next SKU: RAP-001, RAP-002, ...
+async function generateSKU() {
+  const last = await Product.findOne({ sku: { $regex: /^RAP-/ } })
+    .sort({ createdAt: -1 })
+    .lean();
+  
+  let num = 1;
+  if (last?.sku) {
+    const parsed = parseInt(last.sku.replace("RAP-", ""), 10);
+    if (!isNaN(parsed)) num = parsed + 1;
+  }
+  return `RAP-${String(num).padStart(3, "0")}`;
+}
+
 export const productController = {
   async getAllProducts(request) {
     try {
@@ -121,20 +135,15 @@ export const productController = {
 
       const formatted = products.map((prod) => ({
         ...prod,
-        id: prod._id.toString(),
+        id:           prod._id.toString(),
+        sku:          prod.sku          || "",
+        minOrderQty:  prod.minOrderQty  ?? 500,
+        showInRetail: prod.showInRetail ?? false,
         category: prod.category
-          ? {
-              id: prod.category._id.toString(),
-              name: prod.category.name,
-              slug: prod.category.slug,
-            }
+          ? { id: prod.category._id.toString(), name: prod.category.name, slug: prod.category.slug }
           : null,
         subcategory: prod.subcategory
-          ? {
-              id: prod.subcategory._id.toString(),
-              name: prod.subcategory.name,
-              slug: prod.subcategory.slug,
-            }
+          ? { id: prod.subcategory._id.toString(), name: prod.subcategory.name, slug: prod.subcategory.slug }
           : null,
       }));
 
@@ -233,6 +242,7 @@ export const productController = {
         ...data,
         slug,
         subcategory: subcategoryVal,
+        sku: data.sku?.trim() || await generateSKU(),
       });
 
       return successResponse(
@@ -320,7 +330,7 @@ export const productController = {
         "description", "price", "priceUnit", "images",
         "productType", "primaryMaterial", "style", "setType",
         "color", "sizeCategory", "theme", "usageArea",
-        "bestSelling", "newArrival"
+        "bestSelling", "newArrival", "minOrderQty", "showInRetail", "sku"
       ];
 
       for (const field of simpleFields) {

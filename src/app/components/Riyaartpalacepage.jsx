@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import FollowUs from "./FollowUs";
@@ -357,11 +357,11 @@ export default function RiyaArtPalacePage() {
             marginBottom: "80px",
           }}
         >
-          <p
+          {/* <p
             style={{
               color: "#555",
-              fontSize: "16px",
-              fontWeight: "400",
+              fontSize: "20px",
+              fontWeight: "800",
               marginTop: "30px",
               marginBottom: "24px",
 fontFamily: "'Manrope', sans-serif",
@@ -370,7 +370,7 @@ fontFamily: "'Manrope', sans-serif",
             }}
           >
             About Us
-          </p>
+          </p> */}
 
           <h2
             style={{
@@ -381,7 +381,9 @@ fontSize: "clamp(26px, 2.6vw, 44px)",              fontWeight: "700",
               letterSpacing: "-0.5px",
              maxWidth: "1400px",
 whiteSpace: "nowrap",
-              margin: "0 auto",
+marginTop: "60px",
+              // margin: "0 auto",
+              
             }}
           >
             Riya Art Palace – Where Tradition Becomes Timeless Art
@@ -500,7 +502,7 @@ whiteSpace: "nowrap",
         </section>
 
 <a
-  href="https://wa.me/919876543210"
+  href="https://wa.me/918385007350"
   target="_blank"
   rel="noopener noreferrer"
   className="whatsapp-btn"
@@ -573,19 +575,35 @@ whiteSpace: "nowrap",
   </div>
 </section>
 
-        {/* ── HERO GALLERY STRIP ────────────────────────────────────── */}
-        <section style={styles.galleryStrip}>
-  <img
-    src={ab1.src}
-    alt="Gallery"
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "cover",
-      display: "block",
-    }}
-  />
-</section>
+        {/* ── IMAGE MARQUEE STRIP ───────────────────────────────────── */}
+        <section style={{ overflow:"hidden", height:320, position:"relative", background:"#111" }}>
+          <style>{`
+            @keyframes marqueeScroll {
+              0%   { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .marquee-track {
+              display: flex;
+              width: max-content;
+              animation: marqueeScroll 48s linear infinite;
+              height: 320px;
+            }
+            .marquee-track:hover { animation-play-state: paused; }
+            .marquee-img {
+              height: 320px;
+              width: auto;
+              object-fit: cover;
+              display: block;
+              flex-shrink: 0;
+            }
+          `}</style>
+          <div className="marquee-track">
+            {[ab1,ab2,ab3,ab4,ab5,ab6,ab7,ab8,ab9,ab10,
+              ab1,ab2,ab3,ab4,ab5,ab6,ab7,ab8,ab9,ab10].map((img,i) => (
+              <img key={i} src={img.src} alt={`gallery-${i}`} className="marquee-img" />
+            ))}
+          </div>
+        </section>
 
 <div
   style={{
@@ -596,7 +614,7 @@ whiteSpace: "nowrap",
 </div>
 
         {/* ── OUR HISTORY ───────────────────────────────────────────── */}
-        <section style={styles.section}>
+        {/* <section style={styles.section}>
           <SectionTitle>Our History</SectionTitle>
 
 
@@ -728,16 +746,30 @@ whiteSpace: "nowrap",
             imgSrc={ab7.src}
             imgAlt="Vision and Commitment"
           />
-        </section>
+        </section> */}
 
         {/* ── PHOTO COLLAGE STRIP ───────────────────────────────────── */}
-        <section style={styles.collageStrip}>
-          {[
-            ab8.src
-          ].map((src, i) => (
-            <img key={i} src={src} alt={`Gallery ${i}`} style={styles.collageImg} />
-          ))}
-        </section>
+        {/* <section style={{ overflow:"hidden", height:300, position:"relative", background:"#111" }}>
+          <style>{`
+            @keyframes marqueeReverse {
+              0%   { transform: translateX(-50%); }
+              100% { transform: translateX(0); }
+            }
+            .marquee-track-rev {
+              display: flex;
+              width: max-content;
+              animation: marqueeReverse 24s linear infinite;
+              height: 300px;
+            }
+            .marquee-track-rev:hover { animation-play-state: paused; }
+          `}</style>
+          <div className="marquee-track-rev">
+            {[ab8,ab9,ab10,ab1,ab2,ab3,ab4,ab5,ab6,ab7,
+              ab8,ab9,ab10,ab1,ab2,ab3,ab4,ab5,ab6,ab7].map((img,i) => (
+              <img key={i} src={img.src} alt={`collage-${i}`} className="marquee-img" />
+            ))}
+          </div>
+        </section> */}
 
         < Global />
 

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useCart } from "@/app/components/CartContext";
+import { useCurrency } from "@/app/components/CurrencyContext";
 
 const STATES = ["Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal","Delhi","Jammu & Kashmir","Ladakh"];
 
@@ -47,6 +48,7 @@ function AddressForm({ initial, onSave, onCancel }) {
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalAmount, clearCart } = useCart();
+  const { format } = useCurrency();
 
   const [user,       setUser]       = useState(null);
   const [authLoading,setAuthLoading]= useState(true);
@@ -621,26 +623,26 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
                         <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:600, color:"#0E0E0E", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.name}</div>
                         <div style={{ fontFamily:"Manrope,sans-serif", fontSize:12, color:"#888" }}>Qty: {item.quantity}</div>
                       </div>
-                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:700, flexShrink:0 }}>₹{(item.price*item.quantity).toLocaleString("en-IN")}</div>
+                      <div style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:700, flexShrink:0 }}>{format(item.price*item.quantity)}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* Breakdown */}
-                <div className="co-sum-row"><span>Subtotal</span><span>₹{subtotal.toLocaleString("en-IN")}</span></div>
+                <div className="co-sum-row"><span>Subtotal</span><span>{format(subtotal)}</span></div>
                 <div className="co-sum-row">
                   <span>Shipping</span>
                   <span style={{ color: effectiveShip===0?"#065F46":"inherit" }}>
-                    {effectiveShip===0 ? (shippingWaived ? "FREE 🎉" : "FREE") : `₹${shipping}`}
+                    {effectiveShip===0 ? (shippingWaived ? "FREE 🎉" : "FREE") : format(shipping)}
                   </span>
                 </div>
                 {discount > 0 && (
                   <div className="co-sum-row" style={{ color:"#065F46" }}>
                     <span>Coupon ({coupon?.code})</span>
-                    <span>−₹{discount.toLocaleString("en-IN")}</span>
+                    <span>−{format(discount)}</span>
                   </div>
                 )}
-                <div className="co-sum-total"><span>Total</span><span>₹{total.toLocaleString("en-IN")}</span></div>
+                <div className="co-sum-total"><span>Total</span><span>{format(total)}</span></div>
 
                 {orderErr && (
                   <div style={{ background:"#FEE2E2", border:"1px solid #FCA5A5", borderRadius:10, padding:"10px 14px", fontFamily:"Manrope,sans-serif", fontSize:13, color:"#991B1B", margin:"16px 0" }}>
@@ -665,7 +667,7 @@ console.log("RAZORPAY KEY:", razorpayData?.keyId);
     ? "Loading Payment…"
     : serviceability !== null && !serviceability.available
       ? "Delivery Not Available"
-      : `Place Order — ₹${total.toLocaleString("en-IN")}`}
+      : `Place Order — ${format(total)}`}
                 </button>
 
                 <div style={{ textAlign:"center", fontFamily:"Manrope,sans-serif", fontSize:11, color:"#aaa", marginTop:12 }}>

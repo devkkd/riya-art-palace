@@ -5,6 +5,7 @@ import indiamartLogo from "../assets/indiamart.png";
 import Image from "next/image";
 import Link from "next/link";
 import { useCatalog } from "./CatalogContext";
+import { MapPin, Phone, Mail, Building2 } from "lucide-react";
 
 const company = [
   { name: "About Us",           href: "/about" },
@@ -15,73 +16,76 @@ const company = [
   { name: "Shipping Policy",    href: "/shipping-policy" },
 ];
 
-function FooterCol({
-  title,
-  items = [],
-  categorySlug = "#",
-  isCompany = false,
-}) {
+const socials = [
+  { label: "WhatsApp",  href: "https://wa.me/918047635730", icon: "💬" },
+  { label: "Instagram", href: "#",                          icon: "📸" },
+  { label: "Facebook",  href: "#",                          icon: "📘" },
+];
+
+function CategoryCol({ category }) {
+  const [open, setOpen] = useState(false);
+  const subs = category.subcategories || [];
+
   return (
-    <div>
-      {/* Category / Column Title */}
+    <div
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+      style={{ position: "relative" }}
+    >
       <Link
-        href={categorySlug}
+        href={`/products?category=${encodeURIComponent(category.slug)}`}
         style={{
-          display: "inline-block",
-          fontSize: "13px",
-          fontWeight: 700,
-          color: "#1a1a1a",
-          marginBottom: "10px",
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "8px 10px", borderRadius: 8,
+          background: open ? "rgba(255,255,255,.65)" : "transparent",
+          fontSize: 13, fontWeight: 700,
+         fontfamily: "'Mona Sans', serif",
+          // fontStyle: "italic",
+          color: open ? "#F85700" : "#1a1a1a",
           textDecoration: "none",
-          lineHeight: 1.5,
-          transition: "color 0.15s",
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.color = "#e55a1c";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.color = "#1a1a1a";
+          letterSpacing: "0.01em", lineHeight: 1.4,
+          transition: "background .2s, color .2s",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}
       >
-        {title}
+        {category.name}
+        {subs.length > 0 && (
+          <span style={{
+            fontSize: 10, color: "#F85700",
+            transform: open ? "rotate(180deg)" : "rotate(0deg)",
+            transition: "transform .25s", display: "inline-block",
+            flexShrink: 0,
+          }}>▾</span>
+        )}
       </Link>
-      {/* Subcategories / Company Links */}
-      {items.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-          }}
-        >
-          {items.map((item) => (
-            <li
-              key={item.id || item.name}
-              style={{
-                marginBottom: "6px",
-              }}
-            >
+
+      {subs.length > 0 && (
+        <ul style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0,
+          minWidth: 180, background: "#fff",
+          border: "1px solid #e8d0c0", borderRadius: 10,
+          boxShadow: "0 12px 32px rgba(60,35,20,.13)",
+          padding: "6px", margin: 0, listStyle: "none", zIndex: 20,
+          opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
+          transform: open ? "translateY(0)" : "translateY(-6px)",
+          transition: "opacity .2s, transform .2s, visibility .2s",
+          pointerEvents: open ? "auto" : "none",
+        }}>
+          {subs.map(sub => (
+            <li key={sub.id || sub.name}>
               <Link
-                href={
-                  isCompany
-                    ? item.href
-                    : `/products?subcategory=${encodeURIComponent(item.slug)}`
-                }
+                href={`/products?category=${encodeURIComponent(category.slug)}&subcategory=${encodeURIComponent(sub.slug || sub.name)}`}
                 style={{
-                  fontSize: "13px",
-                  color: "#555",
-                  textDecoration: "none",
-                  lineHeight: 1.5,
-                  transition: "color 0.15s",
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "8px 10px", borderRadius: 7,
+                  fontSize: 12, color: "#555", textDecoration: "none",
+                  transition: "background .15s, color .15s",
                 }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.color = "#e55a1c";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.color = "#555";
-                }}
+                onMouseEnter={e => { e.currentTarget.style.background="#fce8dc"; e.currentTarget.style.color="#F85700"; }}
+                onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.color="#555"; }}
               >
-                {item.name}
+                {sub.name}
+                <span style={{ fontSize: 10, color: "#F85700", opacity: .6 }}>→</span>
               </Link>
             </li>
           ))}
@@ -92,411 +96,175 @@ function FooterCol({
 }
 
 export default function Footer() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail]           = useState("");
+  const [subscribed, setSubscribed] = useState(false);
+  const { categories, subcategories, loading } = useCatalog();
 
-  const {
-    categories,
-    subcategories,
-    loading: catalogLoading,
-  } = useCatalog();
-
-  const footerCategories = categories.map((category) => {
-    const categorySubcategories = subcategories.filter(
-      (sub) => sub.category === category.id
-    );
-    return {
-      ...category,
-      subcategories: categorySubcategories,
-    };
-  });
+  const footerCats = categories.map(cat => ({
+    ...cat,
+    subcategories: subcategories.filter(s => s.category === cat.id),
+  }));
 
   return (
-    <footer
-      style={{
-        fontFamily: "'Manrope', sans-serif",
-        background: "#fce8dc",
-      }}
-    >
+    <footer style={{ fontFamily: "'Manrope', sans-serif" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
-        .footer-newsletter {
-          background: #fce8dc;
-          border-bottom: 1px solid #e8d0c0;
-          padding: 40px clamp(16px, 5vw, 64px);
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        .ft-w { max-width:1280px; margin:0 auto; padding:0 clamp(16px,4vw,56px); }
+
+        /* Newsletter */
+        .ft-nl { background:#e87500; padding:22px clamp(16px,4vw,56px); }
+        .ft-nl-in { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
+        .ft-nl-title { font-size:17px; font-weight:800; color:#fff; margin:0 0 2px; }
+        .ft-nl-sub { font-size:12px; color:rgba(255,255,255,.75); margin:0; }
+        .ft-nl-form { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; }
+        .ft-nl-inp { height:40px; padding:0 14px; border:1.5px solid rgba(255,255,255,.4); border-radius:8px; background:#e87500; color:#fff; font-family:'Manrope',sans-serif; font-size:13px; outline:none; min-width:210px; }
+        .ft-nl-inp::placeholder { color:rgba(255,255,255,.6); }
+        .ft-nl-inp:focus { border-color:#fff; background:#e87500; }
+        .ft-nl-btn { height:40px; padding:0 20px; border:2px solid #fff; border-radius:8px; background:#fff; color:#F85700; font-family:'Manrope',sans-serif; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; transition:all .15s; }
+        .ft-nl-btn:hover { background:#1a1a1a; border-color:#1a1a1a; color:#fff; }
+
+        /* Main */
+        .ft-main { background:#FDF4EE; border-top:1px solid #e8d0c0; padding:36px clamp(16px,4vw,56px) 30px; }
+        .ft-grid { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:220px 1fr; gap:48px; align-items:start; }
+
+        /* Brand */
+        .ft-tagline { font-size:13px; font-weight:700; color:#1a1a1a; margin:8px 0 5px; font-style:italic; }
+        .ft-desc { font-size:12px; color:#888; line-height:1.65; margin:0 0 14px; }
+        .ft-ci { display:flex; align-items:flex-start; gap:8px; margin-bottom:9px; }
+        .ft-ci-val { font-size:11.5px; color:#777; line-height:1.5; }
+        .ft-ci-val a { color:#777; text-decoration:none; }
+        .ft-ci-val a:hover { color:#F85700; }
+        .ft-socials { display:flex; gap:6px; margin-top:14px; flex-wrap:wrap; }
+        .ft-soc { display:flex; align-items:center; gap:4px; height:30px; padding:0 10px; border:1.5px solid #e8d0c0; border-radius:7px; background:#fff; font-family:'Manrope',sans-serif; font-size:11.5px; font-weight:600; color:#666; text-decoration:none; transition:all .15s; }
+        .ft-soc:hover { border-color:#F85700; color:#F85700; background:#FFF9F6; }
+        .ft-im { display:inline-flex; align-items:center; background:#fff; border:1px solid #e8d0c0; border-radius:7px; padding:4px 9px; margin-bottom:5px; cursor:pointer; transition:border-color .15s; }
+        .ft-im:hover { border-color:#F85700; }
+        .ft-im-lnk { display:block; font-size:11px; color:#F85700; font-weight:700; margin-bottom:14px; text-decoration:none; }
+        .ft-im-lnk:hover { text-decoration:underline; }
+
+        /* Cats grid */
+        .ft-cats { display:grid; grid-template-columns:repeat(4,1fr); gap:4px 12px; align-items:stretch; }
+        .ft-cat-item {
+          display:block; min-height:40px;
         }
-        .footer-newsletter-inner {
-          max-width: 1280px;
-          margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 24px;
-        }
-        .footer-newsletter-right {
-          display: flex;
-          align-items: flex-end;
-          gap: 16px;
-          flex-wrap: wrap;
-        }
-        .footer-email-input {
-          width: 360px;
-          padding: 14px 18px;
-          border: 1.5px solid #ddd;
-          border-radius: 10px;
-          background: #fff;
-          font-size: 15px;
-          font-family: 'Manrope', sans-serif;
-          font-weight: 400;
-          line-height: 1.5;
-          color: #1a1a1a;
-          outline: none;
-          box-sizing: border-box;
-        }
-        .footer-brand {
-          background: #fce8dc;
-          border-bottom: 1px solid #e8d0c0;
-          padding: 36px clamp(16px, 5vw, 64px);
-          text-align: center;
-        }
-        .footer-links {
-          background: #fce8dc;
-          border-bottom: 1px solid #e8d0c0;
-          padding: 48px clamp(16px, 5vw, 64px);
-        }
-        .footer-links-grid {
-          max-width: 1280px;
-          margin: 0 auto;
-          display: grid;
-          grid-template-columns: 220px 1fr 1fr 1fr 1fr 1fr;
-          gap: 32px;
-        }
-        .footer-cats-grid {
-          display: contents;
-        }
-        .footer-bottom {
-          background: #f7dfd0;
-          padding: 18px clamp(16px, 5vw, 64px);
-          text-align: center;
-        }
-        .footer-bottom a:hover {
-          text-decoration: underline;
-        }
-        @media (max-width: 1024px) {
-          .footer-links-grid {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-          .footer-contact-col {
-            grid-column: 1 / -1;
-          }
-        }
-        @media (max-width: 768px) {
-          .footer-links-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-          .footer-contact-col {
-            grid-column: 1 / -1;
-          }
-          .footer-email-input {
-            width: 100%;
-          }
-          .footer-newsletter-right {
-            width: 100%;
-            flex-direction: column;
-            align-items: stretch;
-          }
-          .footer-subscribe-btn {
-            width: 100%;
-            justify-content: center;
-          }
-        }
-        @media (max-width: 480px) {
-          .footer-links-grid {
-            grid-template-columns: 1fr;
-          }
-          .footer-contact-col {
-            grid-column: 1 / -1;
-          }
-        }
+        .ft-company-row { margin-top:24px; padding-top:20px; border-top:1px solid #e8d0c0; display:grid; grid-template-columns:repeat(4,1fr); gap:4px 12px; }
+
+        /* Company col */
+        .ft-co-head { font-size:11px; font-weight:800; color:#1a1a1a;fontfamily: "'Mona Sans', serif"; letter-spacing:.07em; margin-bottom:10px; padding:8px 10px 0; }
+        .ft-co-list { list-style:none; padding:0; margin:0; }
+        .ft-co-list li { margin-bottom:7px; padding:0 10px; }
+        .ft-co-link { font-size:12px; color:#888; text-decoration:none; transition:color .15s; }
+        .ft-co-link:hover { color:#F85700; }
+
+        /* Bottom */
+        .ft-bot { background:#f5e8dc; border-top:1px solid #e8d0c0; padding:12px clamp(16px,4vw,56px); }
+        .ft-bot-in { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+        .ft-copy { font-size:11px; color:#aaa; margin:0; }
+        .ft-copy a { color:#F85700; font-weight:700; text-decoration:none; }
+        .ft-copy a:hover { text-decoration:underline; }
+        .ft-tags { display:flex; gap:6px; flex-wrap:wrap; }
+        .ft-tag { font-size:10px; font-weight:600; color:#bbb; border:1px solid #ddd; border-radius:5px; padding:2px 8px; background:#fff; }
+
+        @media(max-width:1100px){ .ft-cats{grid-template-columns:repeat(3,1fr);} } @media(max-width:900px){ .ft-grid{grid-template-columns:1fr;gap:28px;} .ft-cats{grid-template-columns:repeat(4,1fr);} }
+        @media(max-width:600px){ .ft-nl-in{flex-direction:column;align-items:flex-start;} .ft-nl-form{width:100%;} .ft-nl-inp{min-width:0;flex:1;} .ft-cats{grid-template-columns:repeat(2,1fr);} .ft-bot-in{flex-direction:column;align-items:flex-start;} }
       `}</style>
 
       {/* Newsletter */}
-      <div className="footer-newsletter">
-        <div className="footer-newsletter-inner">
+      {/* <div className="ft-nl">
+        <div className="ft-nl-in">
           <div>
-            <h3
-              style={{
-                fontFamily: "'Manrope', sans-serif",
-                fontSize: "32px",
-                fontWeight: 700,
-                lineHeight: "1.3",
-                letterSpacing: "-0.02em",
-                color: "#1a1a1a",
-                marginBottom: "8px",
-              }}
-            >
-              Join the Riya Art Palace Circle
-            </h3>
-            <p
-              style={{
-                fontFamily: "'Manrope', sans-serif",
-                fontSize: "16px",
-                fontWeight: 400,
-                lineHeight: "1.7",
-                color: "#555",
-              }}
-            >
-              New arrivals, exclusive B2B offers, and handicraft stories in
-              your inbox.
-            </p>
+            <p className="ft-nl-title">Join the Riya Art Palace Circle</p>
+            <p className="ft-nl-sub">New arrivals, B2B offers &amp; handicraft stories in your inbox.</p>
           </div>
-          <div className="footer-newsletter-right">
-            <div style={{ flex: 1, minWidth: "220px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontFamily: "'Manrope', sans-serif",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  lineHeight: "1.5",
-                  color: "#1a1a1a",
-                  marginBottom: "8px",
-                }}
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="Your email address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="footer-email-input"
-              />
-            </div>
-            <button
-              type="button"
-              className="footer-subscribe-btn"
-              style={{
-                padding: "14px 28px",
-                background: "#1a1a1a",
-                color: "#fff",
-                border: "none",
-                borderRadius: "50px",
-                fontSize: "15px",
-                fontWeight: 700,
-                fontFamily: "'Manrope', sans-serif",
-                letterSpacing: "0.02em",
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                flexShrink: 0,
-              }}
-            >
-              Subscribe →
-            </button>
-          </div>
+          {subscribed
+            ? <p style={{ color:"#fff", fontWeight:700, fontSize:13 }}>✓ Subscribed! Thank you.</p>
+            : (
+              <form className="ft-nl-form" onSubmit={e => { e.preventDefault(); if(email.trim()){ setSubscribed(true); setEmail(""); }}}>
+                <input type="email" className="ft-nl-inp" placeholder="Your email address" value={email} onChange={e => setEmail(e.target.value)} required />
+                <button type="submit" className="ft-nl-btn">Subscribe →</button>
+              </form>
+            )
+          }
         </div>
-      </div>
+      </div> */}
 
-      {/* Brand */}
-      <div className="footer-brand">
-        <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
-          <Image
-            src={logo}
-            alt="Riya Art Palace Logo"
-            style={{
-              height: "70px",
-              objectFit: "contain",
-              display: "block",
-              margin: "0 auto 16px",
-            }}
-          />
-          <p
-            style={{
-              fontSize: "18px",
-              fontWeight: 700,
-              fontFamily: "'Manrope', sans-serif",
-              lineHeight: "1.5",
-              color: "#1a1a1a",
-              marginBottom: "8px",
-            }}
-          >
-            "Crafting Tradition for You"
-          </p>
-          <p
-            style={{
-              fontSize: "18px",
-              fontWeight: 400,
-              color: "#555",
-              maxWidth: "680px",
-              margin: "0 auto",
-              lineHeight: 1.7,
-            }}
-          >
-            Where Tradition Becomes Timeless Art. Family-owned handicraft brand
-            from Jaipur, Rajasthan bringing authentic handmade creations into
-            homes worldwide since 1995.
-          </p>
-        </div>
-      </div>
+      {/* Main */}
+      <div className="ft-main">
+        <div className="ft-grid">
 
-      {/* Links Grid */}
-      <div className="footer-links">
-        <div className="footer-links-grid">
-
-          {/* Contact Column */}
-          <div className="footer-contact-col">
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                background: "#fff",
-                borderRadius: "8px",
-                padding: "6px 12px",
-                marginBottom: "12px",
-                border: "1px solid #e0d0c0",
-              }}
-            >
-              <Image
-                src={indiamartLogo}
-                alt="IndiaMart"
-                width={150}
-                height={45}
-                style={{
-                  objectFit: "contain",
-                  width: "150px",
-                  height: "auto",
-                }}
-              />
-            </div>
-            <p
-              style={{
-                fontSize: "13px",
-                color: "#e55a1c",
-                marginBottom: "20px",
-                cursor: "pointer",
-              }}
-            >
-              Visit Our Indiamart Store →
-            </p>
-            <p
-              style={{
-                fontSize: "13px",
-                fontWeight: 700,
-                color: "#1a1a1a",
-                marginBottom: "6px",
-              }}
-            >
-              Let's Connect
-            </p>
-            <p
-              style={{
-                fontSize: "13px",
-                color: "#555",
-                lineHeight: 1.6,
-                marginBottom: "16px",
-              }}
-            >
-              Whether you're a retailer, importer, or interior brand we're
-              ready to discuss pricing, samples, and custom requirements.
-            </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "0 32px",
-              }}
-            >
-              <div>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
-                  Address
-                </p>
-                <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6, marginBottom: "14px" }}>
-                  A-97, Subhash Nagar Shopping Centre,
-                  <br />
-                  Shastri Nagar, Jaipur – 302016, Rajasthan
-                </p>
-              </div>
-              <div>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
-                  Phone / WhatsApp
-                </p>
-                <p style={{ fontSize: "13px", color: "#555", marginBottom: "14px" }}>
-                  +91 80476 35730
-                </p>
-                <p style={{ fontSize: "13px", fontWeight: 700, color: "#1a1a1a", marginBottom: "4px" }}>
-                  Business Info
-                </p>
-                <p style={{ fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
-                  GST: 08AIBPM9441J1ZZ · IEC: AIBPM9441J
-                  <br />
-                  IndiaMART Verified · Est. 1995
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Dynamic Category Columns */}
-          {catalogLoading ? (
-            <div
-              style={{
-                gridColumn: "1 / -1",
-                textAlign: "center",
-                fontSize: "13px",
-                color: "#777",
-                padding: "20px 0",
-              }}
-            >
-              Loading categories...
-            </div>
-          ) : (
-            footerCategories.map((category) => (
-              <div key={category.id}>
-                <FooterCol
-                  title={category.name}
-                  categorySlug={`/products?category=${encodeURIComponent(category.slug)}`}
-                  items={category.subcategories}
-                />
-              </div>
-            ))
-          )}
-
-          {/* Company */}
+          {/* Brand + Contact */}
           <div>
-            <FooterCol
-              title="Company"
-              items={company}
-              categorySlug="#"
-              isCompany={true}
-            />
+            <Image src={logo} alt="Riya Art Palace" style={{ height:46, width:"auto", objectFit:"contain", display:"block" }} />
+            <p className="ft-tagline">"Crafting Tradition for You"</p>
+            <p className="ft-desc">Family-owned handicraft brand from Jaipur, Rajasthan. Authentic handmade creations since 1995.</p>
+
+            <a href="#" className="ft-im">
+              <Image src={indiamartLogo} alt="IndiaMart" width={95} height={28} style={{ objectFit:"contain", width:95, height:"auto" }} />
+            </a>
+            <a href="#" className="ft-im-lnk">Visit Our Indiamart Store →</a>
+
+            <div className="ft-ci"><MapPin size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val">C 143, NEW LOHA MANDI, MACHEDA,<br/> Jaipur, Rajasthan – 302013</span></div>
+            <div className="ft-ci"><Phone size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val"><a href="tel:+918047635730">+91-8385007350</a></span></div>
+            <div className="ft-ci"><Mail size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val"><a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a></span></div>
+            <div className="ft-ci"><Building2 size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val">GST: 08AIBPM9441J1ZZ · Est. 1995</span></div>
+
+            <div className="ft-socials">
+              {socials.map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="ft-soc">
+                  {s.icon} {s.label}
+                </a>
+              ))}
+            </div>
           </div>
+
+          {/* Categories grid */}
+          <div>
+            <div className="ft-cats">
+              {!loading && footerCats.map(cat => (
+                <CategoryCol key={cat.id} category={cat} />
+              ))}
+            </div>
+
+            {/* Company row — separate below categories */}
+            <div className="ft-company-row">
+              <div style={{ gridColumn: "1 / -1" }}>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: "0 12px",
+                  paddingTop: 4,
+                }}>
+                  <div>
+                    <div className="ft-co-head">Company</div>
+                    <ul className="ft-co-list">
+                      {company.map(item => (
+                        <li key={item.name}>
+                          <Link href={item.href} className="ft-co-link">{item.name}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="footer-bottom">
-        <p
-          style={{
-            fontSize: "13px",
-            color: "#666",
-            margin: 0,
-            textAlign: "center",
-            fontFamily: "'Manrope', sans-serif",
-          }}
-        >
-          © 2025 Riya Art Palace. All rights reserved. Crafted and Powered by{" "}
-          <a
-            href="https://www.kontentkraftdigital.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#FF6500", fontWeight: 700, textDecoration: "none" }}
-          >
-            Kontent Kraft Digital
-          </a>
-        </p>
+      {/* Bottom */}
+      <div className="ft-bot">
+        <div className="ft-bot-in">
+          <p className="ft-copy">
+            © 2025 Riya Art Palace. All rights reserved. Crafted by{" "}
+            <a href="https://www.kontentkraftdigital.com/" target="_blank" rel="noopener noreferrer">Kontent Kraft Digital</a>
+          </p>
+          <div className="ft-tags">
+            <span className="ft-tag">🔒 Secure Payments</span>
+            <span className="ft-tag">🚚 Pan India Shipping</span>
+            <span className="ft-tag">⭐ Est. 1995</span>
+          </div>
+        </div>
       </div>
     </footer>
   );

@@ -5,10 +5,12 @@ import Image from "next/image";
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
 import { useCart } from "@/app/components/CartContext";
+import { useCurrency } from "@/app/components/CurrencyContext";
 
 export default function CartPage() {
   const router = useRouter();
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalAmount } = useCart();
+  const { format } = useCurrency();
 
   return (
     <>
@@ -317,7 +319,7 @@ export default function CartPage() {
                         {item.name}
                       </div>
                       <div className="cart-item-price">
-                        ₹{item.price} / {item.priceUnit || "Piece"}
+                        {format(item.price)} / {item.priceUnit || "Piece"}
                       </div>
                       <div className="cart-item-actions">
                         {/* Qty stepper */}
@@ -345,7 +347,7 @@ export default function CartPage() {
 
                     {/* Subtotal */}
                     <div className="cart-item-subtotal">
-                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
+                      {format(item.price * item.quantity)}
                     </div>
                   </div>
                 ))}
@@ -360,13 +362,13 @@ export default function CartPage() {
                     <span style={{ maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {item.name} × {item.quantity}
                     </span>
-                    <span>₹{(item.price * item.quantity).toLocaleString("en-IN")}</span>
+                    <span>{format(item.price * item.quantity)}</span>
                   </div>
                 ))}
 
                 <div className="cart-summary-total">
                   <span>Total</span>
-                  <span>₹{totalAmount.toLocaleString("en-IN")}</span>
+                  <span>{format(totalAmount)}</span>
                 </div>
 
                 <button

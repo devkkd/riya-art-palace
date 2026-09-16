@@ -265,3 +265,44 @@ body { font-family: 'Poppins', sans-serif; }
 a:hover { opacity: 0.75; }
 button:hover { filter: brightness(1.1); transform: translateY(-1px); transition: all 0.2s; }
 img { max-width: 100%; }
+
+/* ====================================
+   PRODUCT IMAGE WATERMARK
+==================================== */
+.rap-watermark {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.12);
+  color: #2D241E;
+  line-height: 1;
+}
+
+.rap-watermark-bottom-right {
+  bottom: 8px;
+  right: 8px;
+}
+.rap-watermark-sm {
+  width: 20px;
+  height: 20px;
+}
+.rap-watermark-default {
+  width: 22px;
+  height: 22px;
+}
+.rap-watermark-lg {
+  width: 28px;
+  height: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+}
+

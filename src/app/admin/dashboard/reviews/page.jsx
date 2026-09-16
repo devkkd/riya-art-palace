@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { RefreshCw, Star, Search, MessageCircle } from "lucide-react";
+import { RefreshCw, Star, Search, MessageCircle, Plus, X } from "lucide-react";
 import AdminShell from "@/app/components/admin/AdminShell";
+import { useCatalog } from "@/app/components/CatalogContext";
 
 const STATUS_COLORS = {
   approved: { bg: "#D1FAE5", text: "#065F46" },
@@ -24,6 +25,114 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
 }
 
+/* ── Create Review Modal ── */
+function CreateReviewModal({ onClose, onCreated }) {
+  const { products } = useCatalog();
+  const [form, setForm] = useState({ productId:"", reviewerName:"", rating:5, title:"", reviewBody:"", status:"approved" });
+  const [saving, setSaving]   = useState(false);
+  const [error,  setError]    = useState("");
+  const [hover,  setHover]    = useState(0);
+
+  const set = k => v => setForm(f => ({ ...f, [k]: v }));
+  const setInp = k => e => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const inp = { width:"100%", padding:"10px 14px", border:"1.5px solid var(--adm-border)", borderRadius:8, fontFamily:"inherit", fontSize:13, color:"var(--adm-text)", outline:"none", background:"var(--adm-white)", boxSizing:"border-box" };
+
+  const submit = async () => {
+    setError("");
+    if (!form.productId)     { setError("Please select a product"); return; }
+    if (!form.reviewerName.trim()) { setError("Reviewer name is required"); return; }
+    setSaving(true);
+    try {
+      const res  = await fetch("/api/reviews/admin", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(form) });
+      const json = await res.json();
+      if (json.success) { onCreated(); onClose(); }
+      else setError(json.message || "Failed to create");
+    } catch { setError("Network error"); }
+    finally { setSaving(false); }
+  };
+
+  return (
+    <div className="adm-modal-overlay" onClick={onClose}>
+      <div className="adm-modal-container" style={{ maxWidth:520 }} onClick={e => e.stopPropagation()}>
+        <div className="adm-modal-header">
+          <h3 className="adm-modal-title">Create Review</h3>
+          <button className="adm-modal-close" onClick={onClose}><X size={16}/></button>
+        </div>
+        <div className="adm-modal-body">
+          {error && <div className="adm-alert adm-alert-danger" style={{ marginBottom:16 }}>{error}</div>}
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Product <span>*</span></label>
+            <select className="adm-form-select" value={form.productId} onChange={setInp("productId")}>
+              <option value="">— Select Product —</option>
+              {products.map(p => <option key={p.id||p._id} value={p.id||p._id}>{p.name}</option>)}
+            </select>
+          </div>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Reviewer Name <span>*</span></label>
+            <input className="adm-form-input" placeholder="e.g. Verified International Buyer" value={form.reviewerName} onChange={setInp("reviewerName")} />
+          </div>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Rating <span>*</span></label>
+            <div style={{ display:"flex", gap:4, alignItems:"center" }}>
+              {[1,2,3,4,5].map(s => (
+                <button key={s} type="button"
+                  onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)}
+                  onClick={() => set("rating")(s)}
+                  style={{ fontSize:32, background:"none", border:"none", cursor:"pointer", lineHeight:1, padding:"0 2px",
+                    color: s <= (hover || form.rating) ? "#F85700" : "#ddd",
+                    transform: s <= (hover || form.rating) ? "scale(1.1)" : "scale(1)",
+                    transition: "color .1s, transform .1s" }}>★</button>
+              ))}
+              <span style={{ marginLeft:8, fontSize:13, fontWeight:700, color:"#F85700" }}>
+                {["","Poor","Fair","Good","Very Good","Excellent"][hover || form.rating]}
+              </span>
+            </div>
+          </div>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Title</label>
+            <input className="adm-form-input" placeholder="Review title (optional)" value={form.title} onChange={setInp("title")} maxLength={100} />
+          </div>
+
+          <div className="adm-form-group">
+            <label className="adm-form-label">Review Body</label>
+            <textarea className="adm-form-input" style={{ height:90, resize:"vertical" }} placeholder="Write the review…" value={form.reviewBody} onChange={setInp("reviewBody")} maxLength={1000} />
+          </div>
+
+          <div className="adm-form-group" style={{ margin:0 }}>
+            <label className="adm-form-label">Status</label>
+            <div style={{ display:"flex", gap:8 }}>
+              {["approved","pending","rejected"].map(s => {
+                const sc = STATUS_COLORS[s];
+                return (
+                  <button key={s} type="button" onClick={() => set("status")(s)} style={{
+                    height:34, padding:"0 16px", border:"1.5px solid",
+                    borderRadius:999, fontSize:12, fontWeight:700, cursor:"pointer",
+                    borderColor: form.status===s ? sc.text : "#D7CEC5",
+                    background:  form.status===s ? sc.bg  : "transparent",
+                    color:       form.status===s ? sc.text : "var(--adm-muted)",
+                    transition:"all .15s",
+                  }}>{s.charAt(0).toUpperCase()+s.slice(1)}</button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="adm-modal-footer">
+          <button className="adm-btn" onClick={onClose}>Cancel</button>
+          <button className="adm-btn adm-btn-primary" onClick={submit} disabled={saving}>
+            {saving ? "Creating…" : "Create Review"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminReviewsPage() {
   const [reviews,      setReviews]      = useState([]);
   const [total,        setTotal]        = useState(0);
@@ -37,6 +146,7 @@ export default function AdminReviewsPage() {
   const [newStatus,    setNewStatus]    = useState("");
   const [adminReply,   setAdminReply]   = useState("");
   const [updating,     setUpdating]     = useState(false);
+  const [createOpen,   setCreateOpen]   = useState(false);
   const LIMIT = 20;
 
   const fetchReviews = async (status = statusFilter, p = page) => {
@@ -111,7 +221,12 @@ export default function AdminReviewsPage() {
           </h2>
           <p style={{ fontSize:13, color:"var(--adm-muted)", marginTop:2 }}>{total} total reviews</p>
         </div>
-        <button className="adm-btn" onClick={() => fetchReviews()}><RefreshCw size={14}/> Refresh</button>
+        <div style={{ display:"flex", gap:10 }}>
+          <button className="adm-btn adm-btn-primary" onClick={() => setCreateOpen(true)}>
+            <Plus size={14}/> Create Review
+          </button>
+          <button className="adm-btn" onClick={() => fetchReviews()}><RefreshCw size={14}/> Refresh</button>
+        </div>
       </div>
 
       {error   && <div className="adm-alert adm-alert-danger"  style={{ marginBottom:16 }}>{error}</div>}
@@ -216,6 +331,14 @@ export default function AdminReviewsPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Create Modal */}
+      {createOpen && (
+        <CreateReviewModal
+          onClose={() => setCreateOpen(false)}
+          onCreated={() => { fetchReviews(); setSuccess("Review created"); setTimeout(() => setSuccess(""), 3000); }}
+        />
       )}
 
       {/* Detail Modal */}

@@ -73,7 +73,7 @@ const SECTIONS = [
   {
     title: "10. Contact Us",
     content: [
-      "If you have any questions about these Terms and Conditions, please contact us at riyaartpalace08@gmail.com or write to us at: Riya Art Palace, Jaipur, Rajasthan, India.",
+      "If you have any questions about these Terms and Conditions, please contact us at riya_art_palace@yahoo.com or write to us at: Riya Art Palace, Jaipur, Rajasthan, India.",
     ],
   },
 ];

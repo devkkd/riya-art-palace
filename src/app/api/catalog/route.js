@@ -10,7 +10,7 @@ export async function GET(request) {
 
     // Fetch all collections in parallel for fast loading
     const [categories, subcategories, products] = await Promise.all([
-      Category.find({}).sort({ name: 1 }).lean(),
+      Category.find({}).sort({ order: 1, name: 1 }).lean(),
       Subcategory.find({}).sort({ name: 1 }).lean(),
       Product.find({})
         .populate("category", "name slug")
@@ -27,13 +27,18 @@ export async function GET(request) {
 
     const formattedSubcategories = subcategories.map((sub) => ({
       ...sub,
-      id: sub._id.toString(),
+      id:       sub._id.toString(),
+      slug:     sub.slug || "",
+      name:     sub.name || "",
       category: sub.category ? sub.category.toString() : null,
     }));
 
     const formattedProducts = products.map((prod) => ({
       ...prod,
       id: prod._id.toString(),
+      sku:          prod.sku || "",
+      minOrderQty:  prod.minOrderQty ?? 500,
+      showInRetail: prod.showInRetail ?? false,
       category: prod.category
         ? {
             id: prod.category._id.toString(),

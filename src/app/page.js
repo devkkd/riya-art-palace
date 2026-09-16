@@ -6,7 +6,7 @@ import BestSelling from "./components/BestSelling";
 import AboutSection from "./components/AboutSection";
 import Global from "./components/Global";
 import Reviews from "./components/Reviews";
-import ContactSection from "./components/ContactSection";
+import EnquirySection from "./components/EnquirySection";
 import Footer from "./components/Footer";
 import Story from "./components/Story"
 import ValuesSection from "./components/ValuesSection.jsx";
@@ -20,10 +20,11 @@ export default function Home() {
       <Collections />
       <BestSelling />
       <AboutSection />
-      <Story />
-      <Global />
+      {/* <Story /> */}
+      {/* <Global /> */}
+      <EnquirySection />
       <Reviews />
-      <ContactSection />
+      
       <ValuesSection />
       <FollowUs />
       <Footer />

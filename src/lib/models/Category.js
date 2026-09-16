@@ -24,6 +24,17 @@ const CategorySchema = new mongoose.Schema(
       type: String,
       required: [true, "Category image is required"],
     },
+    // Display order — lower number appears first (default 0)
+    order: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
+    // Show this category on the homepage collections section
+    showOnHome: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

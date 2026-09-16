@@ -5,6 +5,7 @@ import "./globals.css";
 import { CatalogProvider } from "@/app/components/CatalogContext";
 import { CartProvider } from "@/app/components/CartContext";
 import { UserProvider } from "@/app/components/UserContext";
+import { CurrencyProvider } from "@/app/components/CurrencyContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,13 +34,15 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable}`}
     >
       <body className="min-h-screen flex flex-col">
-        <CatalogProvider>
-          <UserProvider>
-            <CartProvider>
-              {children}
-            </CartProvider>
-          </UserProvider>
-        </CatalogProvider>
+        <CurrencyProvider>
+          <CatalogProvider>
+            <UserProvider>
+              <CartProvider>
+                {children}
+              </CartProvider>
+            </UserProvider>
+          </CatalogProvider>
+        </CurrencyProvider>
       </body>
     </html>
   );

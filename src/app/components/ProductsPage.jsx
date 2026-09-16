@@ -7,6 +7,8 @@ import FollowUs from "./FollowUs";
 import Footer from "./Footer";
 import { useCatalog } from "@/app/components/CatalogContext";
 import { useCart } from "@/app/components/CartContext";
+import { useCurrency } from "@/app/components/CurrencyContext";
+import ProductWatermark from "./ProductWatermark";
 
 const moqOptions = ["1 - 100 pcs","100 - 500 pcs","500 - 1000 pcs","1000+ pcs"];
 const sortOptions = ["Recommended","New Arrivals","Price High to Low","Price Low to High"];
@@ -217,6 +219,7 @@ const styles = `
     width: 100%;
     aspect-ratio: 1 / 1;
     overflow: hidden;
+    position: relative;
     background: #F7F5F3;
     border-radius: 12px 12px 0 0;
     flex-shrink: 0;
@@ -553,7 +556,8 @@ const styles = `
 function ProductCard({ product }) {
   const router = useRouter();
   const { addToCart } = useCart();
-  const [qty, setQty] = useState(500);
+  const { format } = useCurrency();
+  const [qty, setQty] = useState(product.minOrderQty ?? 500);
   const [added, setAdded] = useState(false);
 
   const formattedPrice = typeof product.price === "number"
@@ -569,20 +573,26 @@ function ProductCard({ product }) {
 
   return (
     <div className="pc-card" onClick={() => router.push(`/products/${product.slug}`)}>
-      <div className="pc-img-wrap">
+      <div className="pc-img-wrap" style={{ position: "relative" }}>
         <img
           src={product.images?.[0] || "https://placehold.co/400x400?text=No+Image"}
           alt={product.name}
           className="pc-img"
         />
+        <ProductWatermark />
       </div>
       <div className="pc-body">
         {product.subcategory?.name && (
           <div className="pc-tag">{product.subcategory.name}</div>
         )}
+        {product.sku && (
+          <div style={{ fontFamily:"Manrope,sans-serif", fontSize:9, fontWeight:700, color:"#aaa", letterSpacing:"0.06em", marginBottom:4 }}>
+            SKU: {product.sku}
+          </div>
+        )}
         <h3 className="pc-title">{product.name}</h3>
         <div className="pc-price-row">
-          <span className="pc-price">₹{product.price?.toLocaleString("en-IN")}</span>
+          <span className="pc-price">{format(product.price)}</span>
           <span className="pc-price-unit">/ {product.priceUnit || "Piece"}</span>
         </div>
         {(product.productType || product.primaryMaterial) && (
@@ -629,31 +639,46 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const { categories, subcategories, products: allProducts, loading } = useCatalog();
 
-  const categorySlugParam = searchParams.get("category");
-  const searchQueryParam = searchParams.get("q");
+  const categorySlugParam  = searchParams.get("category");
+  const subcategorySlugParam = searchParams.get("subcategory");
+  const searchQueryParam   = searchParams.get("q");
 
   const [activeCategorySlug, setActiveCategorySlug] = useState("");
-  const [selectedSubCatId, setSelectedSubCatId] = useState("all");
-  const [selectedMOQ, setSelectedMOQ] = useState("");
-  const [selectedSort, setSelectedSort] = useState("Recommended");
+  const [selectedSubCatId,   setSelectedSubCatId]   = useState("all");
+  const [selectedMOQ,        setSelectedMOQ]        = useState("");
+  const [selectedSort,       setSelectedSort]       = useState("Recommended");
 
-  // Sync category filter with URL query param
+  // Sync category + subcategory from URL params
   useEffect(() => {
     if (categorySlugParam) {
       setActiveCategorySlug(categorySlugParam);
-      setSelectedSubCatId("all");
+      // Only reset subcategory if no subcategory param
+      if (!subcategorySlugParam) setSelectedSubCatId("all");
     } else if (categories.length > 0 && !activeCategorySlug) {
       setActiveCategorySlug(categories[0].slug);
     }
-  }, [categorySlugParam, categories, activeCategorySlug]);
+  }, [categorySlugParam, categories, activeCategorySlug, subcategorySlugParam]);
 
-  const activeCategory = categories.find(c => c.slug === activeCategorySlug) || categories[0];
-  const activeCategoryId = activeCategory?.id || activeCategory?._id;
+  // Sync subcategory URL param to state
+  useEffect(() => {
+    if (!subcategorySlugParam || subcategories.length === 0) return;
+    const found = subcategories.find(s => s.slug === subcategorySlugParam);
+    if (found) {
+      setSelectedSubCatId(found.id || found._id?.toString());
+      // Also activate the parent category
+      if (found.category) setActiveCategorySlug(
+        categories.find(c => (c.id || c._id?.toString()) === found.category)?.slug || activeCategorySlug
+      );
+    }
+  }, [subcategorySlugParam, subcategories, categories]);
 
-  // Filter subcategories for the sidebar based on active category
+  const activeCategory   = categories.find(c => c.slug === activeCategorySlug) || categories[0];
+  const activeCategoryId = activeCategory?.id || activeCategory?._id?.toString() || "";
+
+  // Filter subcategories — sub.category is always a plain string (ObjectId)
   const filteredSubcategories = subcategories.filter(sub => {
-    const catId = typeof sub.category === "object" ? sub.category.id || sub.category._id : sub.category;
-    return catId === activeCategoryId;
+    const subCatId = typeof sub.category === "string" ? sub.category : sub.category?.toString();
+    return subCatId === activeCategoryId;
   });
 
   const getProductMOQ = (price) => {
@@ -668,38 +693,30 @@ export default function ProductsPage() {
   // Filter products in memory
   let filteredProducts = allProducts.filter(prod => {
     // 1. Filter by category
-    const catSlug = prod.category?.slug || (typeof prod.category === "object" ? prod.category.slug : "");
+    const catSlug = prod.category?.slug || "";
     if (activeCategorySlug && catSlug !== activeCategorySlug) return false;
 
-    // 2. Filter by subcategory
+    // 2. Filter by subcategory (by ID)
     if (selectedSubCatId !== "all") {
-      const subId = prod.subcategory?.id || prod.subcategory?._id || prod.subcategory?.toString();
+      const subId = prod.subcategory?.id || prod.subcategory?._id?.toString() || "";
       if (subId !== selectedSubCatId) return false;
     }
 
-    // 3. Filter by search query from Navbar
+    // 3. Filter by search query
     if (searchQueryParam) {
       const q = searchQueryParam.toLowerCase();
-      const nameMatch = prod.name?.toLowerCase().includes(q);
-      const descMatch = prod.description?.toLowerCase().includes(q);
-      if (!nameMatch && !descMatch) return false;
+      if (!prod.name?.toLowerCase().includes(q) && !prod.description?.toLowerCase().includes(q)) return false;
     }
 
     // 4. Filter by MOQ
     if (selectedMOQ) {
-      const prodMOQ = getProductMOQ(prod.price);
-      if (prodMOQ !== selectedMOQ) return false;
-    }
-
-    // 5. Filter by New Arrivals
-    if (selectedSort === "New Arrivals") {
-      if (!prod.newArrival) return false;
+      if (getProductMOQ(prod.price) !== selectedMOQ) return false;
     }
 
     return true;
   });
 
-  // Apply Sorting
+  // Apply Sorting (New Arrivals is sort only, not a filter)
   if (selectedSort === "Price Low to High") {
     filteredProducts.sort((a, b) => a.price - b.price);
   } else if (selectedSort === "Price High to Low") {
@@ -712,6 +729,8 @@ export default function ProductsPage() {
     setSelectedSubCatId("all");
     setSelectedMOQ("");
     setSelectedSort("Recommended");
+    // Preserve category in URL but remove subcategory
+    router.push(activeCategorySlug ? `/products?category=${activeCategorySlug}` : "/products");
   };
 
   return (
@@ -780,7 +799,15 @@ export default function ProductsPage() {
                         type="radio"
                         name="subcategory"
                         checked={selectedSubCatId === (item.id || item._id)}
-                        onChange={() => setSelectedSubCatId(item.id || item._id)}
+                        onChange={() => {
+                          const id = item.id || item._id;
+                          setSelectedSubCatId(id);
+                          // Update URL with subcategory slug
+                          const params = new URLSearchParams();
+                          if (activeCategorySlug) params.set("category", activeCategorySlug);
+                          if (item.slug) params.set("subcategory", item.slug);
+                          router.push(`/products?${params.toString()}`);
+                        }}
                       />
                       <span>{item.name}</span>
                     </label>

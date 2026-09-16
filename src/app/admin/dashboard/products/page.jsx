@@ -1,20 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
-  Plus,
-  Edit2,
-  Trash2,
-  Upload,
-  X,
-  Image as ImageIcon,
-  Loader2,
-  AlertTriangle,
-  Filter,
-  Search,
-  ChevronDown
+  Plus, Edit2, Trash2, Upload, X, Image as ImageIcon,
+  Loader2, AlertTriangle, Filter, Search, ChevronDown,
+  CheckSquare, Square, Trash, Pencil, CheckCheck,
 } from "lucide-react";
 import AdminShell from "@/app/components/admin/AdminShell";
+import ProductWatermark from "@/app/components/ProductWatermark";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -29,6 +22,17 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [subcategoryFilter, setSubcategoryFilter] = useState("");
 
+  // ── Bulk select state ──
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkEditing, setBulkEditing] = useState(false);
+  const [bulkFields, setBulkFields] = useState({
+    category: "", subcategory: "", price: "", priceUnit: "", minOrderQty: "",
+    showInRetail: "", bestSelling: "", newArrival: "",
+  });
+
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create"); // "create" | "edit"
@@ -40,6 +44,9 @@ export default function ProductsPage() {
     description: "",
     price: "",
     priceUnit: "Piece",
+    sku: "",
+    minOrderQty: 500,
+    showInRetail: false,
     category: "",
     subcategory: "",
     images: [],
@@ -175,6 +182,9 @@ export default function ProductsPage() {
       description: "",
       price: "",
       priceUnit: "Piece",
+      sku: "",
+      minOrderQty: 500,
+      showInRetail: false,
       category: categories[0]?.id || "",
       subcategory: "",
       images: [],
@@ -201,6 +211,9 @@ export default function ProductsPage() {
       description: product.description || "",
       price: product.price,
       priceUnit: product.priceUnit || "Piece",
+      sku: product.sku || "",
+      minOrderQty: product.minOrderQty ?? 500,
+      showInRetail: !!product.showInRetail,
       category: product.category?.id || product.category || "",
       subcategory: product.subcategory?.id || product.subcategory || "",
       images: product.images || [],
@@ -402,6 +415,102 @@ export default function ProductsPage() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  // Filtered products list (used for bulk select + display)
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      if (categoryFilter && (p.category?.id || p.category) !== categoryFilter) return false;
+      if (subcategoryFilter && (p.subcategory?.id || p.subcategory) !== subcategoryFilter) return false;
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        if (!p.name?.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [products, categoryFilter, subcategoryFilter, searchQuery]);
+
+  // ── Bulk select helpers ──
+  const visibleProductIds = useMemo(
+    () => filteredProducts.map(p => p.id || p._id),
+    [filteredProducts]
+  );
+
+  const allSelected = visibleProductIds.length > 0 && visibleProductIds.every(id => selectedIds.has(id));
+  const someSelected = selectedIds.size > 0;
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(visibleProductIds));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    setBulkDeleting(true);
+    try {
+      const res  = await fetch("/api/products/bulk/delete", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showSuccessMessage(json.data.message);
+        setSelectedIds(new Set());
+        setBulkDeleteConfirmOpen(false);
+        fetchProducts();
+      } else {
+        setError(json.message || "Bulk delete failed");
+      }
+    } catch { setError("Network error during bulk delete"); }
+    finally { setBulkDeleting(false); }
+  };
+
+  const handleBulkEdit = async (e) => {
+    if (e) e.preventDefault();
+    // Build updates — only non-empty fields
+    const updates = {};
+    if (bulkFields.category)    updates.category    = bulkFields.category;
+    if (bulkFields.subcategory) updates.subcategory = bulkFields.subcategory;
+    if (bulkFields.price !== "" && bulkFields.price !== undefined) updates.price = Number(bulkFields.price);
+    if (bulkFields.priceUnit)   updates.priceUnit   = bulkFields.priceUnit;
+    if (bulkFields.minOrderQty !== "") updates.minOrderQty = Number(bulkFields.minOrderQty);
+    if (bulkFields.showInRetail !== "") updates.showInRetail = bulkFields.showInRetail === "true";
+    if (bulkFields.bestSelling  !== "") updates.bestSelling  = bulkFields.bestSelling  === "true";
+    if (bulkFields.newArrival   !== "") updates.newArrival   = bulkFields.newArrival   === "true";
+
+    if (Object.keys(updates).length === 0) {
+      setError("Please select at least one field to update");
+      return;
+    }
+
+    setBulkEditing(true);
+    try {
+      const res  = await fetch("/api/products/bulk/edit", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), updates }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showSuccessMessage(json.data.message);
+        setSelectedIds(new Set());
+        setBulkEditOpen(false);
+        setBulkFields({ category:"", subcategory:"", price:"", priceUnit:"", minOrderQty:"", showInRetail:"", bestSelling:"", newArrival:"" });
+        fetchProducts();
+      } else {
+        setError(json.message || "Bulk edit failed");
+      }
+    } catch { setError("Network error during bulk edit"); }
+    finally { setBulkEditing(false); }
   };
 
   const handleCloseBulkModal = () => {
@@ -626,6 +735,7 @@ export default function ProductsPage() {
     return !categoryFilter || catId === categoryFilter;
   });
 
+
   return (
     <AdminShell>
       {/* Page Header */}
@@ -741,6 +851,44 @@ export default function ProductsPage() {
         </div>
       )}
 
+      {/* ── Bulk Action Bar ── */}
+      {someSelected && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+          background: "#EDE9FE", border: "1.5px solid #C4B5FD", borderRadius: 12,
+          padding: "12px 18px", marginBottom: 16,
+        }}>
+          <span style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:700, color:"#5B21B6" }}>
+            {selectedIds.size} product{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+
+          <button onClick={() => setBulkEditOpen(true)}
+            style={{ display:"flex", alignItems:"center", gap:6, height:34, padding:"0 16px", border:"none", borderRadius:8, background:"#5B21B6", color:"#fff", fontFamily:"Manrope,sans-serif", fontSize:12, fontWeight:700, cursor:"pointer", transition:"background .15s" }}
+            onMouseEnter={e => e.currentTarget.style.background="#4C1D95"}
+            onMouseLeave={e => e.currentTarget.style.background="#5B21B6"}
+          >
+            <Pencil size={14}/> Bulk Edit
+          </button>
+
+          <button onClick={() => setBulkDeleteConfirmOpen(true)} disabled={bulkDeleting}
+            style={{ display:"flex", alignItems:"center", gap:6, height:34, padding:"0 16px", border:"none", borderRadius:8, background:"#DC2626", color:"#fff", fontFamily:"Manrope,sans-serif", fontSize:12, fontWeight:700, cursor:"pointer", opacity: bulkDeleting ? .6 : 1 }}
+          >
+            {bulkDeleting ? <Loader2 size={14} style={{ animation:"adm-spin 1s linear infinite" }}/> : <Trash size={14}/>}
+            {bulkDeleting ? "Deleting…" : "Delete Selected"}
+          </button>
+
+          <button onClick={() => setSelectedIds(new Set())}
+            style={{ display:"flex", alignItems:"center", gap:5, height:34, padding:"0 14px", border:"1.5px solid #C4B5FD", borderRadius:8, background:"transparent", fontFamily:"Manrope,sans-serif", fontSize:12, fontWeight:600, color:"#5B21B6", cursor:"pointer" }}
+          >
+            <X size={13}/> Clear
+          </button>
+
+          <span style={{ marginLeft:"auto", fontFamily:"Manrope,sans-serif", fontSize:12, color:"#7C3AED", fontStyle:"italic" }}>
+            {filteredProducts.length} total visible
+          </span>
+        </div>
+      )}
+
       {/* Main Content */}
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
@@ -765,10 +913,41 @@ export default function ProductsPage() {
           )}
         </div>
       ) : (
-        <div className="adm-card-grid">
-          {products.map((product) => (
-            <div key={product.id} className="adm-item-card">
-              <div className="adm-item-img-container">
+        <>
+          {/* Select All bar */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:12, padding:"8px 4px" }}>
+            <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", userSelect:"none" }}>
+              <input type="checkbox" checked={allSelected} onChange={toggleSelectAll}
+                style={{ width:16, height:16, accentColor:"#5B21B6", cursor:"pointer" }}/>
+              <span style={{ fontFamily:"Manrope,sans-serif", fontSize:13, fontWeight:600, color:"var(--adm-text)" }}>
+                {allSelected ? "Deselect All" : "Select All"} ({filteredProducts.length})
+              </span>
+            </label>
+            {someSelected && (
+              <span style={{ fontSize:12, color:"#5B21B6", fontFamily:"Manrope,sans-serif", fontWeight:700 }}>
+                ✓ {selectedIds.size} selected
+              </span>
+            )}
+          </div>
+
+          <div className="adm-card-grid">
+          {filteredProducts.map((product) => {
+            const isSelected = selectedIds.has(product.id || product._id);
+            return (
+            <div key={product.id} className="adm-item-card" style={{ outline: isSelected ? "2px solid #5B21B6" : "none", outlineOffset:2, position:"relative" }}>
+              {/* Checkbox */}
+              <div style={{ position:"absolute", top:10, left:10, zIndex:3 }}
+                onClick={e => { e.stopPropagation(); toggleSelect(product.id || product._id); }}>
+                <div style={{
+                  width:22, height:22, borderRadius:6, border:`2px solid ${isSelected ? "#5B21B6" : "#D7CEC5"}`,
+                  background: isSelected ? "#5B21B6" : "#fff",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  cursor:"pointer", transition:"all .15s", flexShrink:0,
+                }}>
+                  {isSelected && <span style={{ color:"#fff", fontSize:13, fontWeight:700, lineHeight:1 }}>✓</span>}
+                </div>
+              </div>
+              <div className="adm-item-img-container" style={{ position: "relative" }}>
                 <img
                   src={product.images?.[0] || "/placeholder.png"}
                   alt={product.name}
@@ -793,12 +972,23 @@ export default function ProductsPage() {
                 >
                   ₹ {product.price}/{product.priceUnit || "Piece"}
                 </span>
+                <ProductWatermark size="sm" />
               </div>
               <div className="adm-item-content">
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
                   <span className="adm-item-badge" style={{ margin: 0 }}>
                     {product.category?.name || "Uncategorized"}
                   </span>
+                  {product.sku && (
+                    <span style={{ margin: 0, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "#EDE9FE", color: "#5B21B6" }}>
+                      {product.sku}
+                    </span>
+                  )}
+                  {product.showInRetail && (
+                    <span style={{ margin: 0, fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "#D1FAE5", color: "#065F46" }}>
+                      Retail
+                    </span>
+                  )}
                   {product.subcategory && (
                     <span
                       className="adm-item-badge"
@@ -848,8 +1038,10 @@ export default function ProductsPage() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
+        </>
       )}
 
       {/* Add / Edit Product Modal */}
@@ -915,6 +1107,37 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
+                {/* SKU field */}
+                <div className="adm-form-group">
+                  <label className="adm-form-label">
+                    SKU Number
+                    <span style={{ fontSize: 11, fontWeight: 400, color: "var(--adm-muted)", marginLeft: 8 }}>
+                      (auto-generated if left blank)
+                    </span>
+                  </label>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <input
+                      type="text"
+                      className="adm-form-input"
+                      placeholder="e.g. RAP-001"
+                      value={formData.sku}
+                      onChange={(e) => setFormData(prev => ({ ...prev, sku: e.target.value.toUpperCase() }))}
+                      disabled={saving}
+                      style={{ maxWidth: 200, fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.05em" }}
+                    />
+                    {formData.sku && (
+                      <span style={{ fontSize: 12, fontWeight: 700, background: "#EDE9FE", color: "#5B21B6", padding: "4px 12px", borderRadius: 6, fontFamily: "monospace" }}>
+                        {formData.sku}
+                      </span>
+                    )}
+                    {!formData.sku && modalMode === "create" && (
+                      <span style={{ fontSize: 12, color: "var(--adm-muted)", fontStyle: "italic" }}>
+                        Will be auto-assigned on save
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="adm-form-group">
                   <label className="adm-form-label">Description</label>
                   <textarea
@@ -965,29 +1188,37 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* Part 2.5: Product Flags (Best Selling, New Arrivals) */}
-                <div style={{ display: "flex", gap: "24px", marginBottom: "20px", background: "#F9F6F2", padding: "12px 16px", borderRadius: "10px", border: "1px solid var(--adm-border)" }}>
+                {/* Part 2.5: Product Flags (Best Selling, New Arrivals, MOQ, Retail) */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "16px", marginBottom: "20px", background: "#F9F6F2", padding: "14px 16px", borderRadius: "10px", border: "1px solid var(--adm-border)" }}>
                   <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.bestSelling}
+                    <input type="checkbox" checked={formData.bestSelling}
                       onChange={(e) => setFormData(prev => ({ ...prev, bestSelling: e.target.checked }))}
-                      disabled={saving}
-                      style={{ width: "18px", height: "18px", accentColor: "var(--adm-accent)" }}
-                    />
-                    Best Selling Product
+                      disabled={saving} style={{ width: "18px", height: "18px", accentColor: "var(--adm-accent)" }}/>
+                    Best Selling
                   </label>
-
                   <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>
-                    <input
-                      type="checkbox"
-                      checked={formData.newArrival}
+                    <input type="checkbox" checked={formData.newArrival}
                       onChange={(e) => setFormData(prev => ({ ...prev, newArrival: e.target.checked }))}
-                      disabled={saving}
-                      style={{ width: "18px", height: "18px", accentColor: "var(--adm-accent)" }}
-                    />
-                    New Arrival Product
+                      disabled={saving} style={{ width: "18px", height: "18px", accentColor: "var(--adm-accent)" }}/>
+                    New Arrival
                   </label>
+                  {/* Retail Offer toggle */}
+                  <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: formData.showInRetail ? "#065F46" : "inherit" }}>
+                    <input type="checkbox" checked={formData.showInRetail}
+                      onChange={(e) => setFormData(prev => ({ ...prev, showInRetail: e.target.checked }))}
+                      disabled={saving} style={{ width: "18px", height: "18px", accentColor: "#059669" }}/>
+                    Show in Retail Offers
+                  </label>
+                  {/* MOQ */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "auto" }}>
+                    <label style={{ fontSize: "13px", fontWeight: 700, color: "var(--adm-text)", whiteSpace: "nowrap" }}>
+                      Min Order Qty (MOQ)
+                    </label>
+                    <input type="number" min="1" value={formData.minOrderQty}
+                      onChange={(e) => setFormData(prev => ({ ...prev, minOrderQty: Number(e.target.value) }))}
+                      disabled={saving}
+                      style={{ width: 90, height: 36, border: "1.5px solid var(--adm-border)", borderRadius: 8, padding: "0 10px", fontFamily: "inherit", fontSize: 13, outline: "none" }}/>
+                  </div>
                 </div>
 
                 {/* Part 3: Image Upload Area */}
@@ -1274,6 +1505,240 @@ export default function ProductsPage() {
                 {deleting ? "Deleting..." : "Delete Product"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal */}
+      {bulkDeleteConfirmOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-container" style={{ maxWidth: "440px" }}>
+            <div className="adm-modal-header" style={{ borderBottom: "none", paddingBottom: 0 }}>
+              <h3 className="adm-modal-title" style={{ color: "#DC2626", display: "flex", alignItems: "center", gap: 8 }}>
+                <Trash2 size={20} /> Delete Selected Products
+              </h3>
+              <button className="adm-modal-close" onClick={() => setBulkDeleteConfirmOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="adm-modal-body" style={{ padding: "20px 24px" }}>
+              <p style={{ fontSize: "14px", color: "var(--adm-text)", lineHeight: 1.6 }}>
+                Are you sure you want to permanently delete <strong>{selectedIds.size}</strong> selected products?
+              </p>
+              <p style={{ fontSize: "12px", color: "var(--adm-muted)", marginTop: "8px" }}>
+                This action cannot be undone. These products will be permanently removed from your catalog.
+              </p>
+            </div>
+            <div className="adm-modal-footer" style={{ borderTop: "none", background: "none" }}>
+              <button className="adm-btn" onClick={() => setBulkDeleteConfirmOpen(false)} disabled={bulkDeleting}>
+                Cancel
+              </button>
+              <button
+                className="adm-btn adm-btn-danger"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                {bulkDeleting ? (
+                  <>
+                    <Loader2 size={15} style={{ animation: "adm-spin 1s linear infinite" }} />
+                    Deleting...
+                  </>
+                ) : (
+                  `Delete ${selectedIds.size} Products`
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Edit Modal */}
+      {bulkEditOpen && (
+        <div className="adm-modal-overlay">
+          <div className="adm-modal-container" style={{ maxWidth: "650px", width: "95%", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
+            <div className="adm-modal-header" style={{ flexShrink: 0 }}>
+              <div>
+                <h3 className="adm-modal-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Pencil size={18} style={{ color: "#5B21B6" }} />
+                  Bulk Edit Products
+                </h3>
+                <span style={{ fontSize: "12px", color: "#5B21B6", fontWeight: 600 }}>
+                  Updating {selectedIds.size} selected product{selectedIds.size !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <button className="adm-modal-close" onClick={() => setBulkEditOpen(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleBulkEdit} style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1 }}>
+              <div className="adm-modal-body" style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
+                <div style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px" }}>
+                  <p style={{ fontSize: "12px", color: "#5B21B6", margin: 0, lineHeight: 1.5 }}>
+                    💡 <strong>Tip:</strong> Only fill in the fields you wish to change across all {selectedIds.size} selected items. Any fields left blank or set to &quot;Keep Current&quot; will remain unchanged.
+                  </p>
+                </div>
+
+                {/* Categorization */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Category</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.category}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, category: e.target.value, subcategory: "" }))}
+                      disabled={bulkEditing}
+                    >
+                      <option value="">— Keep Current Category —</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Subcategory</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.subcategory}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, subcategory: e.target.value }))}
+                      disabled={bulkEditing || !bulkFields.category}
+                    >
+                      <option value="">
+                        {!bulkFields.category ? "— Select Category First —" : "— Keep Current Subcategory —"}
+                      </option>
+                      {subcategories
+                        .filter(sub => {
+                          if (!bulkFields.category) return true;
+                          const catId = typeof sub.category === "object" ? sub.category?._id || sub.category?.id : sub.category;
+                          return catId === bulkFields.category;
+                        })
+                        .map(sub => (
+                          <option key={sub.id} value={sub.id}>{sub.name}</option>
+                        ))
+                      }
+                    </select>
+                  </div>
+                </div>
+
+                {/* Pricing & MOQ */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Price (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="any"
+                      className="adm-form-input"
+                      placeholder="Keep current"
+                      value={bulkFields.price}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, price: e.target.value }))}
+                      disabled={bulkEditing}
+                    />
+                  </div>
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Price Unit</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.priceUnit}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, priceUnit: e.target.value }))}
+                      disabled={bulkEditing}
+                    >
+                      <option value="">— Keep Current —</option>
+                      <option value="Piece">Piece</option>
+                      <option value="Set">Set</option>
+                      <option value="Pair">Pair</option>
+                      <option value="Box">Box</option>
+                      <option value="Kg">Kg</option>
+                    </select>
+                  </div>
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Min Order Qty (MOQ)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className="adm-form-input"
+                      placeholder="Keep current"
+                      value={bulkFields.minOrderQty}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, minOrderQty: e.target.value }))}
+                      disabled={bulkEditing}
+                    />
+                  </div>
+                </div>
+
+                {/* Flags: Retail, Best Selling, New Arrival */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Show in Retail</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.showInRetail}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, showInRetail: e.target.value }))}
+                      disabled={bulkEditing}
+                    >
+                      <option value="">— Keep Current —</option>
+                      <option value="true">Yes, show in retail</option>
+                      <option value="false">No, wholesale only</option>
+                    </select>
+                  </div>
+
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">Best Selling</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.bestSelling}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, bestSelling: e.target.value }))}
+                      disabled={bulkEditing}
+                    >
+                      <option value="">— Keep Current —</option>
+                      <option value="true">Yes, mark best selling</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+
+                  <div className="adm-form-group" style={{ margin: 0 }}>
+                    <label className="adm-form-label">New Arrival</label>
+                    <select
+                      className="adm-form-select"
+                      value={bulkFields.newArrival}
+                      onChange={(e) => setBulkFields(prev => ({ ...prev, newArrival: e.target.value }))}
+                      disabled={bulkEditing}
+                    >
+                      <option value="">— Keep Current —</option>
+                      <option value="true">Yes, mark new arrival</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="adm-modal-footer" style={{ flexShrink: 0 }}>
+                <button
+                  type="button"
+                  className="adm-btn"
+                  onClick={() => setBulkEditOpen(false)}
+                  disabled={bulkEditing}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="adm-btn adm-btn-primary"
+                  disabled={bulkEditing}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
+                >
+                  {bulkEditing ? (
+                    <>
+                      <Loader2 size={16} style={{ animation: "adm-spin 1s linear infinite" }} />
+                      Updating {selectedIds.size} Products...
+                    </>
+                  ) : (
+                    `Apply Changes to ${selectedIds.size} Products`
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -1,13 +1,17 @@
 import { z } from "zod";
 
 export const createCategorySchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name cannot exceed 50 characters").trim(),
-  description: z.string().max(500, "Description cannot exceed 500 characters").trim().optional().default(""),
-  image: z.string().url("Valid image URL is required"),
+  name:        z.string().min(2).max(50).trim(),
+  description: z.string().max(500).trim().optional().default(""),
+  image:       z.string().url("Valid image URL is required"),
+  order:       z.number().int().min(0).optional().default(0),
+  showOnHome:  z.boolean().optional().default(true),
 });
 
 export const updateCategorySchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").max(50, "Name cannot exceed 50 characters").trim().optional(),
-  description: z.string().max(500, "Description cannot exceed 500 characters").trim().optional(),
-  image: z.string().url("Valid image URL is required").optional(),
+  name:        z.string().min(2).max(50).trim().optional(),
+  description: z.string().max(500).trim().optional(),
+  image:       z.string().url("Valid image URL is required").optional(),
+  order:       z.number().int().min(0).optional(),
+  showOnHome:  z.boolean().optional(),
 });

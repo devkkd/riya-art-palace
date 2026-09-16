@@ -4,6 +4,8 @@ import { Search, ShoppingBag, User, ChevronDown, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import { useCurrency, CURRENCIES } from "@/app/components/CurrencyContext";
+import GoogleTranslate from "@/app/components/GoogleTranslate";
 import logo from "../assets/logo.png";
 import { useCatalog } from "@/app/components/CatalogContext";
 import { useCart } from "@/app/components/CartContext";
@@ -15,6 +17,9 @@ export default function Navbar() {
   const { categories, loading: catalogLoading } = useCatalog();
   const { totalItems } = useCart();
   const { user, logout, refetchUser } = useUser();
+  const { currency, currencyCode, setCurrencyCode, ratesLoading } = useCurrency();
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const currencyRef = useRef(null);
   const [mobileOpen,   setMobileOpen]   = useState(false);
   const [searchVal,    setSearchVal]    = useState("");
   const [searchLoading, setSearchLoading] = useState(false);
@@ -68,6 +73,8 @@ useEffect(() => {
         setShowDropdown(false);
       if (userMenuRef.current && !userMenuRef.current.contains(event.target))
         setUserMenuOpen(false);
+      if (currencyRef.current && !currencyRef.current.contains(event.target))
+        setCurrencyOpen(false);
     }
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
@@ -210,7 +217,7 @@ const handleSearchResultClick = (item) => {
         .nb-inner {
           max-width: 1760px;
           margin: 0 auto;
-          padding: 0 60px;
+          padding: 0 40px;
         }
 
         /* ── Desktop ── */
@@ -220,40 +227,118 @@ const handleSearchResultClick = (item) => {
           height: 80px;
         }
 
-        /* LEFT: logo + currency — fixed, no flex-grow */
+        /* LEFT: logo + currency + language — compact */
         .nb-left {
           display: flex;
           align-items: center;
-          gap: 16px;
+          gap: 8px;
           flex-shrink: 0;
         }
 
         .nb-logo-img {
           width: auto;
-          height: 52px;
+          height: 48px;
           object-fit: contain;
           display: block;
           cursor: pointer;
           flex-shrink: 0;
         }
 
+        /* Compact pill for currency/language */
+        .nb-ctrl-pill {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          padding: 5px 8px;
+          border-radius: 8px;
+          border: 1.5px solid #D7CEC5;
+          background: #fff;
+          transition: border-color .15s, background .15s;
+          flex-shrink: 0;
+          position: relative;
+          height: 34px;
+        }
+        .nb-ctrl-pill:hover { border-color: #F85700; background: #FFF9F6; }
+        .nb-ctrl-pill-text {
+          font-family: "Manrope", sans-serif;
+          font-size: 12px;
+          font-weight: 700;
+          color: #1A1A1A;
+          letter-spacing: 0.01em;
+          line-height: 1;
+        }
+
         .nb-currency {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
           cursor: pointer;
-          padding: 4px 8px;
-          border-radius: 6px;
-          transition: background .15s;
+          padding: 5px 8px;
+          border-radius: 8px;
+          // border: 1.5px solid #D7CEC5;
+          // background: #fff;
+          transition: border-color .15s, background .15s;
           flex-shrink: 0;
+          position: relative;
+          height: 34px;
         }
-        .nb-currency:hover { background: #EDE8E3; }
+        .nb-currency:hover { border-color: #F85700; background: #FFF9F6; }
         .nb-currency-text {
           font-family: "Manrope", sans-serif;
-          font-size: 13px;
-          font-weight: 600;
+          font-size: 12px;
+          font-weight: 700;
           color: #1A1A1A;
           letter-spacing: 0.01em;
+          line-height: 1;
+        }
+
+        /* Currency dropdown */
+        .nb-currency-dropdown {
+          position: absolute;
+          top: calc(100% + 8px);
+          left: 0;
+          min-width: 200px;
+          background: #fff;
+          border: 1px solid #D7CEC5;
+          border-radius: 14px;
+          box-shadow: 0 12px 32px rgba(0,0,0,.12);
+          z-index: 10001;
+          padding: 6px;
+          animation: nbFadeIn .15s ease;
+        }
+        .nb-currency-option {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background .12s;
+          border: none;
+          background: transparent;
+          width: 100%;
+          text-align: left;
+        }
+        .nb-currency-option:hover { background: #F7F5F3; }
+        .nb-currency-option.active { background: #FFF3EB; }
+        .nb-currency-option-code {
+          font-family: "Manrope", sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          color: #1A1A1A;
+        }
+        .nb-currency-option-name {
+          font-family: "Manrope", sans-serif;
+          font-size: 12px;
+          color: #888;
+          flex: 1;
+        }
+        .nb-currency-option-symbol {
+          font-family: "Manrope", sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          color: #F85700;
         }
 
         /* SEARCH — grows to fill space between left and nav */
@@ -261,12 +346,12 @@ const handleSearchResultClick = (item) => {
           flex: 1;
           display: flex;
           justify-content: center;
-          padding: 0 36px;
+          padding: 0 20px;
         }
         .nb-search-wrap {
           position: relative;
           width: 100%;
-          max-width: 340px;
+          max-width: 480px;
         }
           /* ================================
    SEARCH RESULT DROPDOWN
@@ -1072,19 +1157,36 @@ const handleSearchResultClick = (item) => {
                 onClick={() => router.push("/")}
                 priority
               />
-              <div className="nb-currency">
-                <span style={{ fontSize: "16px", lineHeight: 1 }}>🇮🇳</span>
-                <span className="nb-currency-text">INR</span>
-<ChevronDown
-  size={12}
-  strokeWidth={2.5}
-  onClick={(e) => {
-    e.preventDefault();
-    setShowDropdown(!showDropdown);
-  }}
-  style={{ cursor: "pointer" }}
-/>
+              <div className="nb-currency" ref={currencyRef} onClick={() => setCurrencyOpen(p => !p)}>
+                <span style={{ fontSize: "14px", lineHeight: 1 }}>{currency.flag}</span>
+                <span className="nb-currency-text">{currencyCode}</span>
+                {ratesLoading
+                  ? <span style={{ width: 8, height: 8, border: "2px solid #E5DDD5", borderTopColor: "#F85700", borderRadius: "50%", display: "inline-block", animation: "spin .7s linear infinite" }} />
+                  : <ChevronDown size={11} strokeWidth={2.5} style={{ cursor: "pointer", transition: "transform .2s", transform: currencyOpen ? "rotate(180deg)" : "rotate(0)" }} />
+                }
+
+                {/* Currency dropdown */}
+                {currencyOpen && (
+                  <div className="nb-currency-dropdown" onClick={e => e.stopPropagation()}>
+                    {CURRENCIES.map((c) => (
+                      <button
+                        key={c.code}
+                        className={`nb-currency-option${c.code === currencyCode ? " active" : ""}`}
+                        onClick={() => { setCurrencyCode(c.code); setCurrencyOpen(false); }}
+                      >
+                        <span style={{ fontSize: 16 }}>{c.flag}</span>
+                        <span className="nb-currency-option-code">{c.code}</span>
+                        <span className="nb-currency-option-name">{c.name}</span>
+                        <span className="nb-currency-option-symbol">{c.symbol}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Language Selector */}
+              <GoogleTranslate />
+
             </div>
 
             {/* SEARCH */}
@@ -1183,7 +1285,7 @@ const handleSearchResultClick = (item) => {
 
                 {item.price !== undefined && (
                   <div className="nb-search-result-price">
-                    ₹{Number(item.price).toLocaleString("en-IN")}
+                    {currency.symbol}{Number(item.price * currency.rate).toLocaleString()}
                   </div>
                 )}
 
@@ -1305,12 +1407,19 @@ const handleSearchResultClick = (item) => {
     )}
   </div>
 
+  {/* RETAIL OFFERS */}
+  <Link
+    href="/retail-offers"
+    className={`nb-nav-link ${pathname === "/retail-offers" ? "active" : ""}`}
+    style={{ color: pathname === "/retail-offers" ? "#F85700" : undefined }}
+  >
+    Retail Offers
+  </Link>
+
   {/* CONTACT */}
   <Link
     href="/contact"
-    className={`nb-nav-link ${
-      pathname === "/contact" ? "active" : ""
-    }`}
+    className={`nb-nav-link ${pathname === "/contact" ? "active" : ""}`}
   >
     Contact Us
   </Link>
@@ -1332,9 +1441,9 @@ const handleSearchResultClick = (item) => {
                 <div className="nb-user-wrap" ref={userMenuRef}>
                   <button className="nb-avatar-btn" onClick={() => setUserMenuOpen(o => !o)}>
                     <div className="nb-avatar-circle">{initials}</div>
-                    <span style={{ maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {/* <span style={{ maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                       {user.name || user.email?.split("@")[0]}
-                    </span>
+                    </span> */}
                     <ChevronDown size={13} strokeWidth={2.5} style={{ transition:"transform .2s", transform: userMenuOpen ? "rotate(180deg)" : "rotate(0)" }}/>
                   </button>
 
@@ -1571,7 +1680,7 @@ const handleSearchResultClick = (item) => {
 
                 {item.price !== undefined && (
                   <div className="nb-search-result-price">
-                    ₹{Number(item.price).toLocaleString("en-IN")}
+                    {currency.symbol}{Number(item.price * currency.rate).toLocaleString()}
                   </div>
                 )}
 
@@ -1605,6 +1714,7 @@ const handleSearchResultClick = (item) => {
             <Link href="/"        className="nb-drawer-link" onClick={() => setMobileOpen(false)}>Home</Link>
             <Link href="/about"   className="nb-drawer-link" onClick={() => setMobileOpen(false)}>About Us</Link>
             <Link href="/products" className="nb-drawer-link" onClick={() => setMobileOpen(false)}>Product Collections</Link>
+            <Link href="/retail-offers" className="nb-drawer-link" onClick={() => setMobileOpen(false)}>Retail Offers</Link>
             <Link href="/contact" className="nb-drawer-link" onClick={() => setMobileOpen(false)}>Contact Us</Link>
             <button className="nb-drawer-link" onClick={() => { setMobileOpen(false); router.push("/account"); }}>Account</button>
             <button className="nb-drawer-link" onClick={() => { setMobileOpen(false); router.push("/cart"); }}>Cart</button>

@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCatalog } from "@/app/components/CatalogContext";
 import { useCart } from "@/app/components/CartContext";
+import { useCurrency } from "@/app/components/CurrencyContext";
+import ProductWatermark from "./ProductWatermark";
 
 import wallDecor from "../assets/wall-decor.jpg";
 import tableDecor from "../assets/table-decor.jpg";
@@ -21,6 +23,7 @@ const staticMockProducts = [
 function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
   const router = useRouter();
   const { addToCart } = useCart();
+  const { format } = useCurrency();
   const [added, setAdded] = useState(false);
 
   const imgUrl = product.isMock
@@ -48,6 +51,7 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
       {/* Image */}
       <div className="bsc-img-wrap">
         <img src={imgUrl} alt={product.name} className="bsc-img" />
+        <ProductWatermark />
       </div>
 
       {/* Body */}
@@ -67,7 +71,7 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
 
         {/* Price */}
         <div className="bsc-price-row">
-          <span className="bsc-price">₹{typeof product.price === "number" ? product.price.toLocaleString("en-IN") : product.price}</span>
+          <span className="bsc-price">{format(product.price)}</span>
           <span className="bsc-unit"> / {product.priceUnit || "Piece"}</span>
         </div>
 
@@ -166,6 +170,7 @@ export default function BestSelling() {
           background: #F5E0C8;
           border-radius: 16px 16px 0 0;
           overflow: hidden;
+          position: relative;
           flex-shrink: 0;
         }
         .bsc-img {
