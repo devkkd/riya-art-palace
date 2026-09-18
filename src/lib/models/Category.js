@@ -20,6 +20,12 @@ const CategorySchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    // Long description shown on products listing page
+    longDescription: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     image: {
       type: String,
       required: [true, "Category image is required"],

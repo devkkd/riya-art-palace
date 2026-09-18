@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaWhatsapp } from "react-icons/fa";
+import { Sparkles, ChevronDown, ChevronUp } from "lucide-react";
 import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
 import Footer from "./Footer";
@@ -10,8 +11,8 @@ import { useCart } from "@/app/components/CartContext";
 import { useCurrency } from "@/app/components/CurrencyContext";
 import ProductWatermark from "./ProductWatermark";
 
-const moqOptions = ["1 - 100 pcs","100 - 500 pcs","500 - 1000 pcs","1000+ pcs"];
-const sortOptions = ["Recommended","New Arrivals","Price High to Low","Price Low to High"];
+const moqOptions = ["1 - 100 pcs", "100 - 500 pcs", "500 - 1000 pcs", "1000+ pcs"];
+const sortOptions = ["Recommended", "New Arrivals", "Price High to Low", "Price Low to High"];
 
 
 /* ============================================================
@@ -54,33 +55,229 @@ const styles = `
     align-items: center;
     gap: 6px;
     overflow-x: auto;
-    padding-bottom: 20px;
-    margin-bottom: 30px;
+    padding-bottom: 18px;
+    margin-bottom: 24px;
     border-bottom: 1px solid #D7CEC5;
     scrollbar-width: none;
   }
   .pp-cat-row::-webkit-scrollbar { display: none; }
   .pp-cat-pill {
     min-width: fit-content;
-    height: 52px;
+    height: 50px;
     padding: 0 22px;
     border: none;
     border-radius: 999px;
     background: #D7CEC5;
     color: #2B2B2B;
     font-family: "Manrope", sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
-    transition: background .2s, color .2s;
+    transition: all .2s ease;
     white-space: nowrap;
   }
   .pp-cat-pill.active {
     background: #F85700;
     color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(248, 87, 0, 0.28);
   }
-  .pp-cat-pill:hover { opacity: .88; }
+  .pp-cat-pill:hover:not(.active) {
+    background: #CCC1B6;
+    color: #1A1A1A;
+  }
+
+  /* ── Category Showcase Hero Banner ── */
+  .pp-cat-hero {
+    background: linear-gradient(135deg, #FFFFFF 0%, #FAF8F5 55%, #F4ECE4 100%);
+    border: 1px solid #E5DDD3;
+    border-radius: 16px;
+    position: relative;
+    padding: 26px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px -4px rgba(43, 30, 20, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .pp-cat-hero::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #F85700 0%, #D84800 100%);
+    border-radius: 4px 0 0 4px;
+  }
+  .pp-cat-hero-inner {
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+    position: relative;
+  }
+  .pp-cat-hero-main {
+    flex: 1;
+    min-width: 0;
+  }
+  .pp-cat-hero-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .pp-cat-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Manrope", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: #F85700;
+    background: rgba(248, 87, 0, 0.08);
+    border: 1px solid rgba(248, 87, 0, 0.22);
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+  .pp-cat-hero-count {
+    font-family: "Manrope", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7A7067;
+    background: rgba(0, 0, 0, 0.04);
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+  .pp-cat-hero-title-group {
+    margin-bottom: 12px;
+  }
+  .pp-cat-hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(22px, 2.4vw, 28px);
+    font-weight: 800;
+    color: #161514;
+    line-height: 1.25;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.01em;
+  }
+  .pp-cat-hero-subtitle {
+    font-family: "Manrope", sans-serif;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #8C7F72;
+    line-height: 1.5;
+  }
+  .pp-cat-hero-desc {
+    font-family: "Manrope", sans-serif;
+    font-size: 14.5px;
+    line-height: 1.8;
+    color: #4A443E;
+    margin: 0;
+    white-space: pre-line;
+    transition: all 0.3s ease;
+  }
+  .pp-cat-hero-desc.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .pp-cat-hero-readmore-btn {
+    background: none;
+    border: none;
+    padding: 6px 0 0;
+    font-family: "Manrope", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #F85700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s ease;
+  }
+  .pp-cat-hero-readmore-btn:hover {
+    color: #D84800;
+    text-decoration: underline;
+  }
+  .pp-cat-hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(229, 221, 211, 0.85);
+  }
+  .pp-cat-hero-tag {
+    font-family: "Manrope", sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4F463D;
+    background: #FFFFFF;
+    border: 1px solid #E5DDD3;
+    padding: 5px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .pp-cat-hero-image-wrap {
+    flex-shrink: 0;
+    width: 104px;
+    height: 104px;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid #FFFFFF;
+    box-shadow: 0 4px 14px rgba(43, 30, 20, 0.08);
+    background: #EDE6DF;
+  }
+  .pp-cat-hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+  .pp-cat-hero:hover .pp-cat-hero-image {
+    transform: scale(1.06);
+  }
+  .pp-cat-hero-image-badge {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(22, 21, 20, 0.72);
+    backdrop-filter: blur(4px);
+    color: #FFFFFF;
+    font-family: "Manrope", sans-serif;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 3px 2px;
+  }
+  @media (max-width: 768px) {
+    .pp-cat-hero {
+      padding: 20px 18px;
+      border-radius: 14px;
+      margin-bottom: 22px;
+    }
+    .pp-cat-hero-inner {
+      flex-direction: column-reverse;
+      gap: 14px;
+    }
+    .pp-cat-hero-image-wrap {
+      width: 70px;
+      height: 70px;
+      border-radius: 10px;
+    }
+  }
 
   /* ── Layout ── */
   .pp-layout {
@@ -586,7 +783,7 @@ function ProductCard({ product }) {
           <div className="pc-tag">{product.subcategory.name}</div>
         )}
         {product.sku && (
-          <div style={{ fontFamily:"Manrope,sans-serif", fontSize:9, fontWeight:700, color:"#aaa", letterSpacing:"0.06em", marginBottom:4 }}>
+          <div style={{ fontFamily: "Manrope,sans-serif", fontSize: 9, fontWeight: 700, color: "#aaa", letterSpacing: "0.06em", marginBottom: 4 }}>
             SKU: {product.sku}
           </div>
         )}
@@ -639,14 +836,15 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
   const { categories, subcategories, products: allProducts, loading } = useCatalog();
 
-  const categorySlugParam  = searchParams.get("category");
+  const categorySlugParam = searchParams.get("category");
   const subcategorySlugParam = searchParams.get("subcategory");
-  const searchQueryParam   = searchParams.get("q");
+  const searchQueryParam = searchParams.get("q");
 
   const [activeCategorySlug, setActiveCategorySlug] = useState("");
-  const [selectedSubCatId,   setSelectedSubCatId]   = useState("all");
-  const [selectedMOQ,        setSelectedMOQ]        = useState("");
-  const [selectedSort,       setSelectedSort]       = useState("Recommended");
+  const [selectedSubCatId, setSelectedSubCatId] = useState("all");
+  const [selectedMOQ, setSelectedMOQ] = useState("");
+  const [selectedSort, setSelectedSort] = useState("Recommended");
+  const [isDescExpanded, setIsDescExpanded] = useState(false);
 
   // Sync category + subcategory from URL params
   useEffect(() => {
@@ -658,6 +856,11 @@ export default function ProductsPage() {
       setActiveCategorySlug(categories[0].slug);
     }
   }, [categorySlugParam, categories, activeCategorySlug, subcategorySlugParam]);
+
+  // Reset collapsible description whenever category changes
+  useEffect(() => {
+    setIsDescExpanded(false);
+  }, [categorySlugParam, activeCategorySlug]);
 
   // Sync subcategory URL param to state
   useEffect(() => {
@@ -672,7 +875,8 @@ export default function ProductsPage() {
     }
   }, [subcategorySlugParam, subcategories, categories]);
 
-  const activeCategory   = categories.find(c => c.slug === activeCategorySlug) || categories[0];
+  const currentCategorySlug = activeCategorySlug || categorySlugParam || (categories.length > 0 ? categories[0].slug : "");
+  const activeCategory = categories.find(c => c.slug === currentCategorySlug) || categories[0];
   const activeCategoryId = activeCategory?.id || activeCategory?._id?.toString() || "";
 
   // Filter subcategories — sub.category is always a plain string (ObjectId)
@@ -754,7 +958,7 @@ export default function ProductsPage() {
               categories.map((cat) => (
                 <button
                   key={cat.id || cat._id}
-                  className={`pp-cat-pill${activeCategorySlug === cat.slug ? " active" : ""}`}
+                  className={`pp-cat-pill${currentCategorySlug === cat.slug ? " active" : ""}`}
                   onClick={() => {
                     router.push(`/products?category=${cat.slug}`);
                   }}
@@ -764,6 +968,88 @@ export default function ProductsPage() {
               ))
             )}
           </div>
+
+          {/* Active Category Long Description Showcase Banner (Only shown when added via Admin Panel) */}
+          {!loading && activeCategory && activeCategory.longDescription?.trim() && (
+            <div className="pp-cat-hero">
+              <div className="pp-cat-hero-inner">
+                {/* Main Content */}
+                <div className="pp-cat-hero-main">
+                  {/* Top Bar: Badge + Item Count */}
+                  <div className="pp-cat-hero-top">
+                    <span className="pp-cat-hero-badge">
+                      <Sparkles size={13} style={{ color: "#F85700" }} />
+                      Jaipur Artisan Collection
+                    </span>
+                    {/* <span className="pp-cat-hero-count">
+                      {filteredProducts.length} {filteredProducts.length === 1 ? "Product" : "Products"} in Collection
+                    </span> */}
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <div className="pp-cat-hero-title-group">
+                    <h2 className="pp-cat-hero-title">
+                      {activeCategory.name}
+                    </h2>
+                    {activeCategory.description && (
+                      <div className="pp-cat-hero-subtitle">
+                        {activeCategory.description}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Long Description Body (Strictly from Admin Panel) */}
+                  <div className={`pp-cat-hero-desc${!isDescExpanded && activeCategory.longDescription.trim().length > 210 ? " collapsed" : ""}`}>
+                    {activeCategory.longDescription}
+                  </div>
+
+                  {/* Read More / Show Less Toggle */}
+                  {activeCategory.longDescription.trim().length > 210 && (
+                    <button
+                      type="button"
+                      className="pp-cat-hero-readmore-btn"
+                      onClick={() => setIsDescExpanded(!isDescExpanded)}
+                      aria-expanded={isDescExpanded}
+                    >
+                      {isDescExpanded ? (
+                        <>Show Less <ChevronUp size={15} /></>
+                      ) : (
+                        <>Read Full Overview <ChevronDown size={15} /></>
+                      )}
+                    </button>
+                  )}
+
+                  {/* Craft Highlights */}
+                  <div className="pp-cat-hero-tags">
+                    <span className="pp-cat-hero-tag">
+                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> 100% Handcrafted in Jaipur
+                    </span>
+                    <span className="pp-cat-hero-tag">
+                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Export & Bulk Orders Ready
+                    </span>
+                    <span className="pp-cat-hero-tag">
+                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Authentic Heritage Craft
+                    </span>
+                  </div>
+                </div>
+
+                {/* Category Thumbnail */}
+                {activeCategory.image && (
+                  <div className="pp-cat-hero-image-wrap">
+                    <img
+                      src={activeCategory.image}
+                      alt={activeCategory.name}
+                      className="pp-cat-hero-image"
+                      loading="lazy"
+                    />
+                    <div className="pp-cat-hero-image-badge">
+                      Artisanal
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* ── LISTING VIEW ── */}
           {loading ? (
@@ -834,7 +1120,7 @@ export default function ProductsPage() {
                   ))}
                 </div>
 
-                <button className="pp-apply-btn" onClick={() => {}}>Apply Filter</button>
+                <button className="pp-apply-btn" onClick={() => { }}>Apply Filter</button>
               </aside>
 
               {/* Products Area */}

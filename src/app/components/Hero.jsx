@@ -163,8 +163,8 @@
 //             </h1>
 //             <h2
 //               style={{
-//                 fontFamily: "'Playfair Display', Georgia, serif",
-//                 fontStyle: "italic",
+//                 fontFamily: "Arial, Helvetica, sans-serif",
+//                 fontStyle: "normal",
 //                 color: "#0E0E0E",
 //                 fontWeight: "700",
 //                 fontSize: "50px",
@@ -276,8 +276,8 @@
 //             </h1>
 //             <h2
 //               style={{
-//                 fontFamily: "'Playfair Display', Georgia, serif",
-//                 fontStyle: "italic",
+//                 fontFamily: "Arial, Helvetica, sans-serif",
+//                 fontStyle: "normal",
 //                 color: "#0E0E0E",
 //                 fontWeight: "700",
 //                 fontSize: "clamp(16px, 4.5vw, 22px)",
@@ -943,17 +943,17 @@ export default function Hero() {
             <h2
               style={{
                 fontFamily:
-                  "'Playfair Display', Georgia, serif",
+                  "Arial, Helvetica, sans-serif",
 
-                fontStyle: "italic",
+                fontStyle: "normal",
 
                 color: "#0E0E0E",
 
-                fontWeight: "700",
+                fontWeight: "600",
 
-                fontSize: "50px",
+                fontSize: "40px",
 
-                lineHeight: "1.55",
+                lineHeight: "1.25",
 
                 letterSpacing: "-0.02em",
 
@@ -1136,9 +1136,9 @@ export default function Hero() {
             <h2
               style={{
                 fontFamily:
-                  "'Playfair Display', Georgia, serif",
+                  "Arial, Helvetica, sans-serif",
 
-                fontStyle: "italic",
+                fontStyle: "normal",
 
                 color: "#0E0E0E",
 

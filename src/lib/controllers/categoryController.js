@@ -19,7 +19,8 @@ export const categoryController = {
             ...cat,
             id: cat._id.toString(),
             subcategoriesCount: subCount,
-            showOnHome: cat.showOnHome !== false, // default true
+            showOnHome: cat.showOnHome !== false,
+            longDescription: cat.longDescription || "",
           };
         })
       );
@@ -54,7 +55,9 @@ export const categoryController = {
       }
 
       const newCategory = await Category.create({
-        name, slug, description, image,
+        name, slug, description,
+        longDescription: parsed.data.longDescription || "",
+        image,
         order: order ?? 0,
         showOnHome: showOnHome !== false,
       });
@@ -62,13 +65,14 @@ export const categoryController = {
       return successResponse(
         {
           category: {
-            id:          newCategory._id.toString(),
-            name:        newCategory.name,
-            slug:        newCategory.slug,
-            description: newCategory.description,
-            image:       newCategory.image,
-            order:       newCategory.order,
-            showOnHome:  newCategory.showOnHome,
+            id:              newCategory._id.toString(),
+            name:            newCategory.name,
+            slug:            newCategory.slug,
+            description:     newCategory.description,
+            longDescription: newCategory.longDescription,
+            image:           newCategory.image,
+            order:           newCategory.order,
+            showOnHome:      newCategory.showOnHome,
           },
           message: "Category created successfully",
         },
@@ -113,22 +117,24 @@ export const categoryController = {
         category.slug = slug;
       }
 
-      if (description !== undefined) category.description = description;
-      if (image)                     category.image = image;
-      if (order !== undefined)       category.order = order;
-      if (showOnHome !== undefined)  category.showOnHome = showOnHome;
+      if (description !== undefined)     category.description     = description;
+      if (parsed.data.longDescription !== undefined) category.longDescription = parsed.data.longDescription;
+      if (image)                         category.image           = image;
+      if (order !== undefined)           category.order           = order;
+      if (showOnHome !== undefined)      category.showOnHome      = showOnHome;
 
       await category.save();
 
       return successResponse({
         category: {
-          id:          category._id.toString(),
-          name:        category.name,
-          slug:        category.slug,
-          description: category.description,
-          image:       category.image,
-          order:       category.order,
-          showOnHome:  category.showOnHome,
+          id:              category._id.toString(),
+          name:            category.name,
+          slug:            category.slug,
+          description:     category.description,
+          longDescription: category.longDescription,
+          image:           category.image,
+          order:           category.order,
+          showOnHome:      category.showOnHome,
         },
         message: "Category updated successfully",
       });

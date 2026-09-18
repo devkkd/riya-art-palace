@@ -16,7 +16,7 @@ export default function CategoriesPage() {
   const [modalOpen, setModalOpen]         = useState(false);
   const [modalMode, setModalMode]         = useState("create");
   const [currentCategoryId, setCurrentCategoryId] = useState(null);
-  const [formData, setFormData]           = useState({ name: "", description: "", image: "", order: 0, showOnHome: true });
+  const [formData, setFormData]           = useState({ name: "", description: "", longDescription: "", image: "", order: 0, showOnHome: true });
   const [uploading, setUploading]         = useState(false);
   const [saving, setSaving]               = useState(false);
   const [formError, setFormError]         = useState("");
@@ -70,7 +70,7 @@ export default function CategoriesPage() {
 
   const openCreateModal = () => {
     setModalMode("create");
-    setFormData({ name: "", description: "", image: "", order: categories.length, showOnHome: true });
+    setFormData({ name: "", description: "", longDescription: "", image: "", order: categories.length, showOnHome: true });
     setCurrentCategoryId(null);
     setFormError("");
     setModalOpen(true);
@@ -78,7 +78,7 @@ export default function CategoriesPage() {
 
   const openEditModal = (category) => {
     setModalMode("edit");
-    setFormData({ name: category.name, description: category.description || "", image: category.image, order: category.order ?? 0, showOnHome: category.showOnHome !== false });
+    setFormData({ name: category.name, description: category.description || "", longDescription: category.longDescription || "", image: category.image, order: category.order ?? 0, showOnHome: category.showOnHome !== false });
     setCurrentCategoryId(category.id);
     setFormError("");
     setModalOpen(true);
@@ -229,9 +229,24 @@ export default function CategoriesPage() {
                 </div>
 
                 <div className="adm-form-group">
-                  <label className="adm-form-label">Description</label>
-                  <textarea className="adm-form-textarea" placeholder="Describe the category..." value={formData.description}
+                  <label className="adm-form-label">Description <span style={{ fontWeight:400, color:"var(--adm-muted)", fontSize:11 }}>(short — shown in footer/nav)</span></label>
+                  <textarea className="adm-form-textarea" placeholder="Short description..." value={formData.description}
                     onChange={e => setFormData(p => ({ ...p, description: e.target.value }))} disabled={saving} />
+                </div>
+
+                <div className="adm-form-group">
+                  <label className="adm-form-label">
+                    Long Description
+                    <span style={{ fontWeight:400, color:"var(--adm-muted)", fontSize:11, marginLeft:6 }}>(optional — shown on products listing page)</span>
+                  </label>
+                  <textarea className="adm-form-textarea" placeholder="Write a detailed description for this category. This will appear on the products page when this category is selected..."
+                    style={{ minHeight:120 }}
+                    value={formData.longDescription || ""}
+                    onChange={e => setFormData(p => ({ ...p, longDescription: e.target.value }))}
+                    disabled={saving} />
+                  <p style={{ fontSize:11, color:"var(--adm-muted)", marginTop:4 }}>
+                    Supports plain text. Shown below the category title on the products listing page.
+                  </p>
                 </div>
 
                 <div className="adm-form-group">
