@@ -6,8 +6,10 @@ import FollowUs from "./FollowUs";
 import Footer from "./Footer";
 import ValuesSection from "./ValuesSection.jsx";
 
+import Link from "next/link";
+
 /* ── Hover accordion help item ── */
-function HelpItem({ icon, title, body }) {
+function HelpItem({ icon, title, body, link, linkText }) {
   const [open, setOpen] = useState(false);
   return (
     <div
@@ -57,11 +59,70 @@ function HelpItem({ icon, title, body }) {
           fontFamily: "Manrope, sans-serif", fontSize: 12, fontWeight: 400,
           lineHeight: 1.65, color: "#888",
           paddingLeft: 42, paddingTop: 8,
-        }}>{body}</div>
+        }}>
+          {body}
+          {link && (
+            <div style={{ marginTop: "10px" }}>
+              <Link href={link} style={{ color: "#F85700", fontWeight: 700, textDecoration: "none", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                {linkText || "Learn More →"}
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 }
+
+/* ── FAQ Item ── */
+function FaqItem({ question, answer }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div
+      onClick={() => setOpen(!open)}
+      style={{
+        borderBottom: "1px solid #E8E2DC",
+        padding: "20px 0",
+        cursor: "pointer",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16,
+        fontFamily: "Manrope, sans-serif", fontSize: 16, fontWeight: 700,
+        color: open ? "#F85700" : "#1a1a1a", transition: "color .2s",
+      }}>
+        <span>{question}</span>
+        <span style={{
+          fontSize: 20, fontWeight: 400, color: open ? "#F85700" : "#888",
+          transform: open ? "rotate(45deg)" : "rotate(0)",
+          transition: "transform .3s ease, color .2s", display: "inline-block"
+        }}>+</span>
+      </div>
+      <div style={{
+        maxHeight: open ? "300px" : 0,
+        opacity: open ? 1 : 0,
+        paddingTop: open ? 12 : 0,
+        transition: "max-height .4s ease, opacity .3s ease, padding-top .3s ease",
+      }}>
+        <div style={{
+          fontFamily: "Manrope, sans-serif", fontSize: 14, fontWeight: 500,
+          lineHeight: 1.6, color: "#666",
+        }}>
+          {answer}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const faqs = [
+  { q: "Do you ship internationally?", a: "Yes, we export to Spain, Netherlands, Denmark, and worldwide. Shipping costs vary based on order size and destination." },
+  { q: "What is your minimum order quantity (MOQ)?", a: "For retail orders, there is no MOQ. For wholesale or export orders, the MOQ depends on the product category. Please contact us for details." },
+  { q: "Can I customise products with my brand logo?", a: "Absolutely! We offer customisation and private labeling (OEM) for bulk orders, including custom colors, designs, and packaging." },
+  { q: "How long does it take to process an order?", a: "Retail orders are typically processed within 2-4 business days. Bulk and custom orders take 2-4 weeks depending on the quantity and craftsmanship required." },
+  { q: "Do you offer samples before placing a bulk order?", a: "Yes, we can provide samples. Sample costs and shipping will apply, which can be adjusted against your final bulk order." },
+];
 
 /* ============================================================
    CONTACT PAGE
@@ -483,6 +544,16 @@ export default function ContactPage() {
   line-height: 1;
 }
 
+.cp-faq-section {
+  background: #FFFDFB;
+  padding: 80px 20px;
+  border-top: 1px solid #E8E2DC;
+}
+.cp-faq-wrap {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
         /* ── Responsive ── */
         @media (max-width: 768px) {
           .cp-two-col {
@@ -574,13 +645,13 @@ export default function ContactPage() {
                         <p className="cp-right-intro">We Handle All Kinds Of Enquiries - Just Let Us Know What You Need:</p>
 
                         {[
-                          { icon:"🧡", title:"Product & Gifting Enquiries",       body:"Looking For A Specific Product, Gift Set, Or Occasion-based Collection? Tell Us What You Have In Mind And We Will Help You Find The Perfect Piece." },
-                          { icon:"🧡", title:"Bulk & Wholesale Orders",            body:"Planning A Large Order For Retail, Corporate Gifting, Or An Event? Share Your Requirements And We Will Send You A Detailed Quotation." },
-                          { icon:"🌐", title:"Export & International Enquiries",   body:"We Export To Spain, Netherlands, Denmark, And Beyond. If You Are An International Buyer Or Importer, We Would Love To Connect And Discuss Your Requirements." },
-                          { icon:"🎁", title:"Custom & Personalised Orders",       body:"Need A Product In A Specific Colour, Size, Design, Or With Your Brand's Logo? We Offer Customisation Across Most Of Our Product Range." },
-                          { icon:"📋", title:"Trade & Wholesale Registration",     body:"Want To Become A Verified Trade Partner And Access Our Full Product Catalogue With Complete Specifications? Start Your Registration Here." },
+                          { icon:"🧡", title:"Product & Gifting Enquiries",       body:"Looking For A Specific Product, Gift Set, Or Occasion-based Collection? Tell Us What You Have In Mind And We Will Help You Find The Perfect Piece.", link: "/enquiry?type=india", linkText: "Enquire Now →" },
+                          { icon:"🧡", title:"Bulk & Wholesale Orders",            body:"Planning A Large Order For Retail, Corporate Gifting, Or An Event? Share Your Requirements And We Will Send You A Detailed Quotation.", link: "/enquiry?type=bulk", linkText: "Get a Quote →" },
+                          { icon:"🌐", title:"Export & International Enquiries",   body:"We Export To Spain, Netherlands, Denmark, And Beyond. If You Are An International Buyer Or Importer, We Would Love To Connect And Discuss Your Requirements.", link: "/enquiry?type=export", linkText: "Contact Export Team →" },
+                          { icon:"🎁", title:"Custom & Personalised Orders",       body:"Need A Product In A Specific Colour, Size, Design, Or With Your Brand's Logo? We Offer Customisation Across Most Of Our Product Range.", link: "/enquiry?type=custom", linkText: "Discuss Customisation →" },
+                          { icon:"📋", title:"Trade & Wholesale Registration",     body:"Want To Become A Verified Trade Partner And Access Our Full Product Catalogue With Complete Specifications? Start Your Registration Here.", link: "/enquiry?type=trade", linkText: "Register Now →" },
                         ].map((item, idx) => (
-                          <HelpItem key={idx} icon={item.icon} title={item.title} body={item.body} />
+                          <HelpItem key={idx} icon={item.icon} title={item.title} body={item.body} link={item.link} linkText={item.linkText} />
                         ))}
                     </div>
 
@@ -638,16 +709,9 @@ export default function ContactPage() {
                                         onChange={handleChange}
                                     >
                                         <option value="">Select your country</option>
-                                        <option>India</option>
-                                        <option>United States</option>
-                                        <option>United Kingdom</option>
-                                        <option>Germany</option>
-                                        <option>Netherlands</option>
-                                        <option>Denmark</option>
-                                        <option>Spain</option>
-                                        <option>Australia</option>
-                                        <option>Canada</option>
-                                        <option>Other</option>
+                                        {[
+                                          "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo, Democratic Republic of the", "Congo, Republic of the", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe", "Other"
+                                        ].map(c => <option key={c}>{c}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -713,18 +777,18 @@ export default function ContactPage() {
                                         onChange={handleChange}
                                     >
                                         <option value="">Select Product Category</option>
-                                        <option>Wall Décor</option>
-                                        <option>Table Décor</option>
-                                        <option>Lac Collection</option>
+                                        <option>Christmas Items</option>
+                                        <option>Diary Collection</option>
                                         <option>Event Décor</option>
                                         <option>Festive Collection</option>
-                                        <option>Rajasthani Traditional</option>
                                         <option>Handmade Accessories</option>
-                                        <option>Spiritual Items</option>
                                         <option>Handpainted Articles</option>
-                                        <option>Diary Collection</option>
-                                        <option>Christmas Items</option>
+                                        <option>Lac Collection</option>
                                         <option>Ottomans &amp; Puffs</option>
+                                        <option>Rajasthani Traditional</option>
+                                        <option>Spiritual Items</option>
+                                        <option>Table Décor</option>
+                                        <option>Wall Décor</option>
                                     </select>
                                 </div>
                             </div>
@@ -784,6 +848,16 @@ export default function ContactPage() {
                                 Submit Enquiry <span className="arrow">→</span>
                             </button>
                         </div>
+                    </div>
+                </div>
+
+                {/* ── FAQ SECTION ── */}
+                <div className="cp-faq-section">
+                    <h2 className="cp-form-title" style={{ marginBottom: "40px" }}>Frequently Asked Questions</h2>
+                    <div className="cp-faq-wrap">
+                        {faqs.map((faq, idx) => (
+                            <FaqItem key={idx} question={faq.q} answer={faq.a} />
+                        ))}
                     </div>
                 </div>
 

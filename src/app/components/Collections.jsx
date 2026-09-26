@@ -343,7 +343,7 @@ export default function Collections() {
         {/* ── Grid ── */}
         <div className="coll-grid">
           {loading
-            ? Array.from({ length: 8 }).map((_, i) => (
+            ? Array.from({ length: 7 }).map((_, i) => (
                 <div key={i} className={`coll-card ${i === 0 ? "coll-card-featured" : ""}`}>
                   <SkeletonCard tall={i === 0} />
                 </div>

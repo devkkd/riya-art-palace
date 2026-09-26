@@ -1,8 +1,1208 @@
+// "use client";
+// import { useState, useEffect } from "react";
+// import { useRouter, useSearchParams } from "next/navigation";
+// import { FaWhatsapp } from "react-icons/fa";
+// import { Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+// import Navbar from "./Navbar";
+// import FollowUs from "./FollowUs";
+// import Footer from "./Footer";
+// import { useCatalog } from "@/app/components/CatalogContext";
+// import { useCart } from "@/app/components/CartContext";
+// import { useCurrency } from "@/app/components/CurrencyContext";
+// import ProductWatermark from "./ProductWatermark";
+
+// const moqOptions = ["1 - 100 pcs", "100 - 500 pcs", "500 - 1000 pcs", "1000+ pcs"];
+// const sortOptions = ["Recommended", "New Arrivals", "Price High to Low", "Price Low to High"];
+
+// /* ============================================================
+//    STYLES
+//    ============================================================ */
+// const styles = `
+//   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+//   @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+//   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+//   /* ── Page Shell ── */
+//   .pp-page {
+//     background: #F7F5F3;
+//     min-height: 100vh;
+//     font-family: "Poppins", sans-serif;
+//   }
+//   .pp-container {
+//     max-width: 1440px;
+//     margin: 0 auto;
+//     padding: 0 40px;
+//   }
+
+//   /* ── Page Title ── */
+//  .pp-title {
+//   text-align: center;
+//   font-family: "Manrope", sans-serif;
+//   font-size: 30px;
+//   font-weight: 700;
+//   line-height: 160%;
+//   letter-spacing: -0.04em;
+//   color: #0E0E0E;
+//   margin-top: 12px;
+//   margin-bottom: 28px;
+// }
+
+//   /* ── Category Pills ── */
+//   .pp-cat-row {
+//     display: flex;
+//     align-items: center;
+//     gap: 6px;
+//     overflow-x: auto;
+//     padding-bottom: 18px;
+//     margin-bottom: 24px;
+//     border-bottom: 1px solid #D7CEC5;
+//     scrollbar-width: none;
+//   }
+//   .pp-cat-row::-webkit-scrollbar { display: none; }
+//   .pp-cat-pill {
+//     min-width: fit-content;
+//     height: 50px;
+//     padding: 0 22px;
+//     border: none;
+//     border-radius: 999px;
+//     background: #D7CEC5;
+//     color: #2B2B2B;
+//     font-family: "Manrope", sans-serif;
+//     font-size: 14px;
+//     font-weight: 500;
+//     cursor: pointer;
+//     transition: all .2s ease;
+//     white-space: nowrap;
+//   }
+//   .pp-cat-pill.active {
+//     background: #F85700;
+//     color: #fff;
+//     font-weight: 600;
+//     box-shadow: 0 4px 12px rgba(248, 87, 0, 0.28);
+//   }
+//   .pp-cat-pill:hover:not(.active) {
+//     background: #CCC1B6;
+//     color: #1A1A1A;
+//   }
+
+//   /* ── Category Showcase Hero Banner ── */
+//   .pp-cat-hero {
+//     background: linear-gradient(135deg, #FFFFFF 0%, #FAF8F5 55%, #F4ECE4 100%);
+//     border: 1px solid #E5DDD3;
+//     border-radius: 16px;
+//     position: relative;
+//     padding: 26px 30px;
+//     margin-bottom: 30px;
+//     box-shadow: 0 4px 20px -4px rgba(43, 30, 20, 0.05);
+//     overflow: hidden;
+//     transition: all 0.3s ease;
+//   }
+//   .pp-cat-hero::before {
+//     content: "";
+//     position: absolute;
+//     top: 0;
+//     left: 0;
+//     width: 4px;
+//     height: 100%;
+//     background: linear-gradient(180deg, #F85700 0%, #D84800 100%);
+//     border-radius: 4px 0 0 4px;
+//   }
+//   .pp-cat-hero-inner {
+//     display: flex;
+//     gap: 28px;
+//     align-items: flex-start;
+//     position: relative;
+//   }
+//   .pp-cat-hero-main {
+//     flex: 1;
+//     min-width: 0;
+//   }
+//   .pp-cat-hero-top {
+//     display: flex;
+//     align-items: center;
+//     justify-content: space-between;
+//     flex-wrap: wrap;
+//     gap: 10px;
+//     margin-bottom: 8px;
+//   }
+//   .pp-cat-hero-badge {
+//     display: inline-flex;
+//     align-items: center;
+//     gap: 6px;
+//     font-family: "Manrope", sans-serif;
+//     font-size: 11px;
+//     font-weight: 700;
+//     letter-spacing: 0.07em;
+//     text-transform: uppercase;
+//     color: #F85700;
+//     background: rgba(248, 87, 0, 0.08);
+//     border: 1px solid rgba(248, 87, 0, 0.22);
+//     padding: 4px 12px;
+//     border-radius: 999px;
+//   }
+//   .pp-cat-hero-count {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 12px;
+//     font-weight: 600;
+//     color: #7A7067;
+//     background: rgba(0, 0, 0, 0.04);
+//     padding: 4px 12px;
+//     border-radius: 999px;
+//   }
+//   .pp-cat-hero-title-group {
+//     margin-bottom: 12px;
+//   }
+//   .pp-cat-hero-title {
+//     font-family: 'Playfair Display', serif;
+//     font-size: clamp(22px, 2.4vw, 28px);
+//     font-weight: 800;
+//     color: #161514;
+//     line-height: 1.25;
+//     margin: 0 0 6px 0;
+//     letter-spacing: -0.01em;
+//   }
+//   .pp-cat-hero-subtitle {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 13.5px;
+//     font-weight: 600;
+//     color: #8C7F72;
+//     line-height: 1.5;
+//   }
+//   .pp-cat-hero-desc {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 14.5px;
+//     line-height: 1.8;
+//     color: #4A443E;
+//     margin: 0;
+//     white-space: pre-line;
+//     transition: all 0.3s ease;
+//   }
+//   .pp-cat-hero-desc.collapsed {
+//     display: -webkit-box;
+//     -webkit-line-clamp: 3;
+//     -webkit-box-orient: vertical;
+//     overflow: hidden;
+//   }
+//   .pp-cat-hero-readmore-btn {
+//     background: none;
+//     border: none;
+//     padding: 6px 0 0;
+//     font-family: "Manrope", sans-serif;
+//     font-size: 13px;
+//     font-weight: 700;
+//     color: #F85700;
+//     cursor: pointer;
+//     display: inline-flex;
+//     align-items: center;
+//     gap: 4px;
+//     transition: color 0.15s ease;
+//   }
+//   .pp-cat-hero-readmore-btn:hover {
+//     color: #D84800;
+//     text-decoration: underline;
+//   }
+//   .pp-cat-hero-tags {
+//     display: flex;
+//     flex-wrap: wrap;
+//     gap: 8px;
+//     margin-top: 16px;
+//     padding-top: 14px;
+//     border-top: 1px solid rgba(229, 221, 211, 0.85);
+//   }
+//   .pp-cat-hero-tag {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 12px;
+//     font-weight: 600;
+//     color: #4F463D;
+//     background: #FFFFFF;
+//     border: 1px solid #E5DDD3;
+//     padding: 5px 12px;
+//     border-radius: 6px;
+//     display: inline-flex;
+//     align-items: center;
+//     gap: 6px;
+//     box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+//   }
+//   .pp-cat-hero-image-wrap {
+//     flex-shrink: 0;
+//     width: 104px;
+//     height: 104px;
+//     border-radius: 12px;
+//     overflow: hidden;
+//     position: relative;
+//     border: 2px solid #FFFFFF;
+//     box-shadow: 0 4px 14px rgba(43, 30, 20, 0.08);
+//     background: #EDE6DF;
+//   }
+//   .pp-cat-hero-image {
+//     width: 100%;
+//     height: 100%;
+//     object-fit: cover;
+//     display: block;
+//     transition: transform 0.35s ease;
+//   }
+//   .pp-cat-hero:hover .pp-cat-hero-image {
+//     transform: scale(1.06);
+//   }
+//   .pp-cat-hero-image-badge {
+//     position: absolute;
+//     bottom: 0;
+//     left: 0;
+//     right: 0;
+//     background: rgba(22, 21, 20, 0.72);
+//     backdrop-filter: blur(4px);
+//     color: #FFFFFF;
+//     font-family: "Manrope", sans-serif;
+//     font-size: 9.5px;
+//     font-weight: 700;
+//     letter-spacing: 0.04em;
+//     text-transform: uppercase;
+//     text-align: center;
+//     padding: 3px 2px;
+//   }
+//   @media (max-width: 768px) {
+//     .pp-cat-hero {
+//       padding: 20px 18px;
+//       border-radius: 14px;
+//       margin-bottom: 22px;
+//     }
+//     .pp-cat-hero-inner {
+//       flex-direction: column-reverse;
+//       gap: 14px;
+//     }
+//     .pp-cat-hero-image-wrap {
+//       width: 70px;
+//       height: 70px;
+//       border-radius: 10px;
+//     }
+//   }
+
+//   /* ── Layout ── */
+//   .pp-layout {
+//     display: grid;
+//     grid-template-columns: 260px 1fr;
+//     gap: 36px;
+//     align-items: start;
+//   }
+
+//   /* ── Sidebar ── */
+//   .pp-sidebar { width: 100%; }
+//   .pp-filter-top {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     padding-bottom: 18px;
+//     border-bottom: 1px solid #CFC6BE;
+//     margin-bottom: 0;
+//   }
+//   .pp-filter-top h3 {
+//       font-family: "Manrope", sans-serif;
+//   font-size: 22px;
+//   font-weight: 700;
+//   color: #0E0E0E;
+
+//   }
+//   .pp-clear-btn {
+//     background: none;
+//     border: none;
+//     font-size: 13px;
+//     color: #555;
+//     cursor: pointer;
+//     font-family: "Poppins", sans-serif;
+//   }
+//   .pp-filter-section {
+//     padding: 24px 0;
+//     border-bottom: 1px solid #CFC6BE;
+//   }
+//   .pp-filter-section h4 {
+//     font-family: "Manrope", sans-serif;
+//   font-size: 18px;
+//   font-weight: 700;
+//   color: #0E0E0E;
+
+//     margin-bottom: 18px;
+   
+//   }
+//   .pp-radio-row {
+//     display: flex;
+//     align-items: center;
+//     gap: 12px;
+//     margin-bottom: 14px;
+//     cursor: pointer;
+//   }
+//   .pp-radio-row span {   font-family: "Manrope", sans-serif;
+//   font-size: 15px;
+//   font-weight: 400;
+//   color: #333;
+// }
+//   .pp-radio-row input[type="radio"] {
+//     width: 22px;
+//     height: 22px;
+//     accent-color: #F85700;
+//     cursor: pointer;
+//   }
+//   .pp-apply-btn {
+//     margin-top: 26px;
+//     width: 110px;
+//     height: 44px;
+//     border: none;
+//     border-radius: 999px;
+//     background: #F85700;
+//     color: #fff;
+//       font-family: "Manrope", sans-serif;
+
+//     font-size: 13px;
+//     font-weight: 700;
+//     cursor: pointer;
+
+//     transition: background .2s;
+//   }
+//   .pp-apply-btn:hover { background: #e85000; }
+
+//   /* ── Products Header ── */
+//   .pp-prod-header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: 24px;
+//   }
+//   .pp-prod-count {   font-family: "Manrope", sans-serif;
+//   font-size: 14px;
+//   font-weight: 400;
+//   color: #666;
+// }
+//   .pp-sort-select {
+//     border: 1px solid #ddd;
+//     border-radius: 999px;
+//     padding: 10px 18px;
+//     background: white;
+//     font-size: 13px;
+//     cursor: pointer;
+//     font-family: "Poppins", sans-serif;
+//     outline: none;
+//   }
+
+//   /* ── Products Grid ── */
+//   .pp-grid {
+//     display: grid;
+//     grid-template-columns: repeat(4, 1fr);
+//     gap: 18px;
+//   }
+
+//   /* ══════════════════════════════════════
+//      PRODUCT CARD — Classic Design
+//   ══════════════════════════════════════ */
+//   .pc-card {
+//     width: 100%;
+//     background: #fff;
+//     border-radius: 12px;
+//     border: 1px solid #E8E2DC;
+//     display: flex;
+//     flex-direction: column;
+//     transition: box-shadow .25s ease, transform .25s ease;
+//     overflow: hidden;
+//     cursor: pointer;
+//     position: relative;
+//   }
+//   .pc-card:hover {
+//     box-shadow: 0 8px 32px rgba(0,0,0,.10);
+//     transform: translateY(-3px);
+//   }
+
+//   /* Image */
+//   .pc-img-wrap {
+//     width: 100%;
+//     aspect-ratio: 1 / 1;
+//     overflow: hidden;
+//     position: relative;
+//     background: #F7F5F3;
+//     border-radius: 12px 12px 0 0;
+//     flex-shrink: 0;
+//   }
+//   .pc-img {
+//     width: 100%;
+//     height: 100%;
+//     object-fit: cover;
+//     object-position: center;
+//     display: block;
+//     transition: transform .5s ease;
+//   }
+//   .pc-card:hover .pc-img { transform: scale(1.06); }
+
+//   /* Body */
+//   .pc-body {
+//     padding: 14px 14px 16px;
+//     display: flex;
+//     flex-direction: column;
+//     flex: 1;
+//     border-top: 1px solid #F0EDE9;
+//   }
+
+//   /* Category tag */
+//   .pc-tag {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 10px;
+//     font-weight: 700;
+//     text-transform: uppercase;
+//     letter-spacing: 0.08em;
+//     color: #F85700;
+//     margin-bottom: 5px;
+//   }
+
+//   .pc-title {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 13px;
+//     font-weight: 700;
+//     line-height: 1.45;
+//     color: #1a1a1a;
+//     margin-bottom: 8px;
+//     display: -webkit-box;
+//     -webkit-line-clamp: 2;
+//     -webkit-box-orient: vertical;
+//     overflow: hidden;
+//   }
+
+//   /* Price row */
+//   .pc-price-row {
+//     display: flex;
+//     align-items: baseline;
+//     gap: 6px;
+//     margin-bottom: 12px;
+//   }
+//   .pc-price {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 16px;
+//     font-weight: 800;
+//     color: #1a1a1a;
+//   }
+//   .pc-price-unit {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 11px;
+//     font-weight: 500;
+//     color: #999;
+//   }
+
+//   .pc-subtitle {
+//     font-size: 11px;
+//     font-weight: 400;
+//     line-height: 1.5;
+//     color: #999;
+//     margin-bottom: 12px;
+//   }
+
+//   /* Divider */
+//   .pc-divider {
+//     border: none;
+//     border-top: 1px solid #F0EDE9;
+//     margin: 0 0 12px;
+//   }
+
+//   /* Qty row */
+//   .pc-qty-row {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     margin-bottom: 10px;
+//   }
+//   .pc-qty-label {
+//     font-size: 10px;
+//     font-family: "Manrope", sans-serif;
+//     font-weight: 700;
+//     letter-spacing: 0.06em;
+//     color: #aaa;
+//     text-transform: uppercase;
+//   }
+//   .pc-qty-ctrl {
+//     display: flex;
+//     align-items: center;
+//     gap: 0;
+//     border: 1px solid #D7CEC5;
+//     border-radius: 999px;
+//     overflow: hidden;
+//     height: 34px;
+//   }
+//   .pc-qty-btn {
+//     border: none;
+//     background: #F7F5F3;
+//     font-size: 18px;
+//     font-weight: 400;
+//     color: #333;
+//     cursor: pointer;
+//     width: 32px;
+//     height: 34px;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     user-select: none;
+//     transition: background .15s;
+//   }
+//   .pc-qty-btn:hover { background: #EDE8E3; }
+//   .pc-qty-num {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 13px;
+//     font-weight: 600;
+//     min-width: 32px;
+//     text-align: center;
+//     color: #1a1a1a;
+//     background: #fff;
+//     height: 34px;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     border-left: 1px solid #D7CEC5;
+//     border-right: 1px solid #D7CEC5;
+//   }
+
+//   /* Cart button */
+//   .pc-cart-btn {
+//     width: 100%;
+//     height: 42px;
+//     border: none;
+//     border-radius: 8px;
+//     background: #1a1a1a;
+//     color: #fff;
+//     font-size: 12px;
+//     font-weight: 700;
+//     font-family: "Manrope", sans-serif;
+//     cursor: pointer;
+//     display: flex;
+//     align-items: center;
+//     justify-content: center;
+//     gap: 6px;
+//     margin-bottom: 10px;
+//     transition: background .2s;
+//     letter-spacing: 0.04em;
+//     text-transform: uppercase;
+//   }
+//   .pc-cart-btn:hover { background: #F85700; }
+//   .pc-cart-btn.added { background: #16a34a; }
+
+//   /* Enquiry links */
+//   .pc-enquiry {
+//     display: flex;
+//     align-items: center;
+//     justify-content: space-between;
+//     padding-top: 8px;
+//     border-top: 1px solid #F0EDE9;
+//   }
+//   .pc-enquiry a {
+//     font-family: "Manrope", sans-serif;
+//     font-size: 11px;
+//     font-weight: 600;
+//     color: #888;
+//     text-decoration: none;
+//     transition: color .15s;
+//   }
+//   .pc-enquiry a:hover { color: #F85700; }
+//   .pc-enquiry-sep {
+//     width: 1px;
+//     height: 12px;
+//     background: #D7CEC5;
+//   }
+
+//   /* ── Pagination ── */
+//   .pp-pagination {
+//     display: flex;
+//     justify-content: center;
+//     gap: 10px;
+//     margin-top: 48px;
+//   }
+//   .pp-page-btn {
+//     width: 44px;
+//     height: 44px;
+//     border-radius: 50%;
+//     border: 1px solid #ddd;
+//     background: white;
+//     font-size: 14px;
+//     cursor: pointer;
+//     font-family: "Poppins", sans-serif;
+//     transition: background .2s, color .2s;
+//   }
+//   .pp-page-btn.active { background: #111; color: white; border-color: #111; }
+//   .pp-page-btn:hover:not(.active) { background: #f0ede9; }
+
+//   /* ── See More ── */
+//   .pp-see-more {
+//     display: flex;
+//     justify-content: center;
+//     margin-top: 44px;
+//     margin-bottom: 20px;
+//   }
+//   .pp-see-more-btn {
+//     height: 54px;
+//     padding: 0 44px;
+//     border: none;
+//     border-radius: 999px;
+//     background: #111;
+//     color: white;
+//     font-size: 15px;
+//     font-family: "Manrope", sans-serif;
+//   font-weight: 700;
+
+//     cursor: pointer;
+
+//     transition: background .2s;
+//   }
+//   .pp-see-more-btn:hover { background: #333; }
+
+//   /* ── WhatsApp FAB ── */
+//   .pp-wa-btn {
+//   position: fixed;
+//   right: 30px;
+//   bottom: 30px;
+
+//   display: flex;
+//   align-items: center;
+//   gap: 10px;
+
+//   background: #5AC44D;
+//   color: #FFFFFF;
+//   text-decoration: none;
+
+//   padding: 15px 20px;
+//   border-radius: 99px;
+
+//   font-family: "Poppins", sans-serif;
+//   font-size: 18px;
+//   font-weight: 500;
+//   line-height: 1;
+
+//   z-index: 9999;
+
+//   box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+//   transition: all 0.3s ease;
+// }
+
+// .pp-wa-btn:hover {
+//   transform: translateY(-2px);
+//   background: #4CAF50;
+// }
+
+// .pp-wa-btn svg {
+//   width: 22px;
+//   height: 22px;
+//   color: #FFFFFF;
+//   flex-shrink: 0;
+// }
+
+// .pp-wa-btn span {
+//   color: #FFFFFF;
+//   font-family: "Poppins", sans-serif;
+//   font-size: 18px;
+//   font-weight: 500;
+// }
+
+// @media (max-width:768px) {
+//   .pp-wa-btn {
+//     right: 16px;
+//     bottom: 16px;
+//     padding: 12px 18px;
+//   }
+
+//   .pp-wa-btn span {
+//     font-size: 16px;
+//   }
+
+//   .pp-wa-btn svg {
+//     width: 20px;
+//     height: 20px;
+//   }
+// }
+//   /* ── Responsive ── */
+//   @media (max-width: 1200px) {
+//     .pp-grid { grid-template-columns: repeat(3, 1fr); }
+//   }
+//   @media (max-width: 1000px) {
+//     .pp-layout { grid-template-columns: 1fr; }
+//     .pp-grid { grid-template-columns: repeat(2, 1fr); }
+//   }
+//   @media (max-width: 768px) {
+//     .pp-container { padding: 0 16px; }
+//     .pp-title { font-size: 26px; }
+//     .pp-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+//     .pc-body { padding: 10px 10px 12px; }
+//     .pc-tag { font-size: 9px; }
+//     .pc-title { font-size: 12px; }
+//     .pc-price { font-size: 14px; }
+//     .pc-subtitle { font-size: 10px; }
+//     .pc-qty-btn { width: 26px; font-size: 16px; }
+//     .pc-qty-num { min-width: 26px; font-size: 12px; }
+//     .pc-cart-btn { height: 36px; font-size: 10px; letter-spacing: 0.02em; }
+//     .pc-enquiry a { font-size: 10px; }
+//   }
+//   @media (max-width: 480px) {
+//     .pc-enquiry { flex-direction: column; align-items: flex-start; gap: 6px; }
+//     .pc-enquiry-sep { display: none; }
+//   }
+// `;
+
+// /* ============================================================
+//    DATA
+//    (Better: move this to src/app/data/products.js and import
+//    in both this file and products/[id]/page.jsx so data stays in sync)
+//    ============================================================ */
+
+
+
+
+// /* ============================================================
+//    PRODUCT CARD (Grid listing)
+//    ============================================================ */
+// function ProductCard({ product }) {
+//   const router = useRouter();
+//   const { addToCart } = useCart();
+//   const { format } = useCurrency();
+//   const [qty, setQty] = useState(product.minOrderQty ?? 500);
+//   const [added, setAdded] = useState(false);
+
+//   const formattedPrice = typeof product.price === "number"
+//     ? `₹ ${product.price}/${product.priceUnit || "Piece"}`
+//     : product.price;
+
+//   const handleAddToCart = (e) => {
+//     e.stopPropagation();
+//     addToCart(product, qty);
+//     setAdded(true);
+//     setTimeout(() => setAdded(false), 1800);
+//   };
+
+//   return (
+//     <div className="pc-card" onClick={() => router.push(`/products/${product.slug}`)}>
+//       <div className="pc-img-wrap" style={{ position: "relative" }}>
+//         <img
+//           src={product.images?.[0] || "https://placehold.co/400x400?text=No+Image"}
+//           alt={product.name}
+//           className="pc-img"
+//         />
+//         <ProductWatermark />
+//       </div>
+//       <div className="pc-body">
+//         {product.subcategory?.name && (
+//           <div className="pc-tag">{product.subcategory.name}</div>
+//         )}
+//         {product.sku && (
+//           <div style={{ fontFamily: "Manrope,sans-serif", fontSize: 9, fontWeight: 700, color: "#aaa", letterSpacing: "0.06em", marginBottom: 4 }}>
+//             SKU: {product.sku}
+//           </div>
+//         )}
+//         <h3 className="pc-title">{product.name}</h3>
+//         <div className="pc-price-row">
+//           <span className="pc-price">{format(product.price)}</span>
+//           <span className="pc-price-unit">/ {product.priceUnit || "Piece"}</span>
+//         </div>
+//         {(product.productType || product.primaryMaterial) && (
+//           <div className="pc-subtitle">{product.productType || product.primaryMaterial}</div>
+//         )}
+
+//         <hr className="pc-divider" />
+
+//         <div className="pc-qty-row">
+//           <span className="pc-qty-label">Qty</span>
+//           <div className="pc-qty-ctrl">
+//             <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setQty(p => p > 1 ? p - 1 : 1); }} aria-label="Decrease">−</button>
+//             <span className="pc-qty-num">{qty}</span>
+//             <button className="pc-qty-btn" onClick={(e) => { e.stopPropagation(); setQty(p => p + 1); }} aria-label="Increase">+</button>
+//           </div>
+//         </div>
+
+//         <button
+//           className={`pc-cart-btn${added ? " added" : ""}`}
+//           onClick={handleAddToCart}
+//         >
+//           {added ? "✓ Added to Cart" : "Add to Cart"}
+//         </button>
+
+//         <div className="pc-enquiry">
+//           <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=india"); }}>
+//             India Enquiry →
+//           </a>
+//           <div className="pc-enquiry-sep" />
+//           <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); router.push("/enquiry?type=export"); }}>
+//             Export Enquiry →
+//           </a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// /* ============================================================
+//    PAGE
+//    ============================================================ */
+// export default function ProductsPage() {
+//   const router = useRouter();
+//   const searchParams = useSearchParams();
+//   const { categories, subcategories, products: allProducts, loading } = useCatalog();
+
+//   const categorySlugParam = searchParams.get("category");
+//   const subcategorySlugParam = searchParams.get("subcategory");
+//   const searchQueryParam = searchParams.get("q");
+
+//   const [activeCategorySlug, setActiveCategorySlug] = useState("");
+//   const [selectedSubCatId, setSelectedSubCatId] = useState("all");
+//   const [selectedMOQ, setSelectedMOQ] = useState("");
+//   const [selectedSort, setSelectedSort] = useState("Recommended");
+//   const [isDescExpanded, setIsDescExpanded] = useState(false);
+
+//   // Sync category + subcategory from URL params
+//   useEffect(() => {
+//     if (categorySlugParam) {
+//       setActiveCategorySlug(categorySlugParam);
+//       // Only reset subcategory if no subcategory param
+//       if (!subcategorySlugParam) setSelectedSubCatId("all");
+//     } else if (categories.length > 0 && !activeCategorySlug) {
+//       setActiveCategorySlug(categories[0].slug);
+//     }
+//   }, [categorySlugParam, categories, activeCategorySlug, subcategorySlugParam]);
+
+//   // Reset collapsible description whenever category changes
+//   useEffect(() => {
+//     setIsDescExpanded(false);
+//   }, [categorySlugParam, activeCategorySlug]);
+
+//   // Sync subcategory URL param to state
+//   useEffect(() => {
+//     if (!subcategorySlugParam || subcategories.length === 0) return;
+//     const found = subcategories.find(s => s.slug === subcategorySlugParam);
+//     if (found) {
+//       setSelectedSubCatId(found.id || found._id?.toString());
+//       // Also activate the parent category
+//       if (found.category) setActiveCategorySlug(
+//         categories.find(c => (c.id || c._id?.toString()) === found.category)?.slug || activeCategorySlug
+//       );
+//     }
+//   }, [subcategorySlugParam, subcategories, categories]);
+
+//   const currentCategorySlug = activeCategorySlug || categorySlugParam || (categories.length > 0 ? categories[0].slug : "");
+//   const activeCategory = categories.find(c => c.slug === currentCategorySlug) || categories[0];
+//   const activeCategoryId = activeCategory?.id || activeCategory?._id?.toString() || "";
+
+//   // Filter subcategories — sub.category is always a plain string (ObjectId)
+//   const filteredSubcategories = subcategories.filter(sub => {
+//     const subCatId = typeof sub.category === "string" ? sub.category : sub.category?.toString();
+//     return subCatId === activeCategoryId;
+//   });
+
+//   const getProductMOQ = (price) => {
+//     if (!price || isNaN(price)) return "1 - 100 pcs";
+//     const numPrice = Number(price);
+//     if (numPrice < 50) return "1000+ pcs";
+//     if (numPrice < 100) return "500 - 1000 pcs";
+//     if (numPrice < 200) return "100 - 500 pcs";
+//     return "1 - 100 pcs";
+//   };
+
+//   // Filter products in memory
+//   let filteredProducts = allProducts.filter(prod => {
+//     // 1. Filter by category
+//     const catSlug = prod.category?.slug || "";
+//     if (activeCategorySlug && catSlug !== activeCategorySlug) return false;
+
+//     // 2. Filter by subcategory (by ID)
+//     if (selectedSubCatId !== "all") {
+//       const subId = prod.subcategory?.id || prod.subcategory?._id?.toString() || "";
+//       if (subId !== selectedSubCatId) return false;
+//     }
+
+//     // 3. Filter by search query
+//     if (searchQueryParam) {
+//       const q = searchQueryParam.toLowerCase();
+//       if (!prod.name?.toLowerCase().includes(q) && !prod.description?.toLowerCase().includes(q)) return false;
+//     }
+
+//     // 4. Filter by MOQ
+//     if (selectedMOQ) {
+//       if (getProductMOQ(prod.price) !== selectedMOQ) return false;
+//     }
+
+//     return true;
+//   });
+
+//   // Apply Sorting (New Arrivals is sort only, not a filter)
+//   if (selectedSort === "Price Low to High") {
+//     filteredProducts.sort((a, b) => a.price - b.price);
+//   } else if (selectedSort === "Price High to Low") {
+//     filteredProducts.sort((a, b) => b.price - a.price);
+//   } else if (selectedSort === "New Arrivals") {
+//     filteredProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+//   }
+
+//   const handleClearFilters = () => {
+//     setSelectedSubCatId("all");
+//     setSelectedMOQ("");
+//     setSelectedSort("Recommended");
+//     // Preserve category in URL but remove subcategory
+//     router.push(activeCategorySlug ? `/products?category=${activeCategorySlug}` : "/products");
+//   };
+
+//   return (
+//     <>
+//       <Navbar />
+//       <style jsx>{styles}</style>
+
+//       <div className="pp-page">
+//         <div className="pp-container">
+
+//           {/* Title */}
+//           <div className="pp-title">
+//             {searchQueryParam ? `Search Results for "${searchQueryParam}"` : "Product Collections"}
+//           </div>
+
+//           {/* Category Pills */}
+//           <div className="pp-cat-row">
+//             {loading ? (
+//               <span style={{ fontSize: "14px", color: "#666", padding: "10px 0" }}>Loading collections...</span>
+//             ) : (
+//               categories.map((cat) => (
+//                 <button
+//                   key={cat.id || cat._id}
+//                   className={`pp-cat-pill${currentCategorySlug === cat.slug ? " active" : ""}`}
+//                   onClick={() => {
+//                     router.push(`/products?category=${cat.slug}`);
+//                   }}
+//                 >
+//                   {cat.name}
+//                 </button>
+//               ))
+//             )}
+//           </div>
+
+//           {/* Active Category Long Description Showcase Banner (Only shown when added via Admin Panel) */}
+//           {!loading && activeCategory && activeCategory.longDescription?.trim() && (
+//             <div className="pp-cat-hero">
+//               <div className="pp-cat-hero-inner">
+//                 {/* Main Content */}
+//                 <div className="pp-cat-hero-main">
+//                   {/* Top Bar: Badge + Item Count */}
+//                   <div className="pp-cat-hero-top">
+//                     <span className="pp-cat-hero-badge">
+//                       <Sparkles size={13} style={{ color: "#F85700" }} />
+//                       Jaipur Artisan Collection
+//                     </span>
+//                     {/* <span className="pp-cat-hero-count">
+//                       {filteredProducts.length} {filteredProducts.length === 1 ? "Product" : "Products"} in Collection
+//                     </span> */}
+//                   </div>
+
+//                   {/* Title & Subtitle */}
+//                   <div className="pp-cat-hero-title-group">
+//                     <h2 className="pp-cat-hero-title">
+//                       {activeCategory.name}
+//                     </h2>
+//                     {activeCategory.description && (
+//                       <div className="pp-cat-hero-subtitle">
+//                         {activeCategory.description}
+//                       </div>
+//                     )}
+//                   </div>
+
+//                   {/* Long Description Body (Strictly from Admin Panel) */}
+//                   <div className={`pp-cat-hero-desc${!isDescExpanded && activeCategory.longDescription.trim().length > 210 ? " collapsed" : ""}`}>
+//                     {activeCategory.longDescription}
+//                   </div>
+
+//                   {/* Read More / Show Less Toggle */}
+//                   {activeCategory.longDescription.trim().length > 210 && (
+//                     <button
+//                       type="button"
+//                       className="pp-cat-hero-readmore-btn"
+//                       onClick={() => setIsDescExpanded(!isDescExpanded)}
+//                       aria-expanded={isDescExpanded}
+//                     >
+//                       {isDescExpanded ? (
+//                         <>Show Less <ChevronUp size={15} /></>
+//                       ) : (
+//                         <>Read Full Overview <ChevronDown size={15} /></>
+//                       )}
+//                     </button>
+//                   )}
+
+//                   {/* Craft Highlights */}
+//                   <div className="pp-cat-hero-tags">
+//                     <span className="pp-cat-hero-tag">
+//                       <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> 100% Handcrafted in Jaipur
+//                     </span>
+//                     <span className="pp-cat-hero-tag">
+//                       <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Export & Bulk Orders Ready
+//                     </span>
+//                     <span className="pp-cat-hero-tag">
+//                       <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Authentic Heritage Craft
+//                     </span>
+//                   </div>
+//                 </div>
+
+//                 {/* Category Thumbnail */}
+//                 {activeCategory.image && (
+//                   <div className="pp-cat-hero-image-wrap">
+//                     <img
+//                       src={activeCategory.image}
+//                       alt={activeCategory.name}
+//                       className="pp-cat-hero-image"
+//                       loading="lazy"
+//                     />
+//                     <div className="pp-cat-hero-image-badge">
+//                       Artisanal
+//                     </div>
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//           )}
+
+//           {/* ── LISTING VIEW ── */}
+//           {loading ? (
+//             <div style={{ display: "flex", justifyContent: "center", padding: "100px 0" }}>
+//               <div className="adm-loading-spinner" />
+//             </div>
+//           ) : (
+//             <div className="pp-layout">
+
+//               {/* Sidebar */}
+//               <aside className="pp-sidebar">
+//                 <div className="pp-filter-top">
+//                   <h3>Filters</h3>
+//                   <button className="pp-clear-btn" onClick={handleClearFilters}>
+//                     Clear All
+//                   </button>
+//                 </div>
+
+//                 <div className="pp-filter-section">
+//                   <h4>Sub Category</h4>
+//                   <label className="pp-radio-row">
+//                     <input
+//                       type="radio"
+//                       name="subcategory"
+//                       checked={selectedSubCatId === "all"}
+//                       onChange={() => setSelectedSubCatId("all")}
+//                     />
+//                     <span>All Products</span>
+//                   </label>
+//                   {filteredSubcategories.map((item) => (
+//                     <label className="pp-radio-row" key={item.id || item._id}>
+//                       <input
+//                         type="radio"
+//                         name="subcategory"
+//                         checked={selectedSubCatId === (item.id || item._id)}
+//                         onChange={() => {
+//                           const id = item.id || item._id;
+//                           setSelectedSubCatId(id);
+//                           // Update URL with subcategory slug
+//                           const params = new URLSearchParams();
+//                           if (activeCategorySlug) params.set("category", activeCategorySlug);
+//                           if (item.slug) params.set("subcategory", item.slug);
+//                           router.push(`/products?${params.toString()}`);
+//                         }}
+//                       />
+//                       <span>{item.name}</span>
+//                     </label>
+//                   ))}
+//                 </div>
+
+//                 <div className="pp-filter-section">
+//                   <h4>MOQ (Minimum Order Quantity)</h4>
+//                   {moqOptions.map((item) => (
+//                     <label className="pp-radio-row" key={item}>
+//                       <input type="radio" name="moq" checked={selectedMOQ === item} onChange={() => setSelectedMOQ(item)} />
+//                       <span>{item}</span>
+//                     </label>
+//                   ))}
+//                 </div>
+
+//                 <div className="pp-filter-section">
+//                   <h4>Sort by</h4>
+//                   {sortOptions.map((item) => (
+//                     <label className="pp-radio-row" key={item}>
+//                       <input type="radio" name="sort" checked={selectedSort === item} onChange={() => setSelectedSort(item)} />
+//                       <span>{item}</span>
+//                     </label>
+//                   ))}
+//                 </div>
+
+//                 <button className="pp-apply-btn" onClick={() => { }}>Apply Filter</button>
+//               </aside>
+
+//               {/* Products Area */}
+//               <div>
+//                 <div className="pp-prod-header">
+//                   <div className="pp-prod-count">Showing {filteredProducts.length} Products</div>
+//                   <select
+//                     className="pp-sort-select"
+//                     value={selectedSort}
+//                     onChange={(e) => setSelectedSort(e.target.value)}
+//                   >
+//                     <option value="Recommended">Recommended</option>
+//                     <option value="New Arrivals">Sort By Latest</option>
+//                     <option value="Price Low to High">Price Low To High</option>
+//                     <option value="Price High to Low">Price High To Low</option>
+//                   </select>
+//                 </div>
+
+//                 {filteredProducts.length === 0 ? (
+//                   <div style={{ textAlign: "center", padding: "80px 0", color: "#666" }}>
+//                     <h3>No products found in this category</h3>
+//                     <p style={{ marginTop: "10px", fontSize: "14px" }}>Please select another category or check back later.</p>
+//                   </div>
+//                 ) : (
+//                   <div className="pp-grid">
+//                     {filteredProducts.map((product) => (
+//                       <ProductCard key={product.id || product._id} product={product} />
+//                     ))}
+//                   </div>
+//                 )}
+
+//                 {filteredProducts.length > 0 && (
+//                   <>
+//                     <div className="pp-pagination">
+//                       <button className="pp-page-btn active">1</button>
+//                       <button className="pp-page-btn">2</button>
+//                       <button className="pp-page-btn">3</button>
+//                       <button className="pp-page-btn">→</button>
+//                     </div>
+
+//                     <div className="pp-see-more">
+//                       <button className="pp-see-more-btn">See More Products</button>
+//                     </div>
+//                   </>
+//                 )}
+//               </div>
+
+//             </div>
+//           )}
+
+//         </div>
+//       </div>
+
+//       {/* WhatsApp FAB */}
+//       <a
+//         href="https://wa.me/918385007350"
+//         target="_blank"
+//         rel="noopener noreferrer"
+//         className="pp-wa-btn"
+//       >
+//         <FaWhatsapp />
+//         <span>For Bulk</span>
+//       </a>
+
+//       <FollowUs />
+//       <Footer />
+//     </>
+//   );
+// }
+
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FaWhatsapp } from "react-icons/fa";
-import { Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  FaWhatsapp,
+  FaCrown,
+  FaCheckCircle,
+  FaGlobeAsia,
+  FaGem,
+  FaArrowRight
+} from "react-icons/fa";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import Navbar from "./Navbar";
 import FollowUs from "./FollowUs";
 import Footer from "./Footer";
@@ -13,7 +1213,6 @@ import ProductWatermark from "./ProductWatermark";
 
 const moqOptions = ["1 - 100 pcs", "100 - 500 pcs", "500 - 1000 pcs", "1000+ pcs"];
 const sortOptions = ["Recommended", "New Arrivals", "Price High to Low", "Price Low to High"];
-
 
 /* ============================================================
    STYLES
@@ -87,195 +1286,337 @@ const styles = `
     color: #1A1A1A;
   }
 
-  /* ── Category Showcase Hero Banner ── */
+  /* =========================================================
+     PREMIUM DARK CATEGORY SHOWCASE HERO
+     ========================================================= */
+
   .pp-cat-hero {
-    background: linear-gradient(135deg, #FFFFFF 0%, #FAF8F5 55%, #F4ECE4 100%);
-    border: 1px solid #E5DDD3;
-    border-radius: 16px;
     position: relative;
-    padding: 26px 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 20px -4px rgba(43, 30, 20, 0.05);
     overflow: hidden;
-    transition: all 0.3s ease;
+    isolation: isolate;
+
+    background: linear-gradient(135deg, #fce8dc 0%, #fff9f6 60%, #fff 100%);
+    border: 1.5px solid #F85700;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 24px rgba(248,87,0,.08);
+    transition: box-shadow .3s;
   }
+
+  .pp-cat-hero:hover {
+    box-shadow: 0 8px 32px rgba(248,87,0,.13);
+  }
+
   .pp-cat-hero::before {
     content: "";
     position: absolute;
-    top: 0;
     left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(180deg, #F85700 0%, #D84800 100%);
-    border-radius: 4px 0 0 4px;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, #ff9a3d, #f85700, #e84f00);
+    border-radius: 5px 0 0 5px;
+    z-index: 3;
   }
+
+  .pp-cat-hero::after {
+    display: none;
+  }
+
+  @keyframes heroLightSweep {
+    0% { left: -45%; }
+    45%, 100% { left: 125%; }
+  }
+
+  .pp-cat-hero:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 25px 55px rgba(0, 0, 0, 0.22),
+      0 0 0 1px rgba(248, 87, 0, 0.08);
+  }
+
   .pp-cat-hero-inner {
-    display: flex;
-    gap: 28px;
-    align-items: flex-start;
     position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 42px;
   }
+
   .pp-cat-hero-main {
     flex: 1;
     min-width: 0;
+    position: relative;
+    animation: heroContentIn 0.7s ease both;
   }
+
+  @keyframes heroContentIn {
+    from { opacity: 0; transform: translateX(-18px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
   .pp-cat-hero-top {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 8px;
+    margin-bottom: 17px;
   }
+
   .pp-cat-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: "Manrope", sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: #F85700;
-    background: rgba(248, 87, 0, 0.08);
-    border: 1px solid rgba(248, 87, 0, 0.22);
-    padding: 4px 12px;
+    padding: 5px 12px;
     border-radius: 999px;
-  }
-  .pp-cat-hero-count {
+    background: #F85700;
+    border: none;
+    color: #fff;
     font-family: "Manrope", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: #7A7067;
-    background: rgba(0, 0, 0, 0.04);
-    padding: 4px 12px;
-    border-radius: 999px;
-  }
-  .pp-cat-hero-title-group {
-    margin-bottom: 12px;
-  }
-  .pp-cat-hero-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(22px, 2.4vw, 28px);
+    font-size: 10px;
     font-weight: 800;
-    color: #161514;
-    line-height: 1.25;
-    margin: 0 0 6px 0;
-    letter-spacing: -0.01em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
+
+  .pp-cat-hero-title {
+    margin: 0 0 6px;
+    color: #1a1a1a;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(22px, 2.5vw, 32px);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
   .pp-cat-hero-subtitle {
+    color: #888;
     font-family: "Manrope", sans-serif;
-    font-size: 13.5px;
-    font-weight: 600;
-    color: #8C7F72;
+    font-size: 13px;
+    font-weight: 500;
     line-height: 1.5;
   }
+
   .pp-cat-hero-desc {
+    max-width: 850px;
+    color: #555;
     font-family: "Manrope", sans-serif;
-    font-size: 14.5px;
+    font-size: 14px;
     line-height: 1.8;
-    color: #4A443E;
     margin: 0;
     white-space: pre-line;
-    transition: all 0.3s ease;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
   }
+
   .pp-cat-hero-desc.collapsed {
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
   .pp-cat-hero-readmore-btn {
-    background: none;
-    border: none;
-    padding: 6px 0 0;
-    font-family: "Manrope", sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    color: #F85700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: color 0.15s ease;
-  }
-  .pp-cat-hero-readmore-btn:hover {
-    color: #D84800;
-    text-decoration: underline;
-  }
-  .pp-cat-hero-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-    padding-top: 14px;
-    border-top: 1px solid rgba(229, 221, 211, 0.85);
-  }
-  .pp-cat-hero-tag {
-    font-family: "Manrope", sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    color: #4F463D;
-    background: #FFFFFF;
-    border: 1px solid #E5DDD3;
-    padding: 5px 12px;
-    border-radius: 6px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    margin-top: 7px;
+    padding: 4px 0;
+    background: none;
+    border: none;
+    color: #ff9638;
+    font-family: "Manrope", sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: color 0.2s ease, gap 0.2s ease;
   }
+
+  .pp-cat-hero-readmore-btn:hover {
+    color: #ffb16b;
+    gap: 9px;
+  }
+
+  .pp-cat-hero-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .pp-cat-hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    padding: 7px 12px;
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 7px;
+    color: #cfc8c2;
+    font-family: "Manrope", sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  }
+
+  .pp-cat-hero-tag:hover {
+    background: rgba(248, 87, 0, 0.10);
+    border-color: rgba(248, 87, 0, 0.25);
+    transform: translateY(-2px);
+  }
+
+  .pp-cat-hero-tag svg {
+    color: #f85700;
+    font-size: 12px;
+  }
+
   .pp-cat-hero-image-wrap {
-    flex-shrink: 0;
-    width: 104px;
-    height: 104px;
-    border-radius: 12px;
-    overflow: hidden;
     position: relative;
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 4px 14px rgba(43, 30, 20, 0.08);
-    background: #EDE6DF;
+    flex-shrink: 0;
+    width: 155px;
+    height: 155px;
+    padding: 6px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.035));
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow:
+      0 16px 35px rgba(0, 0, 0, 0.35),
+      0 0 35px rgba(248, 87, 0, 0.10);
+    animation: premiumImageFloat 4.5s ease-in-out infinite;
+    overflow: visible;
   }
+
+  @keyframes premiumImageFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-7px) rotate(0.5deg); }
+  }
+
+  .pp-cat-hero-image-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 15px -12px -12px 15px;
+    background: #f85700;
+    opacity: 0.13;
+    filter: blur(28px);
+    border-radius: 50%;
+    z-index: -1;
+    animation: imageGlow 3.5s ease-in-out infinite;
+  }
+
+  @keyframes imageGlow {
+    0%, 100% { opacity: 0.08; transform: scale(0.95); }
+    50% { opacity: 0.18; transform: scale(1.08); }
+  }
+
   .pp-cat-hero-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: transform 0.35s ease;
+    border-radius: 13px;
+    transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.4s ease;
   }
+
   .pp-cat-hero:hover .pp-cat-hero-image {
-    transform: scale(1.06);
+    transform: scale(1.055);
+    filter: brightness(1.08) saturate(1.08);
   }
+
   .pp-cat-hero-image-badge {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(22, 21, 20, 0.72);
-    backdrop-filter: blur(4px);
-    color: #FFFFFF;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: #161412;
+    border: 1px solid rgba(248, 87, 0, 0.45);
+    border-radius: 999px;
+    color: #ff9a3d;
     font-family: "Manrope", sans-serif;
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.04em;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    text-align: center;
-    padding: 3px 2px;
+    white-space: nowrap;
+    box-shadow: 0 7px 18px rgba(0, 0, 0, 0.35);
   }
+
+  .pp-cat-hero-main::before,
+  .pp-cat-hero-main::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #f85700;
+    opacity: 0.5;
+    animation: tinyFloat 3s ease-in-out infinite;
+  }
+
+  .pp-cat-hero-main::before {
+    right: 180px;
+    top: 18px;
+  }
+
+  .pp-cat-hero-main::after {
+    right: 205px;
+    top: 38px;
+    width: 3px;
+    height: 3px;
+    animation-delay: 1s;
+  }
+
+  @keyframes tinyFloat {
+    0%, 100% { transform: translateY(0); opacity: 0.3; }
+    50% { transform: translateY(-8px); opacity: 0.8; }
+  }
+
   @media (max-width: 768px) {
     .pp-cat-hero {
-      padding: 20px 18px;
-      border-radius: 14px;
-      margin-bottom: 22px;
+      padding: 24px 20px 25px;
+      border-radius: 16px;
+      margin-bottom: 24px;
     }
+
     .pp-cat-hero-inner {
-      flex-direction: column-reverse;
-      gap: 14px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 22px;
     }
+
     .pp-cat-hero-image-wrap {
-      width: 70px;
-      height: 70px;
-      border-radius: 10px;
+      order: -1;
+      width: 110px;
+      height: 110px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .pp-cat-hero-title {
+      font-size: 28px;
+    }
+
+    .pp-cat-hero-desc {
+      font-size: 13px;
+    }
+
+    .pp-cat-hero-tags {
+      gap: 7px;
+    }
+
+    .pp-cat-hero-tag {
+      font-size: 10px;
+      padding: 6px 9px;
+    }
+
+    .pp-cat-hero-main::before,
+    .pp-cat-hero-main::after {
+      display: none;
     }
   }
 
@@ -969,28 +2310,28 @@ export default function ProductsPage() {
             )}
           </div>
 
-          {/* Active Category Long Description Showcase Banner (Only shown when added via Admin Panel) */}
+          {/* =========================================================
+              PREMIUM DARK CATEGORY SHOWCASE
+              ========================================================= */}
           {!loading && activeCategory && activeCategory.longDescription?.trim() && (
             <div className="pp-cat-hero">
               <div className="pp-cat-hero-inner">
-                {/* Main Content */}
+
+                {/* Content */}
                 <div className="pp-cat-hero-main">
-                  {/* Top Bar: Badge + Item Count */}
+
                   <div className="pp-cat-hero-top">
                     <span className="pp-cat-hero-badge">
-                      <Sparkles size={13} style={{ color: "#F85700" }} />
-                      Jaipur Artisan Collection
+                      <FaCrown />
+                      Jaipur Heritage Collection
                     </span>
-                    {/* <span className="pp-cat-hero-count">
-                      {filteredProducts.length} {filteredProducts.length === 1 ? "Product" : "Products"} in Collection
-                    </span> */}
                   </div>
 
-                  {/* Title & Subtitle */}
                   <div className="pp-cat-hero-title-group">
                     <h2 className="pp-cat-hero-title">
                       {activeCategory.name}
                     </h2>
+
                     {activeCategory.description && (
                       <div className="pp-cat-hero-subtitle">
                         {activeCategory.description}
@@ -998,12 +2339,17 @@ export default function ProductsPage() {
                     )}
                   </div>
 
-                  {/* Long Description Body (Strictly from Admin Panel) */}
-                  <div className={`pp-cat-hero-desc${!isDescExpanded && activeCategory.longDescription.trim().length > 210 ? " collapsed" : ""}`}>
+                  <div
+                    className={`pp-cat-hero-desc${
+                      !isDescExpanded &&
+                      activeCategory.longDescription.trim().length > 210
+                        ? " collapsed"
+                        : ""
+                    }`}
+                  >
                     {activeCategory.longDescription}
                   </div>
 
-                  {/* Read More / Show Less Toggle */}
                   {activeCategory.longDescription.trim().length > 210 && (
                     <button
                       type="button"
@@ -1012,28 +2358,39 @@ export default function ProductsPage() {
                       aria-expanded={isDescExpanded}
                     >
                       {isDescExpanded ? (
-                        <>Show Less <ChevronUp size={15} /></>
+                        <>
+                          Show Less
+                          <ChevronUp size={14} />
+                        </>
                       ) : (
-                        <>Read Full Overview <ChevronDown size={15} /></>
+                        <>
+                          Explore Collection
+                          <FaArrowRight />
+                        </>
                       )}
                     </button>
                   )}
 
-                  {/* Craft Highlights */}
                   <div className="pp-cat-hero-tags">
                     <span className="pp-cat-hero-tag">
-                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> 100% Handcrafted in Jaipur
+                      <FaCheckCircle />
+                      100% Handcrafted
                     </span>
+
                     <span className="pp-cat-hero-tag">
-                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Export & Bulk Orders Ready
+                      <FaGlobeAsia />
+                      Export Ready
                     </span>
+
                     <span className="pp-cat-hero-tag">
-                      <span style={{ color: "#F85700", fontWeight: 800 }}>✦</span> Authentic Heritage Craft
+                      <FaGem />
+                      Heritage Craft
                     </span>
                   </div>
+
                 </div>
 
-                {/* Category Thumbnail */}
+                {/* Category Image */}
                 {activeCategory.image && (
                   <div className="pp-cat-hero-image-wrap">
                     <img
@@ -1042,11 +2399,14 @@ export default function ProductsPage() {
                       className="pp-cat-hero-image"
                       loading="lazy"
                     />
+
                     <div className="pp-cat-hero-image-badge">
+                      <FaGem />
                       Artisanal
                     </div>
                   </div>
                 )}
+
               </div>
             </div>
           )}

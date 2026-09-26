@@ -3,6 +3,7 @@ import Hero from "./components/Hero";
 import CategoryBanner from "./components/CategoryBanner";
 import Collections from "./components/Collections";
 import BestSelling from "./components/BestSelling";
+import RetailOffers from "./components/RetailOffers";
 import AboutSection from "./components/AboutSection";
 import Global from "./components/Global";
 import Reviews from "./components/Reviews";
@@ -18,6 +19,7 @@ export default function Home() {
       <Hero />
       <CategoryBanner />
       <Collections />
+      <RetailOffers />
       <BestSelling />
       <AboutSection />
       {/* <Story /> */}

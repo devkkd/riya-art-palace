@@ -1,270 +1,231 @@
 "use client";
 import { useState } from "react";
 import logo from "../assets/logo.png";
-import indiamartLogo from "../assets/indiamart.png";
 import Image from "next/image";
 import Link from "next/link";
 import { useCatalog } from "./CatalogContext";
-import { MapPin, Phone, Mail, Building2 } from "lucide-react";
+import { FaInstagram, FaFacebookF, FaWhatsapp, FaLinkedinIn } from "react-icons/fa";
 
-const company = [
+const companyLinks = [
   { name: "About Us",           href: "/about" },
+  { name: "Our Process",        href: "/about" },
   { name: "Contact Us",         href: "/contact" },
+];
+
+const quickLinks = [
+  { name: "Inquiry List",       href: "/enquiry?type=india" },
   { name: "Privacy Policy",     href: "/privacy-policy" },
   { name: "Terms & Conditions", href: "/terms-and-conditions" },
   { name: "Refund Policy",      href: "/refund-policy" },
   { name: "Shipping Policy",    href: "/shipping-policy" },
 ];
 
-const socials = [
-  { label: "WhatsApp",  href: "https://wa.me/918047635730", icon: "💬" },
-  { label: "Instagram", href: "#",                          icon: "📸" },
-  { label: "Facebook",  href: "#",                          icon: "📘" },
-];
-
-function CategoryCol({ category }) {
-  const [open, setOpen] = useState(false);
-  const subs = category.subcategories || [];
-
-  return (
-    <div
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-      style={{ position: "relative" }}
-    >
-      <Link
-        href={`/products?category=${encodeURIComponent(category.slug)}`}
-        style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "8px 10px", borderRadius: 8,
-          background: open ? "rgba(255,255,255,.65)" : "transparent",
-          fontSize: 13, fontWeight: 700,
-         fontfamily: "'Mona Sans', serif",
-          // fontStyle: "italic",
-          color: open ? "#F85700" : "#1a1a1a",
-          textDecoration: "none",
-          letterSpacing: "0.01em", lineHeight: 1.4,
-          transition: "background .2s, color .2s",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}
-      >
-        {category.name}
-        {subs.length > 0 && (
-          <span style={{
-            fontSize: 10, color: "#F85700",
-            transform: open ? "rotate(180deg)" : "rotate(0deg)",
-            transition: "transform .25s", display: "inline-block",
-            flexShrink: 0,
-          }}>▾</span>
-        )}
-      </Link>
-
-      {subs.length > 0 && (
-        <ul style={{
-          position: "absolute", top: "calc(100% + 4px)", left: 0,
-          minWidth: 180, background: "#fff",
-          border: "1px solid #e8d0c0", borderRadius: 10,
-          boxShadow: "0 12px 32px rgba(60,35,20,.13)",
-          padding: "6px", margin: 0, listStyle: "none", zIndex: 20,
-          opacity: open ? 1 : 0, visibility: open ? "visible" : "hidden",
-          transform: open ? "translateY(0)" : "translateY(-6px)",
-          transition: "opacity .2s, transform .2s, visibility .2s",
-          pointerEvents: open ? "auto" : "none",
-        }}>
-          {subs.map(sub => (
-            <li key={sub.id || sub.name}>
-              <Link
-                href={`/products?category=${encodeURIComponent(category.slug)}&subcategory=${encodeURIComponent(sub.slug || sub.name)}`}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "8px 10px", borderRadius: 7,
-                  fontSize: 12, color: "#555", textDecoration: "none",
-                  transition: "background .15s, color .15s",
-                }}
-                onMouseEnter={e => { e.currentTarget.style.background="#fce8dc"; e.currentTarget.style.color="#F85700"; }}
-                onMouseLeave={e => { e.currentTarget.style.background="transparent"; e.currentTarget.style.color="#555"; }}
-              >
-                {sub.name}
-                <span style={{ fontSize: 10, color: "#F85700", opacity: .6 }}>→</span>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
 export default function Footer() {
-  const [email, setEmail]           = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-  const { categories, subcategories, loading } = useCatalog();
+  const { categories, loading } = useCatalog();
 
-  const footerCats = categories.map(cat => ({
-    ...cat,
-    subcategories: subcategories.filter(s => s.category === cat.id),
-  }));
+  // Split categories into two columns for layout
+  const midPoint = Math.ceil(categories.length / 2);
+  const catCol1 = categories.slice(0, midPoint);
+  const catCol2 = categories.slice(midPoint);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
-    <footer style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <footer style={{ fontFamily: "'Manrope', sans-serif", backgroundColor: "#FAF8F4", color: "#333", borderTop: "1px solid #EAE6DF" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
-        .ft-w { max-width:1280px; margin:0 auto; padding:0 clamp(16px,4vw,56px); }
+        
+        .ft-container { max-width: 1360px; margin: 0 auto; padding: 60px 40px 20px; }
 
-        /* Newsletter */
-        .ft-nl { background:#e87500; padding:22px clamp(16px,4vw,56px); }
-        .ft-nl-in { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:24px; flex-wrap:wrap; }
-        .ft-nl-title { font-size:17px; font-weight:800; color:#fff; margin:0 0 2px; }
-        .ft-nl-sub { font-size:12px; color:rgba(255,255,255,.75); margin:0; }
-        .ft-nl-form { display:flex; gap:8px; flex-shrink:0; flex-wrap:wrap; }
-        .ft-nl-inp { height:40px; padding:0 14px; border:1.5px solid rgba(255,255,255,.4); border-radius:8px; background:#e87500; color:#fff; font-family:'Manrope',sans-serif; font-size:13px; outline:none; min-width:210px; }
-        .ft-nl-inp::placeholder { color:rgba(255,255,255,.6); }
-        .ft-nl-inp:focus { border-color:#fff; background:#e87500; }
-        .ft-nl-btn { height:40px; padding:0 20px; border:2px solid #fff; border-radius:8px; background:#fff; color:#F85700; font-family:'Manrope',sans-serif; font-size:13px; font-weight:800; cursor:pointer; white-space:nowrap; transition:all .15s; }
-        .ft-nl-btn:hover { background:#1a1a1a; border-color:#1a1a1a; color:#fff; }
-
-        /* Main */
-        .ft-main { background:#FDF4EE; border-top:1px solid #e8d0c0; padding:36px clamp(16px,4vw,56px) 30px; }
-        .ft-grid { max-width:1280px; margin:0 auto; display:grid; grid-template-columns:220px 1fr; gap:48px; align-items:start; }
-
-        /* Brand */
-        .ft-tagline { font-size:13px; font-weight:700; color:#1a1a1a; margin:8px 0 5px; font-style:italic; }
-        .ft-desc { font-size:12px; color:#888; line-height:1.65; margin:0 0 14px; }
-        .ft-ci { display:flex; align-items:flex-start; gap:8px; margin-bottom:9px; }
-        .ft-ci-val { font-size:11.5px; color:#777; line-height:1.5; }
-        .ft-ci-val a { color:#777; text-decoration:none; }
-        .ft-ci-val a:hover { color:#F85700; }
-        .ft-socials { display:flex; gap:6px; margin-top:14px; flex-wrap:wrap; }
-        .ft-soc { display:flex; align-items:center; gap:4px; height:30px; padding:0 10px; border:1.5px solid #e8d0c0; border-radius:7px; background:#fff; font-family:'Manrope',sans-serif; font-size:11.5px; font-weight:600; color:#666; text-decoration:none; transition:all .15s; }
-        .ft-soc:hover { border-color:#F85700; color:#F85700; background:#FFF9F6; }
-        .ft-im { display:inline-flex; align-items:center; background:#fff; border:1px solid #e8d0c0; border-radius:7px; padding:4px 9px; margin-bottom:5px; cursor:pointer; transition:border-color .15s; }
-        .ft-im:hover { border-color:#F85700; }
-        .ft-im-lnk { display:block; font-size:11px; color:#F85700; font-weight:700; margin-bottom:14px; text-decoration:none; }
-        .ft-im-lnk:hover { text-decoration:underline; }
-
-        /* Cats grid */
-        .ft-cats { display:grid; grid-template-columns:repeat(4,1fr); gap:4px 12px; align-items:stretch; }
-        .ft-cat-item {
-          display:block; min-height:40px;
+        /* Top Section */
+        .ft-top { display: grid; grid-template-columns: 300px 1fr; gap: 60px; border-bottom: 1px solid #EAE6DF; padding-bottom: 50px; }
+        
+        .ft-brand-col { display: flex; flex-direction: column; align-items: flex-start; }
+        .ft-brand-title { font-size: 13px; font-weight: 800; text-transform: uppercase; margin: 24px 0 12px; letter-spacing: 0.05em; color: #1a1a1a; }
+        .ft-brand-desc { font-size: 13px; color: #555; line-height: 1.6; margin-bottom: 24px; }
+        .ft-about-btn { 
+          display: inline-flex; align-items: center; justify-content: center;
+          padding: 10px 24px; background-color: #f85700; color: #fff;
+          border-radius: 20px; font-size: 12px; font-weight: 600; 
+          text-decoration: none; transition: background-color 0.2s;
         }
-        .ft-company-row { margin-top:24px; padding-top:20px; border-top:1px solid #e8d0c0; display:grid; grid-template-columns:repeat(4,1fr); gap:4px 12px; }
+        .ft-about-btn:hover { background-color: #524a3c; }
 
-        /* Company col */
-        .ft-co-head { font-size:11px; font-weight:800; color:#1a1a1a;fontfamily: "'Mona Sans', serif"; letter-spacing:.07em; margin-bottom:10px; padding:8px 10px 0; }
-        .ft-co-list { list-style:none; padding:0; margin:0; }
-        .ft-co-list li { margin-bottom:7px; padding:0 10px; }
-        .ft-co-link { font-size:12px; color:#888; text-decoration:none; transition:color .15s; }
-        .ft-co-link:hover { color:#F85700; }
+        .ft-links-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; }
+        .ft-link-col h4 { font-size: 14px; font-weight: 700; color: #1a1a1a; margin: 0 0 20px; }
+        .ft-link-col ul { list-style: none; padding: 0; margin: 0; }
+        .ft-link-col li { margin-bottom: 12px; }
+        .ft-link-col a { font-size: 13px; color: #555; text-decoration: none; transition: color 0.2s; }
+        .ft-link-col a:hover { color: #F85700; }
 
-        /* Bottom */
-        .ft-bot { background:#f5e8dc; border-top:1px solid #e8d0c0; padding:12px clamp(16px,4vw,56px); }
-        .ft-bot-in { max-width:1280px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
-        .ft-copy { font-size:11px; color:#aaa; margin:0; }
-        .ft-copy a { color:#F85700; font-weight:700; text-decoration:none; }
-        .ft-copy a:hover { text-decoration:underline; }
-        .ft-tags { display:flex; gap:6px; flex-wrap:wrap; }
-        .ft-tag { font-size:10px; font-weight:600; color:#bbb; border:1px solid #ddd; border-radius:5px; padding:2px 8px; background:#fff; }
+        /* Middle Section */
+        .ft-mid { display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 40px; padding: 40px 0; border-bottom: 1px solid #EAE6DF; }
+        
+        .ft-info-head { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+        .ft-info-text { font-size: 13px; color: #333; line-height: 1.6; margin-bottom: 10px; }
+        .ft-info-text a { color: #333; text-decoration: none; transition: color 0.2s; }
+        .ft-info-text a:hover { color: #F85700; }
 
-        @media(max-width:1100px){ .ft-cats{grid-template-columns:repeat(3,1fr);} } @media(max-width:900px){ .ft-grid{grid-template-columns:1fr;gap:28px;} .ft-cats{grid-template-columns:repeat(4,1fr);} }
-        @media(max-width:600px){ .ft-nl-in{flex-direction:column;align-items:flex-start;} .ft-nl-form{width:100%;} .ft-nl-inp{min-width:0;flex:1;} .ft-cats{grid-template-columns:repeat(2,1fr);} .ft-bot-in{flex-direction:column;align-items:flex-start;} }
+        .ft-social-wrap { display: flex; flex-direction: column; align-items: flex-start; }
+        .ft-socials { display: flex; gap: 12px; margin-bottom: 30px; }
+        .ft-social-icon { 
+          width: 36px; height: 36px; border-radius: 50%; 
+          display: flex; align-items: center; justify-content: center;
+          color: #fff; font-size: 15px; text-decoration: none; transition: transform 0.2s;
+        }
+        .ft-social-icon:hover { transform: translateY(-2px); }
+        .ft-social-ig { background-color: #C13584; }
+        .ft-social-fb { background-color: #1877F2; }
+        .ft-social-wa { background-color: #25D366; }
+        
+        .ft-top-btn { 
+          background: none; border: none; font-size: 12px; font-weight: 700; 
+          color: #6C6250; cursor: pointer; display: flex; align-items: center; gap: 6px; 
+          padding: 0;
+        }
+        .ft-top-btn:hover { color: #1a1a1a; }
+
+        /* Quote Section */
+        .ft-quote-sec { padding: 40px 0; border-bottom: 1px solid #EAE6DF; text-align: left; }
+        .ft-quote-text { 
+          font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 300; 
+          color: #6C6250; line-height: 1.5; margin: 0 0 16px; max-width: 1000px;
+        }
+        .ft-quote-author { font-size: 14px; color: #555; }
+
+        /* Bottom Section */
+        .ft-bot { padding: 24px 0 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .ft-copy { font-size: 11px; color: #888; margin: 0; }
+        .ft-copy a { color: #888; text-decoration: none; font-weight: 600; }
+        .ft-copy a:hover { color: #F85700; }
+        .ft-certs { font-size: 11px; color: #888; }
+        
+        @media(max-width: 1024px) {
+          .ft-top { grid-template-columns: 1fr; }
+          .ft-mid { grid-template-columns: 1fr 1fr; }
+        }
+        @media(max-width: 768px) {
+          .ft-links-grid { grid-template-columns: repeat(2, 1fr); }
+          .ft-mid { grid-template-columns: 1fr; }
+          .ft-quote-text { font-size: 18px; }
+          .ft-bot { flex-direction: column; align-items: flex-start; }
+        }
+        @media(max-width: 480px) {
+          .ft-links-grid { grid-template-columns: 1fr; }
+        }
       `}</style>
 
-      {/* Newsletter */}
-      {/* <div className="ft-nl">
-        <div className="ft-nl-in">
-          <div>
-            <p className="ft-nl-title">Join the Riya Art Palace Circle</p>
-            <p className="ft-nl-sub">New arrivals, B2B offers &amp; handicraft stories in your inbox.</p>
+      <div className="ft-container">
+        
+        {/* TOP SECTION */}
+        <div className="ft-top">
+          <div className="ft-brand-col">
+            <Image src={logo} alt="Riya Art Palace" style={{ height: 60, width: "auto", objectFit: "contain" }} />
+            <h3 className="ft-brand-title">RIYA ART PALACE</h3>
+            <p className="ft-brand-desc">
+              Exquisitely handcrafted Indian crafts that honor heritage, empower artisans, and cherish our roots. Proudly family-owned since 1995, delivering authentic Rajasthani art to the world.
+            </p>
+            <Link href="/about" className="ft-about-btn">
+              More About Us &rarr;
+            </Link>
           </div>
-          {subscribed
-            ? <p style={{ color:"#fff", fontWeight:700, fontSize:13 }}>✓ Subscribed! Thank you.</p>
-            : (
-              <form className="ft-nl-form" onSubmit={e => { e.preventDefault(); if(email.trim()){ setSubscribed(true); setEmail(""); }}}>
-                <input type="email" className="ft-nl-inp" placeholder="Your email address" value={email} onChange={e => setEmail(e.target.value)} required />
-                <button type="submit" className="ft-nl-btn">Subscribe →</button>
-              </form>
-            )
-          }
+
+          <div className="ft-links-grid">
+            <div className="ft-link-col">
+              <h4>About us</h4>
+              <ul>
+                {companyLinks.map(link => (
+                  <li key={link.name}><Link href={link.href}>{link.name}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="ft-link-col">
+              <h4>Quick Links</h4>
+              <ul>
+                {quickLinks.map(link => (
+                  <li key={link.name}><Link href={link.href}>{link.name}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="ft-link-col">
+              <h4>Categories</h4>
+              <ul>
+                {!loading && catCol1.map(cat => (
+                  <li key={cat.id}><Link href={`/products?category=${encodeURIComponent(cat.slug)}`}>{cat.name}</Link></li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="ft-link-col">
+              <h4>More Collections</h4>
+              <ul>
+                {!loading && catCol2.map(cat => (
+                  <li key={cat.id}><Link href={`/products?category=${encodeURIComponent(cat.slug)}`}>{cat.name}</Link></li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-      </div> */}
 
-      {/* Main */}
-      <div className="ft-main">
-        <div className="ft-grid">
-
-          {/* Brand + Contact */}
+        {/* MIDDLE SECTION */}
+        <div className="ft-mid">
           <div>
-            <Image src={logo} alt="Riya Art Palace" style={{ height:46, width:"auto", objectFit:"contain", display:"block" }} />
-            <p className="ft-tagline">"Crafting Tradition for You"</p>
-            <p className="ft-desc">Family-owned handicraft brand from Jaipur, Rajasthan. Authentic handmade creations since 1995.</p>
+            <div className="ft-info-head">Head Office</div>
+            <p className="ft-info-text">
+              C-143, 1st Phase, New Lohamandi,<br/>
+              Macheda, Jaipur – 302013<br/>
+              Rajasthan (INDIA)
+            </p>
+            <p className="ft-info-text" style={{ marginTop: 12 }}>
+              Ph: <a href="tel:+918385007350">+91-8385007350</a><br/>
+              Email: <a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a>
+            </p>
+          </div>
 
-            <a href="#" className="ft-im">
-              <Image src={indiamartLogo} alt="IndiaMart" width={95} height={28} style={{ objectFit:"contain", width:95, height:"auto" }} />
-            </a>
-            <a href="#" className="ft-im-lnk">Visit Our Indiamart Store →</a>
+          <div>
+            <div className="ft-info-head">Business Info</div>
+            <p className="ft-info-text">
+              GST: 08AIBPM9441J1ZZ<br/>
+              Established: 1995<br/>
+              Nature of Business: Manufacturer & Exporter
+            </p>
+          </div>
 
-            <div className="ft-ci"><MapPin size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val">C 143, NEW LOHA MANDI, MACHEDA,<br/> Jaipur, Rajasthan – 302013</span></div>
-            <div className="ft-ci"><Phone size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val"><a href="tel:+918047635730">+91-8385007350</a></span></div>
-            <div className="ft-ci"><Mail size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val"><a href="mailto:riya_art_palace@yahoo.com">riya_art_palace@yahoo.com</a></span></div>
-            <div className="ft-ci"><Building2 size={13} color="#F85700" strokeWidth={2} style={{flexShrink:0,marginTop:2}}/><span className="ft-ci-val">GST: 08AIBPM9441J1ZZ · Est. 1995</span></div>
-
+          <div className="ft-social-wrap">
+            <div className="ft-info-head">Follow Us</div>
             <div className="ft-socials">
-              {socials.map(s => (
-                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" className="ft-soc">
-                  {s.icon} {s.label}
-                </a>
-              ))}
+              <a href="#" className="ft-social-icon ft-social-ig"><FaInstagram /></a>
+              <a href="#" className="ft-social-icon ft-social-fb"><FaFacebookF /></a>
+              <a href="https://wa.me/918385007350" className="ft-social-icon ft-social-wa"><FaWhatsapp /></a>
             </div>
+            <button className="ft-top-btn" onClick={scrollToTop}>
+              &uarr; TOP
+            </button>
           </div>
-
-          {/* Categories grid */}
-          <div>
-            <div className="ft-cats">
-              {!loading && footerCats.map(cat => (
-                <CategoryCol key={cat.id} category={cat} />
-              ))}
-            </div>
-
-            {/* Company row — separate below categories */}
-            <div className="ft-company-row">
-              <div style={{ gridColumn: "1 / -1" }}>
-                <div style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(4, 1fr)",
-                  gap: "0 12px",
-                  paddingTop: 4,
-                }}>
-                  <div>
-                    <div className="ft-co-head">Company</div>
-                    <ul className="ft-co-list">
-                      {company.map(item => (
-                        <li key={item.name}>
-                          <Link href={item.href} className="ft-co-link">{item.name}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
         </div>
-      </div>
 
-      {/* Bottom */}
-      <div className="ft-bot">
-        <div className="ft-bot-in">
-          <p className="ft-copy">
-            © 2025 Riya Art Palace. All rights reserved. Crafted by{" "}
-            <a href="https://www.kontentkraftdigital.com/" target="_blank" rel="noopener noreferrer">Kontent Kraft Digital</a>
+        {/* QUOTE SECTION */}
+        <div className="ft-quote-sec">
+          <p className="ft-quote-text">
+            "Preserving the authentic heritage of Rajasthan, one handcrafted piece at a time. Every creation tells a story of tradition, skill, and the timeless beauty of Indian art."
           </p>
-          <div className="ft-tags">
-            <span className="ft-tag">🔒 Secure Payments</span>
-            <span className="ft-tag">🚚 Pan India Shipping</span>
-            <span className="ft-tag">⭐ Est. 1995</span>
+          <div className="ft-quote-author">&mdash; Founders, Riya Art Palace</div>
+        </div>
+
+        {/* BOTTOM SECTION */}
+        <div className="ft-bot">
+          <p className="ft-copy">
+            &copy; 2026 Riya Art Palace. All rights reserved. Lovingly handcrafted in India ♥ since 1995 &nbsp;|&nbsp; Crafted and Powered by <a href="https://www.kontentkraftdigital.com/" target="_blank" rel="noopener noreferrer">Kontent Kraft Digital</a>
+          </p>
+          <div className="ft-certs">
+            Secure Payments &bull; Pan India Shipping &bull; Global Exports
           </div>
         </div>
+
       </div>
     </footer>
   );

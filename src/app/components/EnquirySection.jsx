@@ -6,7 +6,7 @@ import { MapPin, Phone, Mail, Clock, Globe, ArrowRight, CheckCircle } from "luci
 const countries    = ["India","United States","United Kingdom","Australia","Canada","Germany","France","UAE","Singapore","Other"];
 const enquiryTypes = ["Wholesale / Bulk Order","Retail Order","Custom Design","OEM / Private Label","General Enquiry"];
 const quantities   = ["Less than 100 units","100 – 500 units","500 – 1000 units","1000 – 5000 units","5000+ units"];
-const categoryList = ["Wall Décor","Table Décor","Lac Collection","Event Décor","Festive Collection","Rajasthani Traditional","Handmade Accessories","Spiritual Items","Handpainted Articles","Diary Collection","Christmas Items","Ottomans & Puffs","Other"];
+const categoryList = ["Christmas Items","Diary Collection","Event Décor","Festive Collection","Handmade Accessories","Handpainted Articles","Lac Collection","Ottomans & Puffs","Rajasthani Traditional","Spiritual Items","Table Décor","Wall Décor","Other"];
 const toggleOpts   = ["Yes","No","Not Sure"];
 
 const INP = { width:"100%", padding:"12px 15px", border:"1.5px solid #e8d5c8", borderRadius:10, background:"#fff", fontFamily:"Manrope,sans-serif", fontSize:13, color:"#1a1a1a", outline:"none", boxSizing:"border-box" };

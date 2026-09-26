@@ -10,17 +10,15 @@ import wallDecor from "../assets/wall-decor.jpg";
 import tableDecor from "../assets/table-decor.jpg";
 import lacCollection from "../assets/lac-collection.jpg";
 import eventDecor from "../assets/event-decor.jpg";
-import handpainted from "../assets/handpainted.jpg";
 
-const staticMockProducts = [
-  { id: "mock-1", isMock: true, image: wallDecor,      name: "Pom Pom Wall Hangings",   price: 100, priceUnit: "Piece", description: "Wall hanging | Gota POM POM", slug: "pom-pom-wall-hangings", subcategory: { name: "Wall Decor" } },
-  { id: "mock-2", isMock: true, image: tableDecor,     name: "Table Decor Showpiece",    price: 250, priceUnit: "Piece", description: "Handcrafted table decor piece", slug: "table-decor-showpiece", subcategory: { name: "Table Decor" } },
-  { id: "mock-3", isMock: true, image: lacCollection,  name: "Lac Bangle Set",           price: 180, priceUnit: "Set",   description: "Traditional lac bangles", slug: "lac-bangle-set", subcategory: { name: "Lac Collection" } },
-  { id: "mock-4", isMock: true, image: eventDecor,     name: "Event Decor Torana",       price: 350, priceUnit: "Piece", description: "Handmade event decoration", slug: "event-decor-torana", subcategory: { name: "Event Decor" } },
-  // { id: "mock-5", isMock: true, image: handpainted,    name: "Hand Painted Art Piece",   price: 499, priceUnit: "Piece", description: "Hand painted Rajasthani art", slug: "hand-painted-art", subcategory: { name: "Handpainted" } },
+const staticMockRetailProducts = [
+  { id: "mock-retail-1", isMock: true, image: wallDecor,      name: "Pom Pom Wall Hangings",   price: 100, priceUnit: "Piece", description: "Wall hanging | Gota POM POM", slug: "pom-pom-wall-hangings", subcategory: { name: "Wall Decor" }, minOrderQty: 1, showInRetail: true },
+  { id: "mock-retail-2", isMock: true, image: tableDecor,     name: "Table Decor Showpiece",    price: 250, priceUnit: "Piece", description: "Handcrafted table decor piece", slug: "table-decor-showpiece", subcategory: { name: "Table Decor" }, minOrderQty: 1, showInRetail: true },
+  { id: "mock-retail-3", isMock: true, image: lacCollection,  name: "Lac Bangle Set",           price: 180, priceUnit: "Set",   description: "Traditional lac bangles", slug: "lac-bangle-set", subcategory: { name: "Lac Collection" }, minOrderQty: 1, showInRetail: true },
+  { id: "mock-retail-4", isMock: true, image: eventDecor,     name: "Event Decor Torana",       price: 350, priceUnit: "Piece", description: "Handmade event decoration", slug: "event-decor-torana", subcategory: { name: "Event Decor" }, minOrderQty: 1, showInRetail: true },
 ];
 
-function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
+function RetailProductCard({ product, qty, onDecrease, onIncrease }) {
   const router = useRouter();
   const { addToCart } = useCart();
   const { format } = useCurrency();
@@ -30,10 +28,10 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
     ? (product.image?.src || product.image)
     : (product.images?.[0] || "https://placehold.co/400x400?text=No+Image");
 
-  const categoryTag = product.subcategory?.name || product.category?.name || "";
+  const categoryTag = product.subcategory?.name || product.category?.name || "Retail Special";
 
   const handleClick = () => {
-    if (product.isMock) router.push("/products");
+    if (product.isMock) router.push("/retail-offers");
     else router.push(`/products/${product.slug}`);
   };
 
@@ -43,6 +41,8 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
       addToCart(product, qty);
       setAdded(true);
       setTimeout(() => setAdded(false), 1800);
+    } else {
+      router.push("/retail-offers");
     }
   };
 
@@ -65,6 +65,7 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
         <h3
           className="bsc-name"
           onClick={handleClick}
+          title={product.name}
         >
           {product.name}
         </h3>
@@ -84,7 +85,7 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
 
         {/* Qty */}
         <div className="bsc-qty-row">
-          <span className="bsc-qty-label">QTY</span>
+          <span className="bsc-qty-label">QTY (Min: {product.minOrderQty || 1})</span>
           <div className="bsc-qty-ctrl">
             <button className="bsc-qty-btn" onClick={(e) => { e.stopPropagation(); onDecrease(); }}>−</button>
             <span className="bsc-qty-num">{qty}</span>
@@ -97,7 +98,7 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
           className={`bsc-cart-btn${added ? " added" : ""}`}
           onClick={handleAddToCart}
         >
-          {added ? "✓ ADDED" : "ADD TO CART"}
+          {added ? "✓ ADDED TO CART" : "ADD TO CART"}
         </button>
 
         {/* Enquiry */}
@@ -121,17 +122,36 @@ function BestSellingCard({ product, qty, onDecrease, onIncrease }) {
   );
 }
 
-export default function BestSelling() {
-  const { products: allProducts, loading } = useCatalog();
+export default function RetailOffers() {
   const router = useRouter();
+  const { products: allProducts, loading } = useCatalog();
   const [quantities, setQuantities] = useState({});
 
-  const getQty = (id) => quantities[id] !== undefined ? quantities[id] : 500;
-  const decrease = (id) => setQuantities(p => ({ ...p, [id]: Math.max(1, getQty(id) - 1) }));
-  const increase = (id) => setQuantities(p => ({ ...p, [id]: getQty(id) + 1 }));
+  const retailProducts = allProducts.filter((p) => p.showInRetail === true);
+  const displayProducts = !loading && retailProducts.length > 0 ? retailProducts : staticMockRetailProducts;
 
-  const bestSellingProducts = allProducts.filter((p) => p.bestSelling === true).slice(0, 8);
-  const displayProducts = !loading && bestSellingProducts.length > 0 ? bestSellingProducts : staticMockProducts;
+  const getQty = (prod) => {
+    const id = prod.id || prod._id;
+    if (quantities[id] !== undefined) return quantities[id];
+    return prod.minOrderQty ?? 1;
+  };
+
+  const decrease = (prod) => {
+    const id = prod.id || prod._id;
+    const min = prod.minOrderQty ?? 1;
+    setQuantities((p) => ({
+      ...p,
+      [id]: Math.max(min, getQty(prod) - 1),
+    }));
+  };
+
+  const increase = (prod) => {
+    const id = prod.id || prod._id;
+    setQuantities((p) => ({
+      ...p,
+      [id]: getQty(prod) + 1,
+    }));
+  };
 
   return (
     <section style={{ backgroundColor: "#F7F5F3", paddingTop: "60px", paddingBottom: "60px" }}>
@@ -139,6 +159,39 @@ export default function BestSelling() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
         .bs-outer { max-width: 1280px; margin: 0 auto; padding: 0 40px; }
+
+        /* Header Layout */
+        .ro-header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+          margin-bottom: 48px;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+
+        /* View All Button */
+        .ro-view-all-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          background: #fff;
+          color: #111;
+          border: 1.5px solid #EDE8E2;
+          padding: 12px 24px;
+          border-radius: 999px;
+          font-family: 'Manrope', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.25s ease;
+          white-space: nowrap;
+        }
+        .ro-view-all-btn:hover {
+          background: #F85700;
+          color: #fff;
+          border-color: #F85700;
+        }
 
         /* Grid */
         .bs-grid {
@@ -352,29 +405,41 @@ export default function BestSelling() {
 
       <div className="bs-outer">
         {/* Header */}
-        <div className="bs-header" style={{ marginBottom: "48px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
-            <div style={{ width: "56px", height: "1px", backgroundColor: "#FF6500" }} />
-            <span style={{ color: "#F85700", fontSize: "14px", fontWeight: "700", fontFamily: "'Manrope', sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              MOST LOVED
-            </span>
+        <div className="ro-header-container">
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+              <div style={{ width: "56px", height: "1px", backgroundColor: "#FF6500" }} />
+              <span style={{ color: "#F85700", fontSize: "14px", fontWeight: "700", fontFamily: "'Manrope', sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                EXCLUSIVE RETAIL OFFERS
+              </span>
+            </div>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "40px", fontWeight: "800", color: "#0E0E0E", margin: 0, lineHeight: 1.2 }}>
+              Direct Retail Deals & Offers
+            </h2>
+            <p style={{ fontFamily: "'Manrope', sans-serif", fontSize: "15px", color: "#6C5F57", marginTop: "12px", marginBottom: 0, maxWidth: "600px" }}>
+              Buy authentic handcrafted creations in single units or small quantities without bulk MOQ limits.
+            </p>
           </div>
-          <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "40px", fontWeight: "800", color: "#0E0E0E", margin: 0, lineHeight: 1.2 }}>
-            Our Best-Selling Pieces
-          </h2>
+          <button
+            type="button"
+            className="ro-view-all-btn"
+            onClick={() => router.push("/retail-offers")}
+          >
+            View All Retail Offers →
+          </button>
         </div>
 
         {/* Grid */}
         <div className="bs-grid">
           {displayProducts.map((product, index) => {
-            const id = product.id || product._id || `mock-${index}`;
+            const id = product.id || product._id || `retail-${index}`;
             return (
-              <BestSellingCard
+              <RetailProductCard
                 key={id}
                 product={product}
-                qty={getQty(id)}
-                onDecrease={() => decrease(id)}
-                onIncrease={() => increase(id)}
+                qty={getQty(product)}
+                onDecrease={() => decrease(product)}
+                onIncrease={() => increase(product)}
               />
             );
           })}

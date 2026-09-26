@@ -827,7 +827,7 @@ const handleSearchResultClick = (item) => {
           height: 44px;
           padding: 0 22px;
           border-radius: 999px;
-          background: #FF870F;
+          background: #f85700;
           color: #fff;
           font-family: "Manrope", sans-serif;
           font-size: 13px;
@@ -841,7 +841,7 @@ const handleSearchResultClick = (item) => {
           flex-shrink: 0;
         }
         .nb-enquiry-btn:hover {
-          background: #e87500;
+          background: #f85700;
           transform: scale(1.02);
         }
 
