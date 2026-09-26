@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCatalog } from "@/app/components/CatalogContext";
 import { useCart } from "@/app/components/CartContext";
 import { useCurrency } from "@/app/components/CurrencyContext";
+import { motion } from "framer-motion";
 import ProductWatermark from "./ProductWatermark";
 
 import wallDecor from "../assets/wall-decor.jpg";
@@ -365,20 +366,39 @@ export default function BestSelling() {
         </div>
 
         {/* Grid */}
-        <div className="bs-grid">
+        <motion.div 
+          className="bs-grid"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.15 }
+            }
+          }}
+        >
           {displayProducts.map((product, index) => {
             const id = product.id || product._id || `mock-${index}`;
             return (
-              <BestSellingCard
+              <motion.div 
                 key={id}
-                product={product}
-                qty={getQty(id)}
-                onDecrease={() => decrease(id)}
-                onIncrease={() => increase(id)}
-              />
+                variants={{
+                  hidden: { opacity: 0, y: 30 },
+                  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 70, damping: 15 } }
+                }}
+              >
+                <BestSellingCard
+                  product={product}
+                  qty={getQty(id)}
+                  onDecrease={() => decrease(id)}
+                  onIncrease={() => increase(id)}
+                />
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

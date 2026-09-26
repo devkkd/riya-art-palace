@@ -173,11 +173,11 @@ export default function RiyaArtPalacePage() {
   }
 
   .left-women-img {
-    border-radius: 180px 180px 180px 180px;
+    border-radius: 24px;
   }
 
   .right-women-img {
-    border-radius: 180px 180px 180px 80px;
+    border-radius: 24px;
   }
     
 
@@ -226,7 +226,7 @@ export default function RiyaArtPalacePage() {
 
     .left-women-img,
     .right-women-img {
-      border-radius: 150px 150px 70px 150px;
+      border-radius: 20px;
     }
   }
 

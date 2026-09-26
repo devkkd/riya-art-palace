@@ -12,23 +12,25 @@ import Footer from "./components/Footer";
 import Story from "./components/Story"
 import ValuesSection from "./components/ValuesSection.jsx";
 import FollowUs from "./components/FollowUs";
+import ScrollReveal from "./components/ScrollReveal";
+
 export default function Home() {
   return (
     <>
       <Navbar />
       <Hero />
-      <CategoryBanner />
-      <Collections />
-      <RetailOffers />
-      <BestSelling />
-      <AboutSection />
+      <ScrollReveal yOffset={60} duration={0.9}><CategoryBanner /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><Collections /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><RetailOffers /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><BestSelling /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><AboutSection /></ScrollReveal>
       {/* <Story /> */}
-      {/* <Global /> */}
-      <EnquirySection />
-      <Reviews />
+      <ScrollReveal yOffset={60} duration={0.9}><Global /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><EnquirySection /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><Reviews /></ScrollReveal>
       
-      <ValuesSection />
-      <FollowUs />
+      <ScrollReveal yOffset={60} duration={0.9}><ValuesSection /></ScrollReveal>
+      <ScrollReveal yOffset={60} duration={0.9}><FollowUs /></ScrollReveal>
       <Footer />
     </>
   );
